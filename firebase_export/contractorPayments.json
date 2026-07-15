@@ -1,0 +1,50 @@
+[
+  {
+    "id": "id_mrb3m5e8glfrr",
+    "contractorId": "id_mr9jl2d55dlva",
+    "date": "2026-07-09",
+    "dateAbono": "",
+    "datePagoTotal": "",
+    "amount": 663000,
+    "paidAmount": 363000,
+    "description": "PAGO DE ASESORIA FINANCIERA"
+  },
+  {
+    "id": "id_mrb3m5e8dtkr5",
+    "contractorId": "id_mr9p2nfi8h7dq",
+    "date": "2026-07-08",
+    "dateAbono": "",
+    "datePagoTotal": "",
+    "amount": 450000,
+    "paidAmount": 225000,
+    "description": "Pago final correspondiente al 50% restante de los servicios prestados durante el mes de abril, los cuales constan de la creación de carruseles para redes sociales, en formatos estáticos e interactivos, así como de la edición de reels, de acuerdo con los requerimientos del cliente. Cuenta de ahorros Bancolombia  N.º  72547656653"
+  },
+  {
+    "id": "id_mrb3m5e8bxvnx",
+    "contractorId": "id_mr9p6c0mxtigm",
+    "date": "2026-07-01",
+    "amount": 0,
+    "paidAmount": 0,
+    "description": ""
+  },
+  {
+    "id": "id_mrb3m5e8r93sq",
+    "contractorId": "id_mr9pbfnac319z",
+    "date": "2026-06-19",
+    "dateAbono": "",
+    "datePagoTotal": "2026-07-09",
+    "amount": 720000,
+    "paidAmount": 720000,
+    "description": "POR CONCEPTO DE: Paquete TOP - Fotografías Malabar Reservado casa 38"
+  },
+  {
+    "id": "id_mrmj3qyv32ick",
+    "contractorId": "id_mrm5gvmc8vgkn",
+    "date": "2026-07-15",
+    "dateAbono": "",
+    "datePagoTotal": "",
+    "amount": 1062000,
+    "paidAmount": 0,
+    "description": "SERVICIO DE PAGINAS"
+  }
+]

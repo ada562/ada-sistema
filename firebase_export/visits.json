@@ -1,0 +1,328 @@
+[
+  {
+    "id": "id_mr14pwb0m0wqk",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-03-26",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12o1mhkriek",
+      "id_mr12s70w8ydjz",
+      "id_mr133i2k9nhmt"
+    ],
+    "notes": "Visita a obra  por parte de los arq Alejandra, Arq Juan David, Arq Pablo. Se realiza toma de medidas y escucha de requerimientos  de diseño por parte de la cliente, se corroboran medidas y planimetría  comparativas con los planos arquitectónicos, se realiza detalle de especificación."
+  },
+  {
+    "id": "id_mr14r591eyfia",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-04-10",
+    "time": "",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "Reunión virtual con los clientes en donde se mostro la nueva distribución arquitectónica, y un acercamiento al diseño de la carpintería tanto del vestier como del mueble de gym,En esta reunión se definió el hecho tener un vestier grande sin perder el baño de la habitación auxiliar"
+  },
+  {
+    "id": "id_mr14s39i76ox9",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-04-15",
+    "time": "",
+    "attendeeIds": [
+      "id_mqqu46fz9351o",
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "visita maestro Alirio para presupuesto, arq juan Sebastián 2 horas , diseñador pablo y practicante Nataly toma de medidas para iluminación y puntos sanitarios."
+  },
+  {
+    "id": "id_mr1528belakzf",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-04-13",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12o1mhkriek",
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Reunión virtual Ceo ADA y diseñador de carpinteria con clientes, se socializa nueva distribucion de vestier, gimnasio, retroalimentacion para zona de estudio (despacho), y se tocaron varios temas que quedan en el acta de reunion"
+  },
+  {
+    "id": "id_mr156ju7rsys1",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-04-27",
+    "time": "",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "Visita de inicio de obra, arq juan Sebastián y diseñador pablo, directrices de desmonte y demolición de muros vestiers baño."
+  },
+  {
+    "id": "id_mr158c3qkoro2",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-04-27",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12o1mhkriek"
+    ],
+    "notes": "Reunión virtual clientes, ceo sola , elección de baño principal ."
+  },
+  {
+    "id": "id_mr1591an5yajk",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-04-30",
+    "time": "",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "Visita a avance de obra por parte del arq Juan Sebastián y el diseñador Pablo Novoa con proveedor de estructuras metálicas, se hizo revisión estructural de los dinteles y sugerencias para incorporar una viga o columna en la intercepción de las paredes demolidas, y se hizo revisión de avance de obra."
+  },
+  {
+    "id": "id_mr16ewrhovfu7",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-05",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Visita a avance de obra: El diseñador Pablo Novoa vista avance de obra, encuentra buena limpieza, muebles del baño ppl en la sala, demolición de dinteles de paredes demolidas, retiro de enchapes y pisos de ambos baños pples. Se dejan dudas a resolver en video y en acta de visita."
+  },
+  {
+    "id": "id_mr16exziz0a6l",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-05",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Visita a avance de obra: El diseñador Pablo Novoa vista avance de obra, encuentra buena limpieza, muebles del baño ppl en la sala, demolición de dinteles de paredes demolidas, retiro de enchapes y pisos de ambos baños pples. Se dejan dudas a resolver en video y en acta de visita."
+  },
+  {
+    "id": "id_mr16fyda5sdh7",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-07",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12o1mhkriek",
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Visita y reunión con clientes. La arq Alejandra Durán y el Di Pablo Novoa van a obra para reunión con clientes, se hace un repaso de avance de obra y se hacen preguntas puntuales y revisión de de referentes enviados el día anterior. Adicional se hace revisión para cotizacion con los proveedores de impermeabilización de las duchas"
+  },
+  {
+    "id": "id_mr16pxwrmt0qv",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-12",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Visita a obra con @Pablo Novoa, retoma medidas del área de Vestier principal y conocimiento del espacio."
+  },
+  {
+    "id": "id_mr16pyp101z87",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-12",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Visita a obra con @Pablo Novoa, retoma medidas del área de Vestier principal y conocimiento del espacio."
+  },
+  {
+    "id": "id_mr16qo0wyxdw0",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-15",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "VISTA DE AVANCE DE OBRA: El diseñador Pablo Novoa realiza inspección de avance de obra, se dejan varias dudas en el video de la visita, entre ellas las reparaciones de muros de los vistieres, encanche para puntos eléctricos, reparación de cielo raso del Vestier ppl, entre otros puntos. Igualmente se hace evidencia el recogido de muebles retirados, pero dejando parte del descolgado de la sala comedor, el retiro de los elementos internos del mueble de linos para poder desmontarlo del mismo, entre otros."
+  },
+  {
+    "id": "id_mr16sfet0oy2p",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-19",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Visita avance de obra. el Diseñador Pablo Novoa visito el inmueble, reviso lo que se había retirado. Se compartió las observaciones de Alejandra de la visita anterior, y se dejo estipulado el paso a paso de las prioridades, se deja en evidencia el video del recorrido y las observaciones encontradas por el tema retiro de los aires acondicionados"
+  },
+  {
+    "id": "id_mr16t8x81fo9d",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-25",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12o1mhkriek"
+    ],
+    "notes": "Reunión con cliente en la galería para revisión de diseño de Vestier y avance de zona de ropas. Se hicieron unos cambios puntuales en el diseño de Vestier y zona de ropas si hay que cambiarlo mas. Esto fue lo hablado mientras yo estuve presente ya que Alejandra siguió en reunión con la cliente"
+  },
+  {
+    "id": "id_mr16vf0jupnhy",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-26",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Visita a obra para toma de medidas de Vestier de alcoba auxiliar, tambien se reviso el tema de cerramiento de la diagonal en vestier principal (zona doña Claudia) que esta pendiente de si se ejecuta o no, tambien un tema de interruptores y puntos de conexion para la iluminacion del vestier (estos se muestran en un video reporte que subira @Pablo Novoa)."
+  },
+  {
+    "id": "id_mr16wdemjff2l",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-05-28",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz",
+      "id_mr133i2k9nhmt"
+    ],
+    "notes": "Visita a obra por parte de los diseñadores Juan David y Pablo Novoa, reunión con los de SAGO para realización de cotización de sistema eléctrico, avance en refuerzos para el cielo raso y coordinación de actividades de obra con Alirio."
+  },
+  {
+    "id": "id_mr16x13wf1w2b",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-06-02",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Visita de avance de obra, el diseñador Pablo Novoa va las 8 am a CONCEPTOS a recoger una pieza de enchape para piso para llevar a PINAMAR, se revisa con CEO para aprobación a lo que requiere cambio de color, por lo que nuevamente se retorna a CONCEPTOS para remplazo, esta nueva pieza se revisa con CEO y es aprobada. Posterior a eso se realizan indicaciones a Alirio para seguimiento de obra. Posterior tanto diseñador Pablo Novoa y Arq Juan sebastian van a las 2 para realizar \"tendido en seco\" de enchape para paredes del baño ppl, se determina un patron para trabajo de enchape de Alirio, se realiza video de avance y dudas en video de recorrido."
+  },
+  {
+    "id": "id_mr16xrl3fny0i",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-06-04",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "El diseñador Pablo Novoa visita la obra, se reúne con Erick y Alirio para revisar el tema de demolición de una pared a mover 10 cm en el ingreso del baño ppl. Revisión de avance de obra, inicio de enchapada, valoración de segunda capa de impermeabilización y coordinación con planos de actualización de baño ppl y baño aux ppl. Igualmente se ve el avance en el retiro del enchape de la zona de ropas y avance de nichos de baños antes de enchape de paredes"
+  },
+  {
+    "id": "id_mr16yifngwqe7",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-06-10",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12o1mhkriek"
+    ],
+    "notes": "Visita de avance de obra, llevada de planos eléctricos e instrucciones para inicio de enchapado de baño ppl y baño aux ppl"
+  },
+  {
+    "id": "id_mr16z6emm35gx",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-06-11",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "Reunión con clienta, la arq Aleja, la arq Natalia y el diseñador Pablo Novoa, revision de avance de obra y supervición y resolucion de dudas con equipo de electrica y elquipo de obra\nDuración 2 horas"
+  },
+  {
+    "id": "id_mr1702kfcf5d7",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-06-16",
+    "time": "",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "Visita de avance de obra, para avance de enchapado, supervicion de trabajo de puntos electricos y resolución de dudas del quipo de obra. Toma de medidas de la zona de ropas y lavadoras.",
+    "amount": 0
+  },
+  {
+    "id": "id_mr170lzfyyqfs",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-06-16",
+    "time": "",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "Visita de avance de obra: se realiza un seguimiento e actividades de Alirio, se ven los resultados de el avance de enchapes de baños ppls, se realiza una planificación con Alirio de actividades para el resto de la semana, se hace revisión de medidas con Jorge para la cotización de vidrios para duchas de los baños, se dejan algunas dudas en video recorrido"
+  },
+  {
+    "id": "id_mr17193pmhjbv",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-06-25",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12o1mhkriek"
+    ],
+    "notes": "Visita de avance de obra: Se lleva desde conceptos el mezclador del baño de los hijos, se recibe y se sube los pisos LVT, se hace revisión de puntos de red para definir cotización de internet, se observa seguimiento de entrega de Alirio para el sabado (Enchape completo de los 4 baños), se recogen 3 lamparas faltantes por traer a galería para su pintada, falta definir color (Champaña o Bronce), Se hace videos de recorrido con dudas para CEO",
+    "amount": 0
+  },
+  {
+    "id": "id_mr6nqitz4p0sy",
+    "projectId": "id_mqtlkegidhxxk",
+    "date": "2026-07-02",
+    "topic": "Arquitectura",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "visita a obra, arquitecto juan Sebastián, revisión de obra , tiempo 15 minutos @Alejandra castillo",
+    "amount": 2500,
+    "invoiced": true
+  },
+  {
+    "id": "id_mr6nx8sdrlnnd",
+    "projectId": "id_mqtlf5eev9fq0",
+    "date": "2026-07-01",
+    "time": "",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "reunión virtual, arquitecto juan Sebastián, revisión de cotización vianova, tiempo 15 minutos @Alejandra castillo",
+    "amount": 0
+  },
+  {
+    "id": "id_mr6nxu55vqcnb",
+    "projectId": "id_mqtlf5eev9fq0",
+    "date": "2026-07-02",
+    "topic": "Interiorismo",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "Reunión virtual arquitecto juan Sebastián, revisión para cotización de piscina, tiempo 15 minutos @Alejandra castillo",
+    "amount": 0
+  },
+  {
+    "id": "id_mr6nz4pu53rtl",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-06-30",
+    "time": "",
+    "attendeeIds": [
+      "id_mr12s70w8ydjz"
+    ],
+    "notes": "visita a obra arquitecto juan Sebastián, reunión con Esteban revisión presupuestos duración 1 hora, juan Sebastián revisión obra 1 hora, toma de medidas y marcación en sitio de interiorismo juliana 2 horas, y Pablo visita a obra 3 horas @Alejandra castillo",
+    "amount": 0
+  },
+  {
+    "id": "id_mr6o0anxdy212",
+    "projectId": "id_mqtllc2vm60fb",
+    "date": "2026-07-02",
+    "topic": "",
+    "attendeeIds": [],
+    "notes": "02.07.2026 Visita avance de obra, se encuentra avances y finalizaciones de enchape de baños, boquillas, e inicio de piso en LVT, puntos de internet listos, inicio de la 2da fase de iluminación, recorrido con Andrés (SAGO) de revisión de puntos del plano nuevo, Re cotización de los vidrios para ducha, presencia en reunión virtual para dejar anotaciones en obra, solicitud de varios trabajaos tanto para Alirio como Wilson.\n\nDuración: 3 horas",
+    "amount": 0
+  },
+  {
+    "id": "id_mr6o1laasnbr9",
+    "projectId": "id_mqtljegt2g4mx",
+    "date": "2026-07-02",
+    "time": "",
+    "attendeeIds": [
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "visita a obra, arquitecto juan Sebastián, revisión de obra , tiempo 15 minutos @Alejandra castillo",
+    "amount": 0
+  },
+  {
+    "id": "id_2w7imiz22mrmk0lah",
+    "projectId": "id_mqtlm5zem9lod",
+    "date": "2026-07-15",
+    "topic": "Arquitectura",
+    "attendeeIds": [
+      "id_mr3ljouka8r0z",
+      "id_mqqu46fz9351o"
+    ],
+    "notes": "Se reviso en sitio por medio de las escotillas actuales que los muros interiores en mamposteria no tocan las vigas y que no son estructurales, y por ende se puden demoler.",
+    "amount": 0,
+    "invoiced": false
+  }
+]

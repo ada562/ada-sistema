@@ -1,0 +1,13 @@
+[
+  {
+    "id": "id_mrgnq520723za",
+    "employeeId": "id_mrdrp6d8rf1dk",
+    "date": "2026-07-11",
+    "quincena": 1,
+    "periodStart": "2026-07-01",
+    "periodEnd": "2026-07-15",
+    "amount": 930000,
+    "method": "efectivo",
+    "notes": ""
+  }
+]

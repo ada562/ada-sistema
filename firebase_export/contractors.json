@@ -1,0 +1,36 @@
+[
+  {
+    "id": "id_mr9jl2d55dlva",
+    "name": "SERGIO PINEDA",
+    "phone": "3142896521",
+    "email": "vaseadmon@gmail.com",
+    "active": true,
+    "notes": ""
+  },
+  {
+    "id": "id_mr9p2nfi8h7dq",
+    "name": "VALERIA LUNA RAMÍREZ",
+    "phone": "321 6902721",
+    "email": ""
+  },
+  {
+    "id": "id_mr9p6c0mxtigm",
+    "name": "Carlos Eduardo López Ramos",
+    "phone": "324 5677922",
+    "email": "genemis89@gmail.com"
+  },
+  {
+    "id": "id_mr9pbfnac319z",
+    "name": "CAROLINA VALENCIA",
+    "phone": "3117154852",
+    "email": ""
+  },
+  {
+    "id": "id_mrm5gvmc8vgkn",
+    "name": "NATALY GALVEZ",
+    "phone": "3155787713",
+    "email": "Galvezoyolan@gmail.com",
+    "active": true,
+    "notes": "CONTRATISTA PAGO POR NEQUI 3155787713"
+  }
+]

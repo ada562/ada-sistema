@@ -1,0 +1,15 @@
+{
+  "workDaysPerMonth": 23,
+  "cargaPrestacionalPct": 29,
+  "ivaPct": 19,
+  "imprevistosPct": 5,
+  "administracionPct": 15,
+  "utilidadPct": 30,
+  "saldoInicial": {
+    "banco": 2792626,
+    "efectivo": 4868250,
+    "nequi": 201471
+  },
+  "contractorsMigratedV2": true,
+  "gbaProjectsMigrated": true
+}

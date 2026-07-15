@@ -1,0 +1,2656 @@
+{
+  "ada:employees": {
+    "data": [
+      {
+        "id": "id_mqqu46fz9351o",
+        "name": "JUAN SEBASTIAN GUTIERREZ",
+        "cedula": "",
+        "role": "GERENTE DE PROYECTOS",
+        "monthlyRate": 1660000,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 790000,
+        "contractUntil": "2026-07-13",
+        "pin": "1507"
+      },
+      {
+        "id": "id_mr12o1mhkriek",
+        "name": "ALEJANDRA DURAN AGUDELO",
+        "role": "CEO",
+        "monthlyRate": 0,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 0,
+        "contractUntil": ""
+      },
+      {
+        "id": "id_mr12s70w8ydjz",
+        "name": "PABLO NOVOA",
+        "role": "COORDINADOR DE CARPINTERIA",
+        "monthlyRate": 1750905,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 650000,
+        "contractUntil": ""
+      },
+      {
+        "id": "id_mr12tsqn3c7f8",
+        "name": "JULIANA TORRES",
+        "role": "COORDINADOR DE DISEÑO",
+        "monthlyRate": 1750905,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 170000,
+        "contractUntil": ""
+      },
+      {
+        "id": "id_mr1301msbkgf2",
+        "name": "ANGELICA MONRROY",
+        "role": "COORDINADOR DE DISEÑO",
+        "monthlyRate": 1750905,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 170000,
+        "contractUntil": ""
+      },
+      {
+        "id": "id_mr133i2k9nhmt",
+        "name": "JUAN DAVID DIAZ VILLEGAS",
+        "role": "COORDINADOR DE CARPINTERIA",
+        "monthlyRate": 1860000,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 790000,
+        "contractUntil": ""
+      },
+      {
+        "id": "id_mr3ljouka8r0z",
+        "name": "DAVID MANZANO",
+        "role": "COORDINADOR DE CARPINTERIA",
+        "monthlyRate": 1750905,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 529600,
+        "contractUntil": "2026-07-13"
+      },
+      {
+        "id": "id_mr3lksg34ub79",
+        "name": "LUISA FRANCHESCA MARIN",
+        "role": "COORDINADO DE MARKETING",
+        "monthlyRate": 1660000,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 540000,
+        "contractUntil": ""
+      },
+      {
+        "id": "id_mrdrp6d8rf1dk",
+        "name": "CLAUDIA ALEJANDRA CASTILLO",
+        "cedula": "",
+        "role": "AUX ADMINISTRATIVA Y CONTABLE",
+        "monthlyRate": 1860000,
+        "cargaPct": 30,
+        "active": true,
+        "nonConstitutiveSalary": 0,
+        "contractUntil": "2026-11-15",
+        "pin": "1227"
+      }
+    ],
+    "count": 9,
+    "updatedAt": "1784148207519"
+  },
+  "ada:projects": {
+    "data": [
+      {
+        "id": "id_mqtlb51wzncc4",
+        "name": "CASA AL REVES",
+        "client": "GUSTAVO",
+        "serviceType": "DELUXE",
+        "status": "Activo",
+        "startDate": "2025-05-01",
+        "contractValue": 10922000,
+        "ivaPct": 0,
+        "notes": "",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mqtlf5eev9fq0",
+        "name": "CASA SACRO",
+        "client": "DEIVER MACHADO",
+        "status": "Activo",
+        "startDate": "2025-08-30",
+        "contractValue": 33173433,
+        "ivaPct": 0,
+        "notes": "",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mqtljegt2g4mx",
+        "name": "GRAN RESORT 305",
+        "client": "",
+        "status": "Pausado",
+        "startDate": "2025-03-01",
+        "contractValue": 0,
+        "ivaPct": 0,
+        "notes": "",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mqtlkegidhxxk",
+        "name": "GRAN RESORT 405",
+        "client": "",
+        "status": "Pausado",
+        "startDate": "2025-03-01",
+        "contractValue": 0,
+        "ivaPct": 0,
+        "notes": "",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mqtllc2vm60fb",
+        "name": "PINAMAR",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-04-01",
+        "contractValue": 10000000,
+        "ivaPct": 0,
+        "notes": "",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mqtlm5zem9lod",
+        "name": "ICONO 509",
+        "client": "",
+        "status": "Activo",
+        "startDate": "2026-04-01",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mr15l4jvrsepf",
+        "name": "HOTEL CALI",
+        "client": "JUAN CARLOS VELASQUEZ",
+        "status": "Pausado",
+        "startDate": "2025-08-15",
+        "contractValue": 74000000,
+        "ivaPct": 0,
+        "notes": "PAGO 106.000.000 MILLONES",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrdwna8srcqz0",
+        "name": "ALEJANDRA CASTILLO",
+        "client": "ALEJANDRA DURAN",
+        "serviceType": "DELUXE",
+        "status": "Activo",
+        "startDate": "2026-07-09",
+        "contractValue": 130000000,
+        "ivaPct": 19,
+        "notes": "",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryim5m8h1",
+        "name": "ACAPULCO",
+        "client": "",
+        "serviceType": "",
+        "status": "Pausado",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimza3of",
+        "name": "ADA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimj59ik",
+        "name": "ADA COMUNITY (CANAL DE VENTA)",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimxd3x4",
+        "name": "ADA LEARNING (CANAL DE APRENDIZAJE)",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimz220i",
+        "name": "ADA-OBRA PINAMAR",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimr54gp",
+        "name": "ADG (REDES)",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryim5ymhj",
+        "name": "ADMINISTRATIVO",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimibfdo",
+        "name": "ALBURQUERQUE GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryim6a96n",
+        "name": "AP 9",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimd8eku",
+        "name": "AP 9 GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimrq5m7",
+        "name": "BOSQUES DEL RIO-GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimkfkdv",
+        "name": "CASA ROSA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryim3lw67",
+        "name": "CASA ROSA EXPRESS",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimdw1eq",
+        "name": "CASA SACRO FACHADAS",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimy9jtp",
+        "name": "CASA SACRO FACHADAS MONACO-GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimexb1l",
+        "name": "CONSULTORIO ICONO 509",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimewla2",
+        "name": "DISEÑO ILUMINACION 103",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimz4kfh",
+        "name": "EL CAIRO GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimyi9n7",
+        "name": "FARAON / MANHATHAN /DENTIS",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryim4hlo5",
+        "name": "GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimedn4j",
+        "name": "GBA (REDES)",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimn1lf8",
+        "name": "GR 302",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimpn9bw",
+        "name": "GR 305",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimmsqj0",
+        "name": "GR 405",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimnmqxh",
+        "name": "GRAND RESORT 103",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryimsuu5w",
+        "name": "GRAND RESORT 103 - GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimjf1nt",
+        "name": "HABITACION BEBE MONACO GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimt9izn",
+        "name": "LA UNION GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimfbjtm",
+        "name": "La Fontana GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryim1xep4",
+        "name": "MR15 GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimm0fwy",
+        "name": "MR38 GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      },
+      {
+        "id": "id_mrm3ryimxm2xm",
+        "name": "OTROS",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryim7vw55",
+        "name": "PINAMAR-ADA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": false
+      },
+      {
+        "id": "id_mrm3ryim63nxy",
+        "name": "PINAMAR-GBA",
+        "client": "",
+        "serviceType": "",
+        "status": "Activo",
+        "startDate": "2026-07-15",
+        "contractValue": 0,
+        "ivaPct": 19,
+        "notes": "Importado automáticamente desde Excel de bitácora",
+        "esDeGBA": true
+      }
+    ],
+    "count": 42,
+    "updatedAt": "1784133894206"
+  },
+  "ada:services": {
+    "data": [
+      {
+        "id": "id_mrdzejhp1hxjo",
+        "projectId": "id_mrdwna8srcqz0",
+        "name": "LUXE",
+        "status": "Activo",
+        "startDate": "2026-07-09",
+        "contractValue": 130000000,
+        "ivaPct": 19,
+        "notes": "",
+        "isPrimary": true
+      },
+      {
+        "id": "id_mrl4h5w2ivswq",
+        "projectId": "id_mrdwna8srcqz0",
+        "name": "ACABADOS",
+        "status": "Activo",
+        "startDate": "2026-07-14",
+        "contractValue": 135000,
+        "ivaPct": 19,
+        "notes": "",
+        "isPrimary": false
+      }
+    ],
+    "count": 2,
+    "updatedAt": "1784121667231"
+  },
+  "ada:timelogs": {
+    "data": [
+      {
+        "id": "id_mr13fsxnltpdn",
+        "employeeId": "id_mqqu46fz9351o",
+        "projectId": "id_mqtlf5eev9fq0",
+        "date": "2026-06-05",
+        "days": 0.5,
+        "note": ""
+      },
+      {
+        "id": "id_mr13ga56u7s4p",
+        "employeeId": "id_mqqu46fz9351o",
+        "projectId": "id_mqtlf5eev9fq0",
+        "date": "2026-06-12",
+        "days": 2.5,
+        "note": ""
+      },
+      {
+        "id": "id_mr13gv5it2kxt",
+        "employeeId": "id_mqqu46fz9351o",
+        "projectId": "id_mqtlf5eev9fq0",
+        "date": "2026-06-19",
+        "days": 2,
+        "note": ""
+      },
+      {
+        "id": "id_mr13i5th65ynh",
+        "employeeId": "id_mqqu46fz9351o",
+        "projectId": "id_mqtlf5eev9fq0",
+        "date": "2026-06-26",
+        "days": 2,
+        "note": ""
+      },
+      {
+        "id": "id_3qa1w5dd6mrmdrt8h",
+        "employeeId": "id_mrdrp6d8rf1dk",
+        "projectId": "id_mrm3ryim5m8h1",
+        "date": "2026-07-15",
+        "days": 0.5,
+        "note": "Registrado desde Bitácora"
+      },
+      {
+        "id": "id_anmjo5yrfmrmjwrs8",
+        "employeeId": "id_mqqu46fz9351o",
+        "projectId": "id_mrm3ryimpn9bw",
+        "date": "2026-07-15",
+        "days": 0.25,
+        "note": "Registrado desde Bitácora"
+      },
+      {
+        "id": "id_ruoh5lrg4mrmjx4m8",
+        "employeeId": "id_mqqu46fz9351o",
+        "projectId": "id_mqtlf5eev9fq0",
+        "date": "2026-07-15",
+        "days": 0.25,
+        "note": "Registrado desde Bitácora"
+      },
+      {
+        "id": "id_vvmf9txpjmrmjxgaj",
+        "employeeId": "id_mqqu46fz9351o",
+        "projectId": "id_mrm3ryimexb1l",
+        "date": "2026-07-15",
+        "days": 0.25,
+        "note": "Registrado desde Bitácora"
+      },
+      {
+        "id": "id_nifdz4drgmrmjxszc",
+        "employeeId": "id_mqqu46fz9351o",
+        "projectId": "id_mrm3ryimmsqj0",
+        "date": "2026-07-15",
+        "days": 0.25,
+        "note": "Registrado desde Bitácora"
+      }
+    ],
+    "count": 9,
+    "updatedAt": "1784148478968"
+  },
+  "ada:transactions": {
+    "data": [
+      {
+        "id": "id_mqtl8al5b78tg",
+        "date": "2026-06-01",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 201550,
+        "category": "SUMINISTROS DE OFICINA",
+        "projectId": null,
+        "description": "PAGO DE HOTMART  CAPACITACIONES"
+      },
+      {
+        "id": "id_mqtl9dsb3lgim",
+        "date": "2026-06-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 163910,
+        "category": "SUMINISTROS DE OFICINA",
+        "projectId": null,
+        "description": "PAGO DE HOTMART  CAPACITACIONES"
+      },
+      {
+        "id": "id_mqtlnnn3eog7q",
+        "date": "2026-06-02",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 60000,
+        "category": "OTROS GASTOS",
+        "projectId": "id_mqtlkegidhxxk",
+        "description": ""
+      },
+      {
+        "id": "id_mqtn258re8ayx",
+        "date": "2026-06-02",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 23000,
+        "category": "TRANSPORTE",
+        "projectId": "id_mqtllc2vm60fb",
+        "description": "PROYECTO PINAMAR"
+      },
+      {
+        "id": "id_mqtndszh632mq",
+        "date": "2026-06-04",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 4495000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "TRASLADO DEL EFECTIVO DE CUENTA PARA PAGAR LOS APARTES"
+      },
+      {
+        "id": "id_mqtneoph53dvv",
+        "date": "2026-06-04",
+        "type": "ingreso",
+        "account": "banco",
+        "amount": 4495000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "TRASLADO DE DINERO DE EFECTIVO AL BANCO PARA PAGARA LOS APORTES"
+      },
+      {
+        "id": "id_mqtnflgwisfhf",
+        "date": "2026-06-04",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 4501200,
+        "category": "APORTES SALARIALES",
+        "projectId": null,
+        "description": "PAGO DE PLANILLA DE JUNIO"
+      },
+      {
+        "id": "id_mqtnh1gl3ossx",
+        "date": "2026-06-04",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 120000,
+        "category": "OTROS GASTOS",
+        "projectId": null,
+        "description": "PAGO DE DAÑO DE CELULAR DE PABLO"
+      },
+      {
+        "id": "id_mqtnj6h5h3kuh",
+        "date": "2026-06-04",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 895539,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "ANTICIPO PRIMA CRUCE DE TARJETA DE CREDITO"
+      },
+      {
+        "id": "id_mqtnk6fudpwob",
+        "date": "2026-06-05",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 177000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "TRASLADO DE BANCO A NEQUI PARA PAGO DE SLACK"
+      },
+      {
+        "id": "id_mqtnobyrgeii2",
+        "date": "2026-06-05",
+        "type": "ingreso",
+        "account": "nequi",
+        "amount": 177000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "TRASLADO ENTRE CUENTAS DE EFECTIVO A NEQUI PARA PAGAR SLACK"
+      },
+      {
+        "id": "id_mqtnp3ea7evd9",
+        "date": "2026-06-05",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 250000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "TRASLADO A NEQUI"
+      },
+      {
+        "id": "id_mqtnpqu4fgjx4",
+        "date": "2026-06-05",
+        "type": "ingreso",
+        "account": "nequi",
+        "amount": 250000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "TRASLADO DE CUENTA DE BANCO A NEQUI"
+      },
+      {
+        "id": "id_mqtnqmf7mve5v",
+        "date": "2026-06-05",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 181793,
+        "category": "PUBLICIDAD Y MERCADEO",
+        "projectId": null,
+        "description": "PAGO SLACK"
+      },
+      {
+        "id": "id_mqtnrud0rp4xf",
+        "date": "2026-06-05",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 200000,
+        "category": "OTROS GASTOS",
+        "projectId": null,
+        "description": "PENDIENTE SALIDA POR IDENTIFICAR"
+      },
+      {
+        "id": "id_mqtnsinvzfnpn",
+        "date": "2026-06-06",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 2264,
+        "category": "GASTOS BANCARIOS",
+        "projectId": null,
+        "description": ""
+      },
+      {
+        "id": "id_mqtnt2hr7ri63",
+        "date": "2026-06-08",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 230203,
+        "category": "PUBLICIDAD Y MERCADEO",
+        "projectId": null,
+        "description": "FACEBOOK"
+      },
+      {
+        "id": "id_mqtnwffw2cd8c",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 12800,
+        "category": "TRANSPORTE",
+        "projectId": "id_mqtllc2vm60fb",
+        "description": "TRANSPORTE PROYECTO PINAMAR"
+      },
+      {
+        "id": "id_mqtnysxk6me8i",
+        "date": "2026-06-11",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 600000,
+        "category": "DEVOLUCION PRESTAMO",
+        "projectId": null,
+        "description": "DEVOLUCION PRESTAMO PAGO DEUDA NOMINA"
+      },
+      {
+        "id": "id_mqto16bptqxsu",
+        "date": "2026-06-11",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 10922000,
+        "category": "DELUXE",
+        "projectId": "id_mqtlb51wzncc4",
+        "description": "CASA REVES VISITAS",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mqto3xa8wzncd",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA ALEJANDRA CASTILLO"
+      },
+      {
+        "id": "id_mqto51jhjrtk0",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 1100000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "ANGELICA MONRROY NOMINA BASE"
+      },
+      {
+        "id": "id_mqto5q3wcjk92",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 1325000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA GERENCIA JUAN SEBASTIAN GUTIERREZ"
+      },
+      {
+        "id": "id_mqto6b1emz4ej",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 1500000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA COORDINACION DAVID MANZANO"
+      },
+      {
+        "id": "id_mqto6yseja3y0",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 1100000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA COORDINACION JULIANA TORRES"
+      },
+      {
+        "id": "id_mqto7mgng30pt",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 1200000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA FRANCHESCA MARIN COORDINACION"
+      },
+      {
+        "id": "id_mqto8en0nchth",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 1325000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "JUAN DAVID DIAZ NOMINA BASE"
+      },
+      {
+        "id": "id_mqto94swet3fd",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 400000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA BASE NATALY GALVEZ"
+      },
+      {
+        "id": "id_mqto9qc3z4153",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 1255000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA BASE PABLO NOVOA"
+      },
+      {
+        "id": "id_mqtobc0kruu72",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 337000,
+        "category": "HONORARIOS",
+        "projectId": null,
+        "description": "PAGO A SERGIO PINEDA ASESORIA FINANCIERA"
+      },
+      {
+        "id": "id_mqtoc35sfs1e1",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 450000,
+        "category": "PUBLICIDAD Y MERCADEO",
+        "projectId": null,
+        "description": "HONORARIOS VALERIA RAMIREZ"
+      },
+      {
+        "id": "id_mr0s7uyp3z1et",
+        "date": "2026-06-11",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 1906000,
+        "category": "DEVOLUCION PRESTAMO",
+        "projectId": null,
+        "description": "pago de la empresa"
+      },
+      {
+        "id": "id_mr0sa8bd8qxy9",
+        "date": "2026-06-11",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 1906000,
+        "category": "RENTING",
+        "projectId": null,
+        "description": ""
+      },
+      {
+        "id": "id_mr0sdj80225zc",
+        "date": "2026-06-12",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 1360000,
+        "category": "VISITAS DE OBRA",
+        "projectId": "id_mqtljegt2g4mx",
+        "description": "PAGO DE DOÑA LIZETH RESORT 305"
+      },
+      {
+        "id": "id_mr0t6h54wocd6",
+        "date": "2026-06-12",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 50600,
+        "category": "OTROS GASTOS",
+        "projectId": null,
+        "description": "DESAYUNO PARA VISITA DE COCINAS"
+      },
+      {
+        "id": "id_mr0uyfearaqnl",
+        "date": "2026-06-12",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 24000,
+        "category": "PUBLICIDAD Y MERCADEO",
+        "projectId": null,
+        "description": "PLOTER PLANO"
+      },
+      {
+        "id": "id_mr0v0jvnsrho4",
+        "date": "2026-06-12",
+        "type": "ingreso",
+        "account": "nequi",
+        "amount": 49000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "BANCOLOMBIA -NEQUI PAGO DE MESHY"
+      },
+      {
+        "id": "id_mr0v0kq3o4c66",
+        "date": "2026-06-12",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 49000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "BANCOLOMBIA - NEQUI"
+      },
+      {
+        "id": "id_mr0w7h6mp4nrm",
+        "date": "2026-06-12",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 24276,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "description": "PAGO DE MESHY"
+      },
+      {
+        "id": "id_mr0wa6ny0lj51",
+        "date": "2026-06-16",
+        "type": "ingreso",
+        "account": "banco",
+        "amount": 10000000,
+        "category": "LUXE",
+        "projectId": "id_mqtlf5eev9fq0",
+        "description": "PAGO POR CASA SACRO EMY",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mr0ydn9ghj1c4",
+        "date": "2026-06-16",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 2500000,
+        "category": "DEVOLUCION PRESTAMO",
+        "projectId": null,
+        "description": "PAGO DE LA DEUDA QUE TIENE ALEJA"
+      },
+      {
+        "id": "id_mr116ub6yxrbc",
+        "date": "2026-06-16",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 60000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "description": "BANCO EMPRESA-NEQUI"
+      },
+      {
+        "id": "id_mr11900j3dpvd",
+        "date": "2026-06-16",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 400000,
+        "category": "OTROS GASTOS",
+        "projectId": null,
+        "description": "PRESTAMO DOÑA BEATRIZ"
+      },
+      {
+        "id": "id_mr11azr9f9y81",
+        "date": "2026-06-17",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 30000,
+        "category": "PUBLICIDAD Y MERCADEO",
+        "projectId": null,
+        "description": "PLOTEO"
+      },
+      {
+        "id": "id_mr11g04pjip18",
+        "date": "2026-06-17",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 12000,
+        "category": "TRANSPORTE",
+        "projectId": "id_mqtljegt2g4mx",
+        "description": "PAGO DE UBER"
+      },
+      {
+        "id": "id_mr11jpbbrs5s6",
+        "date": "2026-06-17",
+        "type": "ingreso",
+        "account": "nequi",
+        "amount": 2500000,
+        "category": "OTROS INGRESOS",
+        "projectId": null,
+        "description": "PAGO DE DEUDA DOÑA BEATRIZ PARA PAUTA PUBLICITARIA"
+      },
+      {
+        "id": "id_mr11stjy9u7tx",
+        "date": "2026-06-19",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 12000,
+        "category": "TRANSPORTE",
+        "projectId": "id_mqtlm5zem9lod",
+        "description": "UBER ICONO 509"
+      },
+      {
+        "id": "id_mr11u5glbe3xp",
+        "date": "2026-06-19",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 10000,
+        "category": "TRANSPORTE",
+        "projectId": null,
+        "description": "GRAN RESORT 305"
+      },
+      {
+        "id": "id_mr11vj1ib2hzz",
+        "date": "2026-06-20",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 720000,
+        "category": "CONTRATISTAS",
+        "projectId": null,
+        "description": "FOTOGRAFIA MALABAR RESERVADO CASA38"
+      },
+      {
+        "id": "id_mr11wuxxn24at",
+        "date": "2026-06-22",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 5273634,
+        "category": "DELUXE",
+        "projectId": "id_mqtlf5eev9fq0",
+        "description": "SEGUNDO PAGO CASA SACRO"
+      },
+      {
+        "id": "id_mr11yin8tkhez",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 300000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA BASE ( ALEJANDRA CASTILLO) PRIMA LEGAL"
+      },
+      {
+        "id": "id_mr173n9dxorz3",
+        "date": "2026-06-30",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 12000,
+        "category": "TRANSPORTE",
+        "projectId": "id_mqtllc2vm60fb",
+        "description": "ADA-PINAMAR-ADA"
+      },
+      {
+        "id": "id_mr2h8j69grvd0",
+        "date": "2026-07-01",
+        "type": "ingreso",
+        "account": "banco",
+        "amount": 7000000,
+        "category": "ESPECIFICACIONES GBA",
+        "projectId": null,
+        "description": "PRESTAMO DOÑA BEATRIZ PARA PAGAR NOMINA"
+      },
+      {
+        "id": "id_mr2lpvwyo5drx",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 627778,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "ANGELICA  MONROY  NOMINA BASE"
+      },
+      {
+        "id": "id_mr2lvn17zj683",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 933333,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "JUAN SEBASTIAN GUTIERREZ ( NOMINA DE GERENCIA)"
+      },
+      {
+        "id": "id_mr3k3luxty2qk",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 974400,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA DAVID MANZANO (NOMINA DE COORDINACIO)"
+      },
+      {
+        "id": "id_mr3kt9tx79ycj",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 933333,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA DE JULIANA TORRES ( NOMINA DE COORDINACION)"
+      },
+      {
+        "id": "id_mr3kyutogdb0n",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 933333,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "LUISA FRANCHESCA MARIN ( NOMINA COORDINACION)"
+      },
+      {
+        "id": "id_mr3lsrb992c9h",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 933333,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "PAGO PRIMA LEGAL VIGENTE( JUAN DAVID DIAZ)"
+      },
+      {
+        "id": "id_mr3ltjik6bvky",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 644444,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "PABLO NOVOA PRIMA LEGAL VIGENTE"
+      },
+      {
+        "id": "id_mr3lu7s80klrc",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 310230,
+        "category": "OTROS GASTOS",
+        "projectId": null,
+        "description": "PAGO DE MOVISTAR"
+      },
+      {
+        "id": "id_mr3lvfdh3z5ra",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 106722,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "ANGELICA MARIA MONRROY PRIMA NO CONSTITUTIVA"
+      },
+      {
+        "id": "id_mr3lwhoc9l6de",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 368667,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "PAGO PRIMA NO CONSTITUTIVA DE JUAN SEBASTIAN"
+      },
+      {
+        "id": "id_mr3lx5iqw9dyl",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 494293,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "DAVID MANZANO ( PRIMA NO CONSTITUTIVA)"
+      },
+      {
+        "id": "id_mr3lxqg75d4vl",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 158667,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "JULIANA TORRES ( PRIMA NO CONSTITUTIVA)"
+      },
+      {
+        "id": "id_mr3lyb8pbkcsn",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 252000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "LUISA FRANCHESCA MARIN ( PRIMA NO CONSTITUTIVA)"
+      },
+      {
+        "id": "id_mr3lz029gbap5",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 368677,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "JUAN DAVID DIAZ ( PRIMA NO CONSTITUTIVA)"
+      },
+      {
+        "id": "id_mr3lzuib7pxk4",
+        "date": "2026-06-26",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 209444,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "PABLO ALEJANDRO NOVOA( PRIMA NO CONSTITUTIVA)"
+      },
+      {
+        "id": "id_mr3m1ouerif30",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA  30 DE JUNIO  ALEJANDRA CASTILLO"
+      },
+      {
+        "id": "id_mr3m2kdrfs7kc",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA 30 DE JUNIO ANGELICA MONRROY"
+      },
+      {
+        "id": "id_mr3m3fiygof10",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA 30 DE JUNIO JUAN SEBASTIAN GUTIERREZ"
+      },
+      {
+        "id": "id_mr3m3zm84duy4",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA 30 DE JULIO JULIANA TORRES"
+      },
+      {
+        "id": "id_mr3m4oxld0742",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 970399,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA 30 DE JUNIO DAVID MANZANO"
+      },
+      {
+        "id": "id_mr3m5fodm4tay",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA DE 30 LUISA FRANCHESCA MARIN"
+      },
+      {
+        "id": "id_mr3m61o819sgs",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA 30 DE JUNIO JUAN DAVID DIAZ"
+      },
+      {
+        "id": "id_mr3m6tq0gcs4z",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA 30 DE JUNIO PABLO NOVOA"
+      },
+      {
+        "id": "id_mr3m7xivuhbaw",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 400000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA 30 DE JUNIO LEGAL VIGENTE"
+      },
+      {
+        "id": "id_mr3nivpk2fkzj",
+        "date": "2026-07-01",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 826286,
+        "category": "ESPECIFICACIONES GBA",
+        "projectId": null,
+        "description": "PRESTAMO PARA NOMINA DEL 30 DE JUNIO PAGO NO CONSTITUTIVO"
+      },
+      {
+        "id": "id_mr3np3bhz00cq",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 270000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "LUISA FRANCHESCA MARIN NO CONSTITUTIVA 30 DE JUNIO"
+      },
+      {
+        "id": "id_mr3npu7cgtbv7",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 395000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "JUAN SEBASTIAN GUTIERREZ ( NOMINA 30 DE JUNIO NO CONSTITUTIVO)"
+      },
+      {
+        "id": "id_mr3nqmle8j3x7",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 170000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "JULIANA TORRES ( NO CONSTITUTIVO"
+      },
+      {
+        "id": "id_mr3nr9sxe3d2t",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 325000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "PABLO NOVOA ( PAGO 30 DE JUNIO NO COSTITUTIVO)"
+      },
+      {
+        "id": "id_mr3nry1zy1soq",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 395000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "PAGO DE NOMINA JUAN DAVID NO CONSTITUTIVO"
+      },
+      {
+        "id": "id_mr3nskoikc3uj",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 170000,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "NOMINA DE ANGELICA TORRES NO CONSTITUTIVO 30 DE JUNIO"
+      },
+      {
+        "id": "id_mr3nta0yb22u1",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 529600,
+        "category": "NOMINA",
+        "projectId": null,
+        "description": "PAGO A DAVID MANZANO 30 DE JUNIO NO CONSTITUTIVO"
+      },
+      {
+        "id": "id_mr3ooh6mlqz3h",
+        "date": "2026-06-16",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 4225320,
+        "category": "NOMINA",
+        "projectId": null,
+        "serviceId": null,
+        "description": "PAGO DE PRIMA Y NOMINA ALEJANDRA DURAN PAGO DE JUNIO",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mr3oq7raszkm3",
+        "date": "2026-07-02",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 571,
+        "category": "GASTOS BANCARIOS",
+        "projectId": null,
+        "description": "GASTOS BANCARIOS"
+      },
+      {
+        "id": "id_mr3px9nzze759",
+        "date": "2026-07-02",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 300000,
+        "category": "HONORARIOS",
+        "projectId": null,
+        "description": "PAGO DE SERVICIO DE CHECHO SE LE DEBE 363000"
+      },
+      {
+        "id": "id_mr3s2u8kh7gwq",
+        "date": "2026-07-02",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 300000,
+        "category": "OTROS GASTOS",
+        "projectId": null,
+        "description": "PRESTAMO DE DINERO A DOÑA BEATRIZ"
+      },
+      {
+        "id": "id_mr5cj3phv0zwe",
+        "date": "2026-07-03",
+        "type": "ingreso",
+        "account": "banco",
+        "amount": 694000,
+        "category": "ESPECIFICACIONES GBA",
+        "projectId": null,
+        "description": "PRESTAMO DE 394000 DOÑA BEATRIZ PORQUE ME DEBIA 300.000"
+      },
+      {
+        "id": "id_mr5cjuwwss6i8",
+        "date": "2026-07-03",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 9200,
+        "category": "APORTES SALARIALES",
+        "projectId": null,
+        "description": "PAGO DE PLANILLAS JULIO"
+      },
+      {
+        "id": "id_mr5ckct2kcq53",
+        "date": "2026-07-03",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 3661000,
+        "category": "APORTES SALARIALES",
+        "projectId": null,
+        "description": "PAGO DE PLANILLA JULIO"
+      },
+      {
+        "id": "id_mr5cl171ubug1",
+        "date": "2026-07-03",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 928100,
+        "category": "APORTES SALARIALES",
+        "projectId": null,
+        "description": "PAGO DE PLANILLAS JUNIO"
+      },
+      {
+        "id": "id_mr5h7eduo0pzu",
+        "date": "2026-07-03",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 5100,
+        "category": "LIQUIDACIONES",
+        "projectId": null,
+        "description": "INVENTO QUE ME HACE FALTA"
+      },
+      {
+        "id": "id_mr9pngdlqoejc",
+        "date": "2026-07-06",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 10000,
+        "category": "TRANSPORTE",
+        "projectId": "id_mqtljegt2g4mx",
+        "description": "TRANSPORTE PARA JUAN SEBASTIAN GUTIERREZ",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mr9pwahq6jh08",
+        "date": "2026-06-01",
+        "type": "gasto",
+        "account": null,
+        "amount": 24010595,
+        "category": "GBA",
+        "projectId": null,
+        "description": "NO SE",
+        "gbaMovement": "prestamo_otorgado",
+        "facturado": true
+      },
+      {
+        "id": "id_mr9pxggymw0hg",
+        "date": "2026-07-01",
+        "type": "ingreso",
+        "account": null,
+        "amount": 828286,
+        "category": "GBA",
+        "projectId": null,
+        "description": "PARA EL PAGO DE NOMINA NO CONSTITUTIVA",
+        "gbaMovement": "prestamo_recibido",
+        "facturado": true
+      },
+      {
+        "id": "id_mr9q07ya4asq3",
+        "date": "2026-07-02",
+        "type": "gasto",
+        "account": null,
+        "amount": 300000,
+        "category": "GBA",
+        "projectId": null,
+        "description": "LE PRESTO 300.000 PARA QUE CANCEL A PROVEEDORES",
+        "gbaMovement": "pago_prestamo",
+        "facturado": true
+      },
+      {
+        "id": "id_mr9q1gi1ommmq",
+        "date": "2026-07-01",
+        "type": "ingreso",
+        "account": null,
+        "amount": 7000000,
+        "category": "GBA",
+        "projectId": null,
+        "description": "PARA PAGO DE NOMINA DEL 30 DE JUNIO 2026",
+        "gbaMovement": "prestamo_recibido",
+        "facturado": true
+      },
+      {
+        "id": "id_mr9q36ob6114d",
+        "date": "2026-07-03",
+        "type": "ingreso",
+        "account": null,
+        "amount": 694000,
+        "category": "GBA",
+        "projectId": null,
+        "description": "GBA NO ABONA PARA PAGO DE PLANILLAS",
+        "gbaMovement": "prestamo_recibido",
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3lxs99ryb1",
+        "date": "2026-06-18",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 44900,
+        "category": "PUBLICIDAD Y MERCADEO",
+        "projectId": null,
+        "serviceId": null,
+        "description": "APPLE COM BILL",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3mhyk5hqhr",
+        "date": "2026-06-18",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 44900,
+        "category": "PUBLICIDAD Y MERCADEO",
+        "projectId": null,
+        "serviceId": null,
+        "description": "GOOGLE ONE",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3o2fu820vs",
+        "date": "2026-06-19",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 64139,
+        "category": "PUBLICIDAD Y MERCADEO",
+        "projectId": null,
+        "serviceId": null,
+        "description": "ATLASSIAN",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3osxj36qsu",
+        "date": "2026-06-27",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 150285,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "FACEBOOK",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3pg2njguls",
+        "date": "2026-06-29",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 88418,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "SHOPIFY",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3q5m7t0jih",
+        "date": "2026-06-29",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 146900,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "HOSTINGER",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3qrm6y8gnk",
+        "date": "2026-06-29",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 215669,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "ASANA",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3rnkg05dqc",
+        "date": "2026-06-30",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 88672,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "SHOPIFY",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3s6j0m68b4",
+        "date": "2026-07-02",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 163345,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "SLACK",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3ueaogyck3",
+        "date": "2026-07-08",
+        "type": "ingreso",
+        "account": "nequi",
+        "amount": 70000,
+        "category": "TRASLADO ENTRE CUENTAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "BANCO A NEQUI",
+        "gbaMovement": null,
+        "facturado": false
+      },
+      {
+        "id": "id_mrl3wmpgysa51",
+        "date": "2026-07-09",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 44900,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "APPLE COM BIL",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3xce15g5w0",
+        "date": "2026-07-12",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 141600,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "HOSTING",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3xtqhp1tw6",
+        "date": "2026-07-09",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 74143,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "MESHY",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3ykml7m79d",
+        "date": "2026-07-13",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 60234,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "ATLASSIAN",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl3z2gjc058i",
+        "date": "2026-07-14",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 66926,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "CLAUDE",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl474m7ksve0",
+        "date": "2026-07-14",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 1906000,
+        "category": "RENTING",
+        "projectId": null,
+        "serviceId": null,
+        "description": "PAGO DE LEASING",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl48mg6kl7ks",
+        "date": "2026-07-14",
+        "type": "gasto",
+        "account": "banco",
+        "amount": 1906000,
+        "category": "RENTING",
+        "projectId": null,
+        "serviceId": null,
+        "description": "LEASING",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl49irgeb7eh",
+        "date": "2026-07-14",
+        "type": "ingreso",
+        "account": null,
+        "amount": 1906000,
+        "category": "GBA",
+        "projectId": null,
+        "serviceId": null,
+        "description": "LEASING",
+        "gbaMovement": "prestamo_recibido",
+        "facturado": true
+      },
+      {
+        "id": "id_mrl4g3n7sdr87",
+        "date": "2026-07-08",
+        "type": "gasto",
+        "account": "nequi",
+        "amount": 71129,
+        "category": "LICENCIAS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "TRIPO AI",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl4j0olwj7g4",
+        "date": "2026-07-14",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 4000000,
+        "category": "PRESTAMOS EMPLEADOS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "PRESTAMO DE ALEJANDRA DURAN",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrl4jqdm0zthb",
+        "date": "2026-07-14",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 4000000,
+        "category": "OTROS INGRESOS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "PRESTAMO DE ALEJANDRA DURAN",
+        "gbaMovement": null,
+        "facturado": false
+      },
+      {
+        "id": "id_mrl4q76lagce6",
+        "date": "2026-07-14",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 4000000,
+        "category": "OTROS INGRESOS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "PRESTAMO ALEJANDRA DURAN",
+        "gbaMovement": null,
+        "facturado": false
+      },
+      {
+        "id": "id_mrm76ve2h5pb8",
+        "date": "2026-07-15",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 170000,
+        "category": "NOMINA",
+        "projectId": null,
+        "serviceId": null,
+        "description": "PAGO DE NO CONSTITUTIVA  ANGELICA MONROY",
+        "gbaMovement": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrmahwqibpjy5",
+        "date": "2026-07-01",
+        "type": "gasto",
+        "account": null,
+        "amount": 2693694,
+        "category": "GBA",
+        "projectId": null,
+        "serviceId": null,
+        "description": "PRESTAMO DE DIAN",
+        "gbaMovement": "prestamo_otorgado",
+        "contractorId": null,
+        "contractorPaymentId": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrmaibprlftfd",
+        "date": "2026-07-15",
+        "type": "ingreso",
+        "account": null,
+        "amount": 2696694,
+        "category": "GBA",
+        "projectId": null,
+        "serviceId": null,
+        "description": "PAGO DE LA DIAN",
+        "gbaMovement": "cobro_prestamo",
+        "contractorId": null,
+        "contractorPaymentId": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrmh0gwrj4lhq",
+        "date": "2026-07-15",
+        "type": "ingreso",
+        "account": "efectivo",
+        "amount": 9000000,
+        "category": "OTROS INGRESOS",
+        "projectId": null,
+        "serviceId": null,
+        "description": "prestamos 7000000 de alejandra y 2000000 de juan jose",
+        "gbaMovement": null,
+        "contractorId": null,
+        "contractorPaymentId": null,
+        "facturado": false
+      },
+      {
+        "id": "id_mrmhm4wqvnks2",
+        "date": "2026-07-15",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 930000,
+        "category": "NOMINA",
+        "projectId": null,
+        "serviceId": null,
+        "description": "pago de nomina claudia alejandra castillo legal vigente",
+        "gbaMovement": null,
+        "contractorId": null,
+        "contractorPaymentId": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrmhn7v7a0f0s",
+        "date": "2026-07-15",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 970399,
+        "category": "NOMINA",
+        "projectId": null,
+        "serviceId": null,
+        "description": "DAVID MANZANO LEGAL VIGENTE",
+        "gbaMovement": null,
+        "contractorId": null,
+        "contractorPaymentId": null,
+        "facturado": true
+      },
+      {
+        "id": "id_mrmjgm8u0midc",
+        "date": "2026-07-15",
+        "type": "gasto",
+        "account": "efectivo",
+        "amount": 970399,
+        "category": "NOMINA",
+        "projectId": null,
+        "serviceId": null,
+        "description": "DAVID MANZANO",
+        "gbaMovement": null,
+        "contractorId": null,
+        "contractorPaymentId": null,
+        "facturado": true
+      }
+    ],
+    "count": 129,
+    "updatedAt": "1784151182668"
+  },
+  "ada:visits": {
+    "data": [
+      {
+        "id": "id_mr14pwb0m0wqk",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-03-26",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12o1mhkriek",
+          "id_mr12s70w8ydjz",
+          "id_mr133i2k9nhmt"
+        ],
+        "notes": "Visita a obra  por parte de los arq Alejandra, Arq Juan David, Arq Pablo. Se realiza toma de medidas y escucha de requerimientos  de diseño por parte de la cliente, se corroboran medidas y planimetría  comparativas con los planos arquitectónicos, se realiza detalle de especificación."
+      },
+      {
+        "id": "id_mr14r591eyfia",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-04-10",
+        "time": "",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "Reunión virtual con los clientes en donde se mostro la nueva distribución arquitectónica, y un acercamiento al diseño de la carpintería tanto del vestier como del mueble de gym,En esta reunión se definió el hecho tener un vestier grande sin perder el baño de la habitación auxiliar"
+      },
+      {
+        "id": "id_mr14s39i76ox9",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-04-15",
+        "time": "",
+        "attendeeIds": [
+          "id_mqqu46fz9351o",
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "visita maestro Alirio para presupuesto, arq juan Sebastián 2 horas , diseñador pablo y practicante Nataly toma de medidas para iluminación y puntos sanitarios."
+      },
+      {
+        "id": "id_mr1528belakzf",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-04-13",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12o1mhkriek",
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Reunión virtual Ceo ADA y diseñador de carpinteria con clientes, se socializa nueva distribucion de vestier, gimnasio, retroalimentacion para zona de estudio (despacho), y se tocaron varios temas que quedan en el acta de reunion"
+      },
+      {
+        "id": "id_mr156ju7rsys1",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-04-27",
+        "time": "",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "Visita de inicio de obra, arq juan Sebastián y diseñador pablo, directrices de desmonte y demolición de muros vestiers baño."
+      },
+      {
+        "id": "id_mr158c3qkoro2",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-04-27",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12o1mhkriek"
+        ],
+        "notes": "Reunión virtual clientes, ceo sola , elección de baño principal ."
+      },
+      {
+        "id": "id_mr1591an5yajk",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-04-30",
+        "time": "",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "Visita a avance de obra por parte del arq Juan Sebastián y el diseñador Pablo Novoa con proveedor de estructuras metálicas, se hizo revisión estructural de los dinteles y sugerencias para incorporar una viga o columna en la intercepción de las paredes demolidas, y se hizo revisión de avance de obra."
+      },
+      {
+        "id": "id_mr16ewrhovfu7",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-05",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Visita a avance de obra: El diseñador Pablo Novoa vista avance de obra, encuentra buena limpieza, muebles del baño ppl en la sala, demolición de dinteles de paredes demolidas, retiro de enchapes y pisos de ambos baños pples. Se dejan dudas a resolver en video y en acta de visita."
+      },
+      {
+        "id": "id_mr16exziz0a6l",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-05",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Visita a avance de obra: El diseñador Pablo Novoa vista avance de obra, encuentra buena limpieza, muebles del baño ppl en la sala, demolición de dinteles de paredes demolidas, retiro de enchapes y pisos de ambos baños pples. Se dejan dudas a resolver en video y en acta de visita."
+      },
+      {
+        "id": "id_mr16fyda5sdh7",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-07",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12o1mhkriek",
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Visita y reunión con clientes. La arq Alejandra Durán y el Di Pablo Novoa van a obra para reunión con clientes, se hace un repaso de avance de obra y se hacen preguntas puntuales y revisión de de referentes enviados el día anterior. Adicional se hace revisión para cotizacion con los proveedores de impermeabilización de las duchas"
+      },
+      {
+        "id": "id_mr16pxwrmt0qv",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-12",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Visita a obra con @Pablo Novoa, retoma medidas del área de Vestier principal y conocimiento del espacio."
+      },
+      {
+        "id": "id_mr16pyp101z87",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-12",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Visita a obra con @Pablo Novoa, retoma medidas del área de Vestier principal y conocimiento del espacio."
+      },
+      {
+        "id": "id_mr16qo0wyxdw0",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-15",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "VISTA DE AVANCE DE OBRA: El diseñador Pablo Novoa realiza inspección de avance de obra, se dejan varias dudas en el video de la visita, entre ellas las reparaciones de muros de los vistieres, encanche para puntos eléctricos, reparación de cielo raso del Vestier ppl, entre otros puntos. Igualmente se hace evidencia el recogido de muebles retirados, pero dejando parte del descolgado de la sala comedor, el retiro de los elementos internos del mueble de linos para poder desmontarlo del mismo, entre otros."
+      },
+      {
+        "id": "id_mr16sfet0oy2p",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-19",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Visita avance de obra. el Diseñador Pablo Novoa visito el inmueble, reviso lo que se había retirado. Se compartió las observaciones de Alejandra de la visita anterior, y se dejo estipulado el paso a paso de las prioridades, se deja en evidencia el video del recorrido y las observaciones encontradas por el tema retiro de los aires acondicionados"
+      },
+      {
+        "id": "id_mr16t8x81fo9d",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-25",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12o1mhkriek"
+        ],
+        "notes": "Reunión con cliente en la galería para revisión de diseño de Vestier y avance de zona de ropas. Se hicieron unos cambios puntuales en el diseño de Vestier y zona de ropas si hay que cambiarlo mas. Esto fue lo hablado mientras yo estuve presente ya que Alejandra siguió en reunión con la cliente"
+      },
+      {
+        "id": "id_mr16vf0jupnhy",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-26",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Visita a obra para toma de medidas de Vestier de alcoba auxiliar, tambien se reviso el tema de cerramiento de la diagonal en vestier principal (zona doña Claudia) que esta pendiente de si se ejecuta o no, tambien un tema de interruptores y puntos de conexion para la iluminacion del vestier (estos se muestran en un video reporte que subira @Pablo Novoa)."
+      },
+      {
+        "id": "id_mr16wdemjff2l",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-05-28",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz",
+          "id_mr133i2k9nhmt"
+        ],
+        "notes": "Visita a obra por parte de los diseñadores Juan David y Pablo Novoa, reunión con los de SAGO para realización de cotización de sistema eléctrico, avance en refuerzos para el cielo raso y coordinación de actividades de obra con Alirio."
+      },
+      {
+        "id": "id_mr16x13wf1w2b",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-06-02",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Visita de avance de obra, el diseñador Pablo Novoa va las 8 am a CONCEPTOS a recoger una pieza de enchape para piso para llevar a PINAMAR, se revisa con CEO para aprobación a lo que requiere cambio de color, por lo que nuevamente se retorna a CONCEPTOS para remplazo, esta nueva pieza se revisa con CEO y es aprobada. Posterior a eso se realizan indicaciones a Alirio para seguimiento de obra. Posterior tanto diseñador Pablo Novoa y Arq Juan sebastian van a las 2 para realizar \"tendido en seco\" de enchape para paredes del baño ppl, se determina un patron para trabajo de enchape de Alirio, se realiza video de avance y dudas en video de recorrido."
+      },
+      {
+        "id": "id_mr16xrl3fny0i",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-06-04",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "El diseñador Pablo Novoa visita la obra, se reúne con Erick y Alirio para revisar el tema de demolición de una pared a mover 10 cm en el ingreso del baño ppl. Revisión de avance de obra, inicio de enchapada, valoración de segunda capa de impermeabilización y coordinación con planos de actualización de baño ppl y baño aux ppl. Igualmente se ve el avance en el retiro del enchape de la zona de ropas y avance de nichos de baños antes de enchape de paredes"
+      },
+      {
+        "id": "id_mr16yifngwqe7",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-06-10",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12o1mhkriek"
+        ],
+        "notes": "Visita de avance de obra, llevada de planos eléctricos e instrucciones para inicio de enchapado de baño ppl y baño aux ppl"
+      },
+      {
+        "id": "id_mr16z6emm35gx",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-06-11",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "Reunión con clienta, la arq Aleja, la arq Natalia y el diseñador Pablo Novoa, revision de avance de obra y supervición y resolucion de dudas con equipo de electrica y elquipo de obra\nDuración 2 horas"
+      },
+      {
+        "id": "id_mr1702kfcf5d7",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-06-16",
+        "time": "",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "Visita de avance de obra, para avance de enchapado, supervicion de trabajo de puntos electricos y resolución de dudas del quipo de obra. Toma de medidas de la zona de ropas y lavadoras.",
+        "amount": 0
+      },
+      {
+        "id": "id_mr170lzfyyqfs",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-06-16",
+        "time": "",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "Visita de avance de obra: se realiza un seguimiento e actividades de Alirio, se ven los resultados de el avance de enchapes de baños ppls, se realiza una planificación con Alirio de actividades para el resto de la semana, se hace revisión de medidas con Jorge para la cotización de vidrios para duchas de los baños, se dejan algunas dudas en video recorrido"
+      },
+      {
+        "id": "id_mr17193pmhjbv",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-06-25",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12o1mhkriek"
+        ],
+        "notes": "Visita de avance de obra: Se lleva desde conceptos el mezclador del baño de los hijos, se recibe y se sube los pisos LVT, se hace revisión de puntos de red para definir cotización de internet, se observa seguimiento de entrega de Alirio para el sabado (Enchape completo de los 4 baños), se recogen 3 lamparas faltantes por traer a galería para su pintada, falta definir color (Champaña o Bronce), Se hace videos de recorrido con dudas para CEO",
+        "amount": 0
+      },
+      {
+        "id": "id_mr6nqitz4p0sy",
+        "projectId": "id_mqtlkegidhxxk",
+        "date": "2026-07-02",
+        "topic": "Arquitectura",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "visita a obra, arquitecto juan Sebastián, revisión de obra , tiempo 15 minutos @Alejandra castillo",
+        "amount": 2500,
+        "invoiced": true
+      },
+      {
+        "id": "id_mr6nx8sdrlnnd",
+        "projectId": "id_mqtlf5eev9fq0",
+        "date": "2026-07-01",
+        "time": "",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "reunión virtual, arquitecto juan Sebastián, revisión de cotización vianova, tiempo 15 minutos @Alejandra castillo",
+        "amount": 0
+      },
+      {
+        "id": "id_mr6nxu55vqcnb",
+        "projectId": "id_mqtlf5eev9fq0",
+        "date": "2026-07-02",
+        "topic": "Interiorismo",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "Reunión virtual arquitecto juan Sebastián, revisión para cotización de piscina, tiempo 15 minutos @Alejandra castillo",
+        "amount": 0
+      },
+      {
+        "id": "id_mr6nz4pu53rtl",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-06-30",
+        "time": "",
+        "attendeeIds": [
+          "id_mr12s70w8ydjz"
+        ],
+        "notes": "visita a obra arquitecto juan Sebastián, reunión con Esteban revisión presupuestos duración 1 hora, juan Sebastián revisión obra 1 hora, toma de medidas y marcación en sitio de interiorismo juliana 2 horas, y Pablo visita a obra 3 horas @Alejandra castillo",
+        "amount": 0
+      },
+      {
+        "id": "id_mr6o0anxdy212",
+        "projectId": "id_mqtllc2vm60fb",
+        "date": "2026-07-02",
+        "topic": "",
+        "attendeeIds": [],
+        "notes": "02.07.2026 Visita avance de obra, se encuentra avances y finalizaciones de enchape de baños, boquillas, e inicio de piso en LVT, puntos de internet listos, inicio de la 2da fase de iluminación, recorrido con Andrés (SAGO) de revisión de puntos del plano nuevo, Re cotización de los vidrios para ducha, presencia en reunión virtual para dejar anotaciones en obra, solicitud de varios trabajaos tanto para Alirio como Wilson.\n\nDuración: 3 horas",
+        "amount": 0
+      },
+      {
+        "id": "id_mr6o1laasnbr9",
+        "projectId": "id_mqtljegt2g4mx",
+        "date": "2026-07-02",
+        "time": "",
+        "attendeeIds": [
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "visita a obra, arquitecto juan Sebastián, revisión de obra , tiempo 15 minutos @Alejandra castillo",
+        "amount": 0
+      },
+      {
+        "id": "id_2w7imiz22mrmk0lah",
+        "projectId": "id_mqtlm5zem9lod",
+        "date": "2026-07-15",
+        "topic": "Arquitectura",
+        "attendeeIds": [
+          "id_mr3ljouka8r0z",
+          "id_mqqu46fz9351o"
+        ],
+        "notes": "Se reviso en sitio por medio de las escotillas actuales que los muros interiores en mamposteria no tocan las vigas y que no son estructurales, y por ende se puden demoler.",
+        "amount": 0,
+        "invoiced": false
+      }
+    ],
+    "count": 31,
+    "updatedAt": "1784148608969"
+  },
+  "ada:purchases": {
+    "data": [],
+    "count": 0,
+    "updatedAt": "1784121667231"
+  },
+  "ada:contractors": {
+    "data": [
+      {
+        "id": "id_mr9jl2d55dlva",
+        "name": "SERGIO PINEDA",
+        "phone": "3142896521",
+        "email": "vaseadmon@gmail.com",
+        "active": true,
+        "notes": ""
+      },
+      {
+        "id": "id_mr9p2nfi8h7dq",
+        "name": "VALERIA LUNA RAMÍREZ",
+        "phone": "321 6902721",
+        "email": ""
+      },
+      {
+        "id": "id_mr9p6c0mxtigm",
+        "name": "Carlos Eduardo López Ramos",
+        "phone": "324 5677922",
+        "email": "genemis89@gmail.com"
+      },
+      {
+        "id": "id_mr9pbfnac319z",
+        "name": "CAROLINA VALENCIA",
+        "phone": "3117154852",
+        "email": ""
+      },
+      {
+        "id": "id_mrm5gvmc8vgkn",
+        "name": "NATALY GALVEZ",
+        "phone": "3155787713",
+        "email": "Galvezoyolan@gmail.com",
+        "active": true,
+        "notes": "CONTRATISTA PAGO POR NEQUI 3155787713"
+      }
+    ],
+    "count": 5,
+    "updatedAt": "1784137095911"
+  },
+  "ada:contractorPayments": {
+    "data": [
+      {
+        "id": "id_mrb3m5e8glfrr",
+        "contractorId": "id_mr9jl2d55dlva",
+        "date": "2026-07-09",
+        "dateAbono": "",
+        "datePagoTotal": "",
+        "amount": 663000,
+        "paidAmount": 363000,
+        "description": "PAGO DE ASESORIA FINANCIERA"
+      },
+      {
+        "id": "id_mrb3m5e8dtkr5",
+        "contractorId": "id_mr9p2nfi8h7dq",
+        "date": "2026-07-08",
+        "dateAbono": "",
+        "datePagoTotal": "",
+        "amount": 450000,
+        "paidAmount": 225000,
+        "description": "Pago final correspondiente al 50% restante de los servicios prestados durante el mes de abril, los cuales constan de la creación de carruseles para redes sociales, en formatos estáticos e interactivos, así como de la edición de reels, de acuerdo con los requerimientos del cliente. Cuenta de ahorros Bancolombia  N.º  72547656653"
+      },
+      {
+        "id": "id_mrb3m5e8bxvnx",
+        "contractorId": "id_mr9p6c0mxtigm",
+        "date": "2026-07-01",
+        "amount": 0,
+        "paidAmount": 0,
+        "description": ""
+      },
+      {
+        "id": "id_mrb3m5e8r93sq",
+        "contractorId": "id_mr9pbfnac319z",
+        "date": "2026-06-19",
+        "dateAbono": "",
+        "datePagoTotal": "2026-07-09",
+        "amount": 720000,
+        "paidAmount": 720000,
+        "description": "POR CONCEPTO DE: Paquete TOP - Fotografías Malabar Reservado casa 38"
+      },
+      {
+        "id": "id_mrmj3qyv32ick",
+        "contractorId": "id_mrm5gvmc8vgkn",
+        "date": "2026-07-15",
+        "dateAbono": "",
+        "datePagoTotal": "",
+        "amount": 1062000,
+        "paidAmount": 0,
+        "description": "SERVICIO DE PAGINAS"
+      }
+    ],
+    "count": 5,
+    "updatedAt": "1784147076679"
+  },
+  "ada:payrollPayments": {
+    "data": [
+      {
+        "id": "id_mrgnq520723za",
+        "employeeId": "id_mrdrp6d8rf1dk",
+        "date": "2026-07-11",
+        "quincena": 1,
+        "periodStart": "2026-07-01",
+        "periodEnd": "2026-07-15",
+        "amount": 930000,
+        "method": "efectivo",
+        "notes": ""
+      }
+    ],
+    "count": 1,
+    "updatedAt": "1784151182668"
+  },
+  "ada:categories": {
+    "data": {
+      "gasto": [
+        "CONTRATISTAS",
+        "CREDITOS BANCARIOS",
+        "GASTOS BANCARIOS",
+        "IMPUESTOS",
+        "LIQUIDACIONES",
+        "NOMINA",
+        "APORTES SALARIALES",
+        "PERSONALES",
+        "PRESTAMOS EMPLEADOS",
+        "PROPIEDADES Y SERVICIOS PUBLICOS",
+        "PROVEEDORES",
+        "SEGURIDAD SOCIAL",
+        "TARJETA DE CREDITO",
+        "RENTING",
+        "PUBLICIDAD Y MERCADEO",
+        "LICENCIAS",
+        "SUMINISTROS DE OFICINA",
+        "TRASLADO ENTRE CUENTAS",
+        "OTROS GASTOS",
+        "HONORARIOS",
+        "NOMINA GERENCIA",
+        "NOMINA COORDINACION",
+        "NOMINA BASE",
+        "NOMINA PUBLICIDAD Y MERCADEO",
+        "GBA",
+        "TRASNPORTE",
+        "TRANSPORTE PROYECTO INICIAL",
+        "TRANSPORTE SEGUMIENTO A OBRAS / VISITAS",
+        "LUXE",
+        "FACHADAS",
+        "DELUXE",
+        "SERVICIO PRINCIPAL",
+        "ACABADOS"
+      ],
+      "ingreso": [
+        "DEVOLUCION PRESTAMO",
+        "TRASLADO ENTRE CUENTAS",
+        "OTROS INGRESOS",
+        "DELUXE",
+        "LUXE",
+        "ACABADOS",
+        "ILUMINACION",
+        "ENCHAPES",
+        "CARPINTERIA",
+        "ASESORIA EXPRESS",
+        "DISEÑO POR ESPACIO",
+        "VISITAS DE OBRA",
+        "ARQUITECTURA",
+        "ADA LERNING",
+        "ESPECIFICACIONES GBA",
+        "GBA",
+        "PROYECTO PRINCIPAL",
+        "FACHADAS",
+        "SERVICIO PRINCIPAL"
+      ]
+    },
+    "count": 1,
+    "updatedAt": "1784062042308"
+  },
+  "ada:settings": {
+    "data": {
+      "workDaysPerMonth": 23,
+      "cargaPrestacionalPct": 29,
+      "ivaPct": 19,
+      "imprevistosPct": 5,
+      "administracionPct": 15,
+      "utilidadPct": 30,
+      "saldoInicial": {
+        "banco": 2792626,
+        "efectivo": 4868250,
+        "nequi": 201471
+      },
+      "contractorsMigratedV2": true,
+      "gbaProjectsMigrated": true
+    },
+    "count": 1,
+    "updatedAt": "1784133894206"
+  }
+}

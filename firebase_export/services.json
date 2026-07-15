@@ -1,0 +1,24 @@
+[
+  {
+    "id": "id_mrdzejhp1hxjo",
+    "projectId": "id_mrdwna8srcqz0",
+    "name": "LUXE",
+    "status": "Activo",
+    "startDate": "2026-07-09",
+    "contractValue": 130000000,
+    "ivaPct": 19,
+    "notes": "",
+    "isPrimary": true
+  },
+  {
+    "id": "id_mrl4h5w2ivswq",
+    "projectId": "id_mrdwna8srcqz0",
+    "name": "ACABADOS",
+    "status": "Activo",
+    "startDate": "2026-07-14",
+    "contractValue": 135000,
+    "ivaPct": 19,
+    "notes": "",
+    "isPrimary": false
+  }
+]

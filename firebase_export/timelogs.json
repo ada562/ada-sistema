@@ -1,0 +1,74 @@
+[
+  {
+    "id": "id_mr13fsxnltpdn",
+    "employeeId": "id_mqqu46fz9351o",
+    "projectId": "id_mqtlf5eev9fq0",
+    "date": "2026-06-05",
+    "days": 0.5,
+    "note": ""
+  },
+  {
+    "id": "id_mr13ga56u7s4p",
+    "employeeId": "id_mqqu46fz9351o",
+    "projectId": "id_mqtlf5eev9fq0",
+    "date": "2026-06-12",
+    "days": 2.5,
+    "note": ""
+  },
+  {
+    "id": "id_mr13gv5it2kxt",
+    "employeeId": "id_mqqu46fz9351o",
+    "projectId": "id_mqtlf5eev9fq0",
+    "date": "2026-06-19",
+    "days": 2,
+    "note": ""
+  },
+  {
+    "id": "id_mr13i5th65ynh",
+    "employeeId": "id_mqqu46fz9351o",
+    "projectId": "id_mqtlf5eev9fq0",
+    "date": "2026-06-26",
+    "days": 2,
+    "note": ""
+  },
+  {
+    "id": "id_3qa1w5dd6mrmdrt8h",
+    "employeeId": "id_mrdrp6d8rf1dk",
+    "projectId": "id_mrm3ryim5m8h1",
+    "date": "2026-07-15",
+    "days": 0.5,
+    "note": "Registrado desde Bitácora"
+  },
+  {
+    "id": "id_anmjo5yrfmrmjwrs8",
+    "employeeId": "id_mqqu46fz9351o",
+    "projectId": "id_mrm3ryimpn9bw",
+    "date": "2026-07-15",
+    "days": 0.25,
+    "note": "Registrado desde Bitácora"
+  },
+  {
+    "id": "id_ruoh5lrg4mrmjx4m8",
+    "employeeId": "id_mqqu46fz9351o",
+    "projectId": "id_mqtlf5eev9fq0",
+    "date": "2026-07-15",
+    "days": 0.25,
+    "note": "Registrado desde Bitácora"
+  },
+  {
+    "id": "id_vvmf9txpjmrmjxgaj",
+    "employeeId": "id_mqqu46fz9351o",
+    "projectId": "id_mrm3ryimexb1l",
+    "date": "2026-07-15",
+    "days": 0.25,
+    "note": "Registrado desde Bitácora"
+  },
+  {
+    "id": "id_nifdz4drgmrmjxszc",
+    "employeeId": "id_mqqu46fz9351o",
+    "projectId": "id_mrm3ryimmsqj0",
+    "date": "2026-07-15",
+    "days": 0.25,
+    "note": "Registrado desde Bitácora"
+  }
+]

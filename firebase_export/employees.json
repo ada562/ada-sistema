@@ -1,0 +1,96 @@
+[
+  {
+    "id": "id_mqqu46fz9351o",
+    "name": "JUAN SEBASTIAN GUTIERREZ",
+    "cedula": "",
+    "role": "GERENTE DE PROYECTOS",
+    "monthlyRate": 1660000,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 790000,
+    "contractUntil": "2026-07-13",
+    "pin": "1507"
+  },
+  {
+    "id": "id_mr12o1mhkriek",
+    "name": "ALEJANDRA DURAN AGUDELO",
+    "role": "CEO",
+    "monthlyRate": 0,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 0,
+    "contractUntil": ""
+  },
+  {
+    "id": "id_mr12s70w8ydjz",
+    "name": "PABLO NOVOA",
+    "role": "COORDINADOR DE CARPINTERIA",
+    "monthlyRate": 1750905,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 650000,
+    "contractUntil": ""
+  },
+  {
+    "id": "id_mr12tsqn3c7f8",
+    "name": "JULIANA TORRES",
+    "role": "COORDINADOR DE DISEÑO",
+    "monthlyRate": 1750905,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 170000,
+    "contractUntil": ""
+  },
+  {
+    "id": "id_mr1301msbkgf2",
+    "name": "ANGELICA MONRROY",
+    "role": "COORDINADOR DE DISEÑO",
+    "monthlyRate": 1750905,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 170000,
+    "contractUntil": ""
+  },
+  {
+    "id": "id_mr133i2k9nhmt",
+    "name": "JUAN DAVID DIAZ VILLEGAS",
+    "role": "COORDINADOR DE CARPINTERIA",
+    "monthlyRate": 1860000,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 790000,
+    "contractUntil": ""
+  },
+  {
+    "id": "id_mr3ljouka8r0z",
+    "name": "DAVID MANZANO",
+    "role": "COORDINADOR DE CARPINTERIA",
+    "monthlyRate": 1750905,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 529600,
+    "contractUntil": "2026-07-13"
+  },
+  {
+    "id": "id_mr3lksg34ub79",
+    "name": "LUISA FRANCHESCA MARIN",
+    "role": "COORDINADO DE MARKETING",
+    "monthlyRate": 1660000,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 540000,
+    "contractUntil": ""
+  },
+  {
+    "id": "id_mrdrp6d8rf1dk",
+    "name": "CLAUDIA ALEJANDRA CASTILLO",
+    "cedula": "",
+    "role": "AUX ADMINISTRATIVA Y CONTABLE",
+    "monthlyRate": 1860000,
+    "cargaPct": 30,
+    "active": true,
+    "nonConstitutiveSalary": 0,
+    "contractUntil": "2026-11-15",
+    "pin": "1227"
+  }
+]
