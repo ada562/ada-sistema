@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, X } from 'lucide-react'
+import { ChevronDown, ChevronRight, X, LogOut } from 'lucide-react'
 import { departments, topLevelItems } from '../../data/departments'
 import { useNavigationStore } from '../../store/useNavigationStore'
 
@@ -70,7 +70,7 @@ function DepartmentSection({ dept }) {
   )
 }
 
-export default function Sidebar() {
+export default function Sidebar({ session, onLogout }) {
   const { sidebarOpen, closeSidebar } = useNavigationStore()
 
   return (
@@ -89,7 +89,12 @@ export default function Sidebar() {
       >
         <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <img src="/logo-ada.svg" alt="ADA" className="h-10 w-auto" />
+            <img
+              src="/logo-ada.png"
+              alt="ADA"
+              className="h-10 w-auto"
+              onError={(e) => { e.target.onerror = null; e.target.src = '/logo-ada.svg' }}
+            />
             <div>
               <h1 className="text-lg font-bold text-gray-900">Gestión</h1>
               <p className="text-xs text-gray-500">Arquitectura y Diseño</p>
@@ -108,19 +113,36 @@ export default function Sidebar() {
             <TopLevelItem key={item.id} item={item} />
           ))}
 
-          <div className="pt-3 pb-1 px-3">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Departamentos
-            </p>
-          </div>
+          {topLevelItems.length > 0 && (
+            <div className="pt-3 pb-1 px-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Departamentos
+              </p>
+            </div>
+          )}
 
           {departments.map((dept) => (
             <DepartmentSection key={dept.id} dept={dept} />
           ))}
         </nav>
 
+        {/* User & Logout */}
         <div className="px-4 py-3 border-t border-gray-200">
-          <p className="text-xs text-gray-400">v0.1.0</p>
+          {session && (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900">{session.name}</p>
+                <p className="text-xs text-gray-400">{session.username}</p>
+              </div>
+              <button
+                onClick={onLogout}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Cerrar sesión"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          )}
         </div>
       </aside>
     </>

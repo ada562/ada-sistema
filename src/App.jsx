@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { Toaster } from 'sonner'
 import Layout from './components/UI/Layout'
+import Login from './pages/Login'
 import { useNavigationStore } from './store/useNavigationStore'
+import { getSession, logout } from './lib/dbAuth'
 
 import Dashboard from './pages/Dashboard'
 import Proyectos from './pages/Proyectos'
@@ -41,13 +44,28 @@ const views = {
 }
 
 export default function App() {
+  const [session, setSession] = useState(getSession)
   const activeView = useNavigationStore((s) => s.activeView)
   const Page = views[activeView] || Dashboard
+
+  const handleLogout = () => {
+    logout()
+    setSession(null)
+  }
+
+  if (!session) {
+    return (
+      <>
+        <Toaster richColors position="top-right" />
+        <Login onLogin={setSession} />
+      </>
+    )
+  }
 
   return (
     <>
       <Toaster richColors position="top-right" />
-      <Layout>
+      <Layout session={session} onLogout={handleLogout}>
         <Page />
       </Layout>
     </>
