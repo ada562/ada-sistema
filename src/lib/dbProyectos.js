@@ -2,8 +2,9 @@ import proyectosData from '../../firebase_export/projects.json'
 import { getTransactions } from './dbTesoreria'
 import { getTimelogsByProject } from './dbTimelogs'
 import { getEmpleadoById, getDailyRate } from './dbEmpleados'
+import { load, save } from './storage'
 
-let projects = [...proyectosData]
+let projects = load('ada_projects', proyectosData)
 
 export function getProyectos() {
   return projects
@@ -30,8 +31,10 @@ export function addProyecto(data) {
     ivaPct: Number(data.ivaPct) || 0,
     notes: data.notes || '',
     esDeGBA: data.esDeGBA || false,
+    visitPackage: data.visitPackage || { visita_obra: 0, reunion_diseno: 0, obsequio: 0 },
   }
   projects = [newProject, ...projects]
+  save('ada_projects', projects)
   return newProject
 }
 
@@ -39,11 +42,13 @@ export function updateProyecto(id, data) {
   projects = projects.map((p) =>
     p.id === id ? { ...p, ...data, contractValue: Number(data.contractValue) || 0, ivaPct: Number(data.ivaPct) || 0 } : p
   )
+  save('ada_projects', projects)
   return projects.find((p) => p.id === id)
 }
 
 export function deleteProyecto(id) {
   projects = projects.filter((p) => p.id !== id)
+  save('ada_projects', projects)
 }
 
 export function getProjectMetrics(projectId) {

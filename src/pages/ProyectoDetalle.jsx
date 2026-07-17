@@ -1,33 +1,45 @@
-import { ArrowLeft, FolderKanban, TrendingUp, TrendingDown, Users, DollarSign, FileText, Pencil, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, FolderKanban, Pencil, Trash2, Plus, Layers, FileText, Printer } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../components/UI/Button'
 import FormProyecto from '../components/proyectos/FormProyecto'
+import FormServicio from '../components/proyectos/FormServicio'
+import FormBitacora from '../components/proyectos/FormBitacora'
+import FormVisita from '../components/proyectos/FormVisita'
+import FormPago from '../components/proyectos/FormPago'
+import CuentaCobro from '../components/proyectos/CuentaCobro'
 import { useNavigationStore } from '../store/useNavigationStore'
 import { useProyectosStore } from '../store/useProyectosStore'
-import { getProyectoById, getProjectMetrics } from '../lib/dbProyectos'
+import { useServiciosStore } from '../store/useServiciosStore'
+import { getProyectoById } from '../lib/dbProyectos'
+import { getServiciosByProject } from '../lib/dbServicios'
 import { getTransactions } from '../lib/dbTesoreria'
 import { getTimelogsByProject } from '../lib/dbTimelogs'
-import { getEmpleadoById } from '../lib/dbEmpleados'
+import { getVisitasByProject } from '../lib/dbVisitas'
+import { getEmpleadoById, getDailyRate } from '../lib/dbEmpleados'
 import { fmtMoney, fmtDate } from '../lib/formatters'
 
-function MetricCard({ label, value, icon: Icon, color, bgColor }) {
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-5">
-      <div className="flex items-center gap-3 mb-2">
-        <div className={`p-2 rounded-lg ${bgColor}`}>
-          <Icon size={18} className={color} />
-        </div>
-        <p className="text-sm font-medium text-gray-500">{label}</p>
-      </div>
-      <p className={`text-xl font-bold ${color}`}>{value}</p>
-    </div>
-  )
+const statusColors = {
+  Activo: 'bg-green-100 text-green-700',
+  Pausado: 'bg-yellow-100 text-yellow-700',
+  Terminado: 'bg-gray-100 text-gray-600',
 }
 
 export default function ProyectoDetalle() {
   const { viewParam, setActiveView } = useNavigationStore()
-  const { openModal, deleteProject } = useProyectosStore()
+  const { openModal: openProjectModal, deleteProject } = useProyectosStore()
+  const { openModal: openServiceModal, deleteServicio } = useServiciosStore()
   const proyecto = getProyectoById(viewParam)
+
+  // Modal states
+  const [bitacoraModal, setBitacoraModal] = useState({ open: false, editing: null })
+  const [visitaModal, setVisitaModal] = useState({ open: false, editing: null })
+  const [gastoModal, setGastoModal] = useState({ open: false, editing: null })
+  const [pagoModal, setPagoModal] = useState({ open: false, editing: null })
+  const [cuentaCobroOpen, setCuentaCobroOpen] = useState(false)
+  // Force re-render after mutations
+  const [, setTick] = useState(0)
+  const refresh = () => setTick((t) => t + 1)
 
   if (!proyecto) {
     return (
@@ -40,23 +52,74 @@ export default function ProyectoDetalle() {
     )
   }
 
-  const metrics = getProjectMetrics(proyecto.id)
+  // Data
+  const servicios = getServiciosByProject(proyecto.id)
+  const servicioPrincipal = servicios.find((s) => s.isPrimary) || null
+  const serviciosDerivados = servicios.filter((s) => !s.isPrimary)
   const transactions = getTransactions().filter((tx) => tx.projectId === proyecto.id)
   const timelogs = getTimelogsByProject(proyecto.id)
+  const visitas = getVisitasByProject(proyecto.id)
 
-  const contractWithIva = proyecto.contractValue
-    ? proyecto.contractValue * (1 + (proyecto.ivaPct || 0) / 100)
-    : 0
+  const ingresos = transactions.filter((tx) => tx.type === 'ingreso')
+  const gastos = transactions.filter((tx) => tx.type === 'gasto')
 
-  const handleDelete = () => {
-    if (!window.confirm(`¿Eliminar el proyecto "${proyecto.name}"? Esta acción no se puede deshacer.`)) return
+  // Financials
+  const valorContratoTotal = servicios.length > 0
+    ? servicios.reduce((sum, s) => sum + (s.contractValue || 0), 0)
+    : proyecto.contractValue || 0
+
+  const ivaProm = servicios.length > 0
+    ? servicios.reduce((sum, s) => sum + (s.ivaPct || 0), 0) / servicios.length
+    : (proyecto.ivaPct || 0)
+
+  const valorNetoConIva = servicios.length > 0
+    ? servicios.reduce((sum, s) => sum + s.contractValue * (1 + (s.ivaPct || 0) / 100), 0)
+    : valorContratoTotal * (1 + ivaProm / 100)
+
+  const abonosTotales = ingresos.reduce((sum, tx) => sum + tx.amount, 0)
+  const saldoPendiente = valorNetoConIva - abonosTotales
+  const pctPagado = valorNetoConIva > 0 ? Math.min((abonosTotales / valorNetoConIva) * 100, 100) : 0
+
+  // Costo interno: mano de obra + gastos directos
+  let costoManoObra = 0
+  const manoObraByEmployee = {}
+  for (const log of timelogs) {
+    const emp = getEmpleadoById(log.employeeId)
+    if (emp) {
+      const rate = getDailyRate(emp)
+      const costo = log.days * rate
+      costoManoObra += costo
+      if (!manoObraByEmployee[emp.id]) {
+        manoObraByEmployee[emp.id] = { emp, days: 0, costo: 0 }
+      }
+      manoObraByEmployee[emp.id].days += log.days
+      manoObraByEmployee[emp.id].costo += costo
+    }
+  }
+  const gastosDirectos = gastos.reduce((sum, tx) => sum + tx.amount, 0)
+  const costoInterno = costoManoObra + gastosDirectos
+
+  const margenBruto = abonosTotales - costoInterno
+  const pctMargen = valorNetoConIva > 0 ? ((margenBruto / valorNetoConIva) * 100).toFixed(1) : '0.0'
+  const cajaDisponible = abonosTotales - costoInterno
+
+  const handleDeleteProject = () => {
+    if (!window.confirm(`¿Eliminar el proyecto "${proyecto.name}"?`)) return
     deleteProject(proyecto.id)
     toast.success('Proyecto eliminado')
     setActiveView('proyectos')
   }
 
+  const handleDeleteServicio = (s) => {
+    if (!window.confirm(`¿Eliminar el servicio "${s.name}"?`)) return
+    deleteServicio(s.id)
+    refresh()
+    toast.success('Servicio eliminado')
+  }
+
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <button
@@ -77,159 +140,478 @@ export default function ProyectoDetalle() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => openModal(proyecto)}>
+          <Button variant="outline" size="sm" onClick={() => setCuentaCobroOpen(true)}>
+            <Printer size={14} />
+            Cuenta de cobro
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => openProjectModal(proyecto)}>
             <Pencil size={14} />
             Editar
           </Button>
-          <Button variant="danger" size="sm" onClick={handleDelete}>
+          <Button variant="danger" size="sm" onClick={handleDeleteProject}>
             <Trash2 size={14} />
             Eliminar
           </Button>
         </div>
       </div>
 
-      {/* Métricas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <MetricCard
-          label="Valor contrato"
-          value={contractWithIva ? fmtMoney(contractWithIva) : '—'}
-          icon={FileText}
-          color="text-gray-700"
-          bgColor="bg-gray-100"
-        />
-        <MetricCard
-          label="Ingresos"
-          value={fmtMoney(metrics.ingresos)}
-          icon={TrendingUp}
-          color="text-green-600"
-          bgColor="bg-green-50"
-        />
-        <MetricCard
-          label="Gastos"
-          value={fmtMoney(metrics.gastos)}
-          icon={TrendingDown}
-          color="text-red-600"
-          bgColor="bg-red-50"
-        />
-        <MetricCard
-          label="Mano de obra"
-          value={fmtMoney(metrics.costoManoObra)}
-          icon={Users}
-          color="text-orange-600"
-          bgColor="bg-orange-50"
-        />
-        <MetricCard
-          label="Rentabilidad"
-          value={fmtMoney(metrics.rentabilidad)}
-          icon={DollarSign}
-          color={metrics.rentabilidad >= 0 ? 'text-green-700' : 'text-red-700'}
-          bgColor={metrics.rentabilidad >= 0 ? 'bg-green-50' : 'bg-red-50'}
-        />
+      {/* ═══ RESUMEN FINANCIERO ═══ */}
+      <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
+          $ Resumen financiero del proyecto
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="border border-gray-200 rounded-lg p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Valor contrato total</p>
+            <p className="text-xl font-bold text-gray-900">{fmtMoney(valorContratoTotal)}</p>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Valor neto total (con IVA)</p>
+            <p className="text-xl font-bold text-gray-900">{fmtMoney(valorNetoConIva)}</p>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Abonos totales</p>
+            <p className="text-xl font-bold text-gray-900">{fmtMoney(abonosTotales)}</p>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Saldo pendiente total</p>
+            <p className="text-xl font-bold text-gray-900">{fmtMoney(Math.max(saldoPendiente, 0))}</p>
+            <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-indigo-600 rounded-full transition-all"
+                style={{ width: `${pctPagado}%` }}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="border border-gray-200 rounded-lg p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Costo interno total</p>
+            <p className="text-xl font-bold text-gray-900">{fmtMoney(costoInterno)}</p>
+            <p className="text-xs text-gray-400 mt-1">Mano de obra + gastos directos</p>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Margen bruto del proyecto</p>
+            <p className={`text-xl font-bold ${margenBruto >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+              {fmtMoney(margenBruto)}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">{pctMargen}% del contrato total</p>
+          </div>
+          <div className={`border rounded-lg p-4 ${cajaDisponible >= 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Caja disponible del proyecto</p>
+            <p className={`text-xl font-bold ${cajaDisponible >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+              {fmtMoney(cajaDisponible)}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">Abonos recibidos menos lo ya gastado</p>
+          </div>
+        </div>
       </div>
 
-      {/* Notas */}
-      {proyecto.notes && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-1">Notas</h3>
-          <p className="text-sm text-gray-600">{proyecto.notes}</p>
-        </div>
-      )}
-
-      {/* Movimientos */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-700">
-            Movimientos ({transactions.length})
-          </h3>
-        </div>
-        {transactions.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-gray-400 text-center">Sin movimientos asignados</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-left">
-                  <th className="px-4 py-2 font-medium text-gray-600">Fecha</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Tipo</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Cuenta</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Categoría</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Descripción</th>
-                  <th className="px-4 py-2 font-medium text-gray-600 text-right">Monto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {transactions
-                  .sort((a, b) => b.date.localeCompare(a.date))
-                  .map((tx) => (
-                    <tr key={tx.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2">{fmtDate(tx.date)}</td>
-                      <td className="px-4 py-2">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                          tx.type === 'ingreso' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}>
-                          {tx.type === 'ingreso' ? 'Ingreso' : 'Gasto'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2 capitalize">{tx.account}</td>
-                      <td className="px-4 py-2 text-gray-600">{tx.category}</td>
-                      <td className="px-4 py-2 text-gray-600 max-w-[200px] truncate">{tx.description || '—'}</td>
-                      <td className={`px-4 py-2 text-right font-medium ${
-                        tx.type === 'ingreso' ? 'text-green-700' : 'text-red-700'
-                      }`}>
-                        {tx.type === 'ingreso' ? '+' : '-'}{fmtMoney(tx.amount)}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+      {/* ═══ SERVICIOS ═══ */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-indigo-500" />
+            <h3 className="text-sm font-semibold text-gray-700">Servicios ({servicios.length})</h3>
           </div>
+          <button
+            onClick={() => openServiceModal()}
+            className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded hover:bg-indigo-50"
+          >
+            <Plus size={14} /> Agregar servicio
+          </button>
+        </div>
+
+        {servicios.length === 0 ? (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+            <p className="text-sm text-gray-400">Sin servicios. Agrega el servicio principal y los derivados (fachadas, visitas, seguimiento de obra, etc.)</p>
+          </div>
+        ) : (
+          <>
+            {/* Servicio principal */}
+            {servicioPrincipal && (
+              <div className="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-5 mb-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-xs font-bold uppercase">Principal</span>
+                    <h4 className="text-lg font-bold text-gray-900">{servicioPrincipal.name}</h4>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[servicioPrincipal.status] || 'bg-gray-100 text-gray-600'}`}>{servicioPrincipal.status}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => openServiceModal(servicioPrincipal)} className="p-1.5 text-indigo-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-100" title="Editar"><Pencil size={14} /></button>
+                    <button onClick={() => handleDeleteServicio(servicioPrincipal)} className="p-1.5 text-indigo-400 hover:text-red-600 rounded-lg hover:bg-red-50" title="Eliminar"><Trash2 size={14} /></button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-xs text-indigo-500 font-medium">Valor</p>
+                    <p className="text-lg font-bold text-gray-900">{servicioPrincipal.contractValue ? fmtMoney(servicioPrincipal.contractValue) : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-indigo-500 font-medium">Valor + IVA ({servicioPrincipal.ivaPct || 0}%)</p>
+                    <p className="text-lg font-bold text-gray-900">{servicioPrincipal.contractValue ? fmtMoney(servicioPrincipal.contractValue * (1 + (servicioPrincipal.ivaPct || 0) / 100)) : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-indigo-500 font-medium">Cuenta de cobro</p>
+                    <p className="text-sm font-semibold text-gray-700">{servicioPrincipal.cuentaCobro || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-indigo-500 font-medium">Fecha inicio</p>
+                    <p className="text-sm font-semibold text-gray-700">{servicioPrincipal.startDate ? fmtDate(servicioPrincipal.startDate) : '—'}</p>
+                  </div>
+                </div>
+                {servicioPrincipal.notes && (
+                  <p className="text-xs text-gray-500 mt-2">{servicioPrincipal.notes}</p>
+                )}
+              </div>
+            )}
+
+            {/* Servicios derivados */}
+            {serviciosDerivados.length > 0 && (
+              <div className="relative ml-6 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-indigo-200">
+                {serviciosDerivados.map((s) => (
+                  <div key={s.id} className="relative pl-6 pb-3 last:pb-0">
+                    {/* Connector line */}
+                    <div className="absolute left-0 top-5 w-6 h-0.5 bg-indigo-200" />
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-indigo-200 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-semibold text-gray-900">{s.name}</h4>
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[s.status] || 'bg-gray-100 text-gray-600'}`}>{s.status}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => openServiceModal(s)} className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50" title="Editar"><Pencil size={13} /></button>
+                          <button onClick={() => handleDeleteServicio(s)} className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50" title="Eliminar"><Trash2 size={13} /></button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                        <div>
+                          <p className="text-xs text-gray-400">Valor</p>
+                          <p className="font-semibold text-gray-900">{s.contractValue ? fmtMoney(s.contractValue) : '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400">Valor + IVA</p>
+                          <p className="font-semibold text-gray-900">{s.contractValue ? fmtMoney(s.contractValue * (1 + (s.ivaPct || 0) / 100)) : '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400">Cuenta de cobro</p>
+                          <p className="font-medium text-gray-700">{s.cuentaCobro || '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400">Fecha inicio</p>
+                          <p className="font-medium text-gray-700">{s.startDate ? fmtDate(s.startDate) : '—'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Total servicios */}
+            <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg px-5 py-3 flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-600">Total servicios ({servicios.length})</span>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <p className="text-xs text-gray-400">Valor</p>
+                  <p className="font-bold text-gray-900">{fmtMoney(valorContratoTotal)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400">Valor + IVA</p>
+                  <p className="font-bold text-gray-900">{fmtMoney(valorNetoConIva)}</p>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
-      {/* Horas registradas */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-700">
-            Horas registradas ({metrics.totalHoras} días)
-          </h3>
-        </div>
+      {/* ═══ A · COSTEO DE MANO DE OBRA ═══ */}
+      <Section
+        letter="A"
+        title="Costeo de mano de obra (desde bitácora)"
+        action="Registrar horas"
+        onAction={() => setBitacoraModal({ open: true, editing: null })}
+      >
+        {Object.keys(manoObraByEmployee).length === 0 ? (
+          <EmptyRow>Sin horas registradas todavía.</EmptyRow>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-left">
+                <th className="px-4 py-2 font-medium text-gray-600">Persona</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Rol</th>
+                <th className="px-4 py-2 font-medium text-gray-600 text-right">Días</th>
+                <th className="px-4 py-2 font-medium text-gray-600 text-right">Tarifa día</th>
+                <th className="px-4 py-2 font-medium text-gray-600 text-right">Costo</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {Object.values(manoObraByEmployee).map(({ emp, days, costo }) => (
+                <tr key={emp.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 text-gray-900">{emp.name}</td>
+                  <td className="px-4 py-2 text-gray-600">{emp.role || '—'}</td>
+                  <td className="px-4 py-2 text-right">{days}</td>
+                  <td className="px-4 py-2 text-right text-gray-600">{fmtMoney(getDailyRate(emp))}</td>
+                  <td className="px-4 py-2 text-right font-medium text-orange-700">{fmtMoney(costo)}</td>
+                </tr>
+              ))}
+              <tr className="bg-gray-50 font-semibold">
+                <td colSpan={2} className="px-4 py-2 text-gray-700">Total</td>
+                <td className="px-4 py-2 text-right">{Object.values(manoObraByEmployee).reduce((s, r) => s + r.days, 0)}</td>
+                <td className="px-4 py-2"></td>
+                <td className="px-4 py-2 text-right text-orange-700">{fmtMoney(costoManoObra)}</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+      </Section>
+
+      {/* ═══ B · OTROS GASTOS DIRECTOS ═══ */}
+      <Section
+        letter="B"
+        title="Otros gastos directos del proyecto"
+        subtitle="Gastos y compras del proyecto (proveedores, materiales, transporte, imprevistos, etc.)"
+        action="Registrar gasto"
+        onAction={() => setGastoModal({ open: true, editing: null })}
+      >
+        {gastos.length === 0 ? (
+          <EmptyRow>Sin otros gastos directos registrados.</EmptyRow>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-left">
+                <th className="px-4 py-2 font-medium text-gray-600">Fecha</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Categoría</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Descripción</th>
+                <th className="px-4 py-2 font-medium text-gray-600 text-right">Valor</th>
+                <th className="px-4 py-2 w-20"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {gastos.sort((a, b) => b.date.localeCompare(a.date)).map((tx) => (
+                <tr key={tx.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2">{fmtDate(tx.date)}</td>
+                  <td className="px-4 py-2 text-gray-600">{tx.category}</td>
+                  <td className="px-4 py-2 text-gray-600 max-w-[250px] truncate">{tx.description || '—'}</td>
+                  <td className="px-4 py-2 text-right font-medium text-red-700">{fmtMoney(tx.amount)}</td>
+                  <td className="px-4 py-2">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setGastoModal({ open: true, editing: tx })} className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50" title="Editar"><Pencil size={13} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-gray-50 font-semibold">
+                <td colSpan={3} className="px-4 py-2 text-gray-700">Total gastos directos</td>
+                <td className="px-4 py-2 text-right text-red-700">{fmtMoney(gastosDirectos)}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+      </Section>
+
+      {/* ═══ C · FACTURACIÓN / PAGOS RECIBIDOS ═══ */}
+      <Section
+        letter="C"
+        title="Facturación / Pagos recibidos"
+        action="Registrar pago"
+        onAction={() => setPagoModal({ open: true, editing: null })}
+      >
+        {ingresos.length === 0 ? (
+          <EmptyRow>Sin pagos registrados.</EmptyRow>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-left">
+                <th className="px-4 py-2 font-medium text-gray-600">Fecha</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Categoría</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Descripción</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Servicio</th>
+                <th className="px-4 py-2 font-medium text-gray-600 text-right">Valor</th>
+                <th className="px-4 py-2 w-20"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {ingresos.sort((a, b) => b.date.localeCompare(a.date)).map((tx) => {
+                const svc = servicios.find((s) => s.id === tx.serviceId)
+                return (
+                  <tr key={tx.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2">{fmtDate(tx.date)}</td>
+                    <td className="px-4 py-2 text-gray-600">{tx.category}</td>
+                    <td className="px-4 py-2 text-gray-600 max-w-[200px] truncate">{tx.description || '—'}</td>
+                    <td className="px-4 py-2">
+                      {svc ? <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-xs font-medium">{svc.name}</span> : '—'}
+                    </td>
+                    <td className="px-4 py-2 text-right font-medium text-green-700">{fmtMoney(tx.amount)}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setPagoModal({ open: true, editing: tx })} className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50" title="Editar"><Pencil size={13} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+              <tr className="bg-gray-50 font-semibold">
+                <td colSpan={4} className="px-4 py-2 text-gray-700">Total abonos</td>
+                <td className="px-4 py-2 text-right text-green-700">{fmtMoney(abonosTotales)}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+      </Section>
+
+      {/* ═══ D · VISITAS AL PROYECTO ═══ */}
+      <Section
+        letter="D"
+        title="Visitas al proyecto"
+        action="Registrar visita"
+        onAction={() => setVisitaModal({ open: true, editing: null })}
+      >
+        {visitas.length === 0 ? (
+          <EmptyRow>Sin visitas registradas.</EmptyRow>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-left">
+                <th className="px-4 py-2 font-medium text-gray-600">Fecha</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Tema</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Asistentes</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Notas</th>
+                <th className="px-4 py-2 font-medium text-gray-600 text-right">Valor</th>
+                <th className="px-4 py-2 w-20"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {visitas.sort((a, b) => b.date.localeCompare(a.date)).map((v) => {
+                const asistentes = (v.attendeeIds || []).map((id) => getEmpleadoById(id)?.name).filter(Boolean)
+                return (
+                  <tr key={v.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 whitespace-nowrap">{fmtDate(v.date)}</td>
+                    <td className="px-4 py-2 text-gray-600">{v.topic || '—'}</td>
+                    <td className="px-4 py-2 text-gray-600 text-xs max-w-[150px]">{asistentes.join(', ') || '—'}</td>
+                    <td className="px-4 py-2 text-gray-500 text-xs max-w-[250px] truncate">{v.notes || '—'}</td>
+                    <td className="px-4 py-2 text-right font-medium">{v.amount ? fmtMoney(v.amount) : '—'}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setVisitaModal({ open: true, editing: v })} className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50" title="Editar"><Pencil size={13} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+      </Section>
+
+      {/* ═══ E · BITÁCORA DEL PROYECTO ═══ */}
+      <Section
+        letter="E"
+        title="Bitácora del proyecto"
+        action="Registrar horas"
+        onAction={() => setBitacoraModal({ open: true, editing: null })}
+      >
         {timelogs.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-gray-400 text-center">Sin horas registradas</p>
+          <EmptyRow>Sin registros.</EmptyRow>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-left">
-                  <th className="px-4 py-2 font-medium text-gray-600">Fecha</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Empleado</th>
-                  <th className="px-4 py-2 font-medium text-gray-600 text-right">Días</th>
-                  <th className="px-4 py-2 font-medium text-gray-600 text-right">Costo</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Nota</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {timelogs
-                  .sort((a, b) => b.date.localeCompare(a.date))
-                  .map((log) => {
-                    const emp = getEmpleadoById(log.employeeId)
-                    const costo = emp ? log.days * ((emp.monthlyRate + (emp.nonConstitutiveSalary || 0)) / 23) : 0
-                    return (
-                      <tr key={log.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2">{fmtDate(log.date)}</td>
-                        <td className="px-4 py-2 text-gray-700">{emp?.name || 'Desconocido'}</td>
-                        <td className="px-4 py-2 text-right">{log.days}</td>
-                        <td className="px-4 py-2 text-right text-orange-700 font-medium">{fmtMoney(costo)}</td>
-                        <td className="px-4 py-2 text-gray-500">{log.note || '—'}</td>
-                      </tr>
-                    )
-                  })}
-              </tbody>
-            </table>
-          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-left">
+                <th className="px-4 py-2 font-medium text-gray-600">Fecha</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Persona</th>
+                <th className="px-4 py-2 font-medium text-gray-600 text-right">Días</th>
+                <th className="px-4 py-2 font-medium text-gray-600">Nota</th>
+                <th className="px-4 py-2 w-20"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {timelogs.sort((a, b) => b.date.localeCompare(a.date)).map((log) => {
+                const emp = getEmpleadoById(log.employeeId)
+                return (
+                  <tr key={log.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2">{fmtDate(log.date)}</td>
+                    <td className="px-4 py-2 text-gray-700">{emp?.name || 'Desconocido'}</td>
+                    <td className="px-4 py-2 text-right">{log.days}</td>
+                    <td className="px-4 py-2 text-gray-500 text-xs max-w-[300px] truncate">{log.note || '—'}</td>
+                    <td className="px-4 py-2">
+                      <button onClick={() => setBitacoraModal({ open: true, editing: log })} className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50" title="Editar"><Pencil size={13} /></button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         )}
-      </div>
+      </Section>
 
+      {/* Modals */}
       <FormProyecto />
+      <FormServicio projectId={proyecto.id} />
+      <FormBitacora
+        projectId={proyecto.id}
+        open={bitacoraModal.open}
+        editing={bitacoraModal.editing}
+        onClose={() => { setBitacoraModal({ open: false, editing: null }); refresh() }}
+      />
+      <FormVisita
+        projectId={proyecto.id}
+        open={visitaModal.open}
+        editing={visitaModal.editing}
+        onClose={() => { setVisitaModal({ open: false, editing: null }); refresh() }}
+      />
+      <FormPago
+        projectId={proyecto.id}
+        type="gasto"
+        open={gastoModal.open}
+        editing={gastoModal.editing}
+        onClose={() => { setGastoModal({ open: false, editing: null }); refresh() }}
+      />
+      <FormPago
+        projectId={proyecto.id}
+        type="ingreso"
+        open={pagoModal.open}
+        editing={pagoModal.editing}
+        onClose={() => { setPagoModal({ open: false, editing: null }); refresh() }}
+      />
+      <CuentaCobro
+        open={cuentaCobroOpen}
+        onClose={() => setCuentaCobroOpen(false)}
+        proyecto={proyecto}
+        servicios={servicios}
+      />
     </div>
   )
+}
+
+// ─── Helper components ───
+
+function Section({ letter, title, subtitle, action, onAction, children }) {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700">
+            <span className="text-indigo-600 mr-1">{letter}</span> {title}
+          </h3>
+          {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+        </div>
+        {action && (
+          <button
+            onClick={onAction}
+            className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded hover:bg-indigo-50"
+          >
+            <Plus size={14} /> {action}
+          </button>
+        )}
+      </div>
+      <div className="overflow-x-auto">{children}</div>
+    </div>
+  )
+}
+
+function EmptyRow({ children }) {
+  return <p className="px-4 py-6 text-sm text-gray-400 text-center">{children}</p>
 }

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 export const useNavigationStore = create((set) => ({
-  activeView: 'dashboard',
+  activeView: 'resumen-gerencia',
   viewParam: null,
   expandedDepartments: [],
   sidebarOpen: false,

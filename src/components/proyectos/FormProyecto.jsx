@@ -15,6 +15,7 @@ const emptyForm = {
   ivaPct: '',
   notes: '',
   esDeGBA: false,
+  visitPackage: { visita_obra: 0, reunion_diseno: 0, obsequio: 0 },
 }
 
 export default function FormProyecto() {
@@ -33,6 +34,7 @@ export default function FormProyecto() {
         ivaPct: editingProject.ivaPct || '',
         notes: editingProject.notes || '',
         esDeGBA: editingProject.esDeGBA || false,
+        visitPackage: editingProject.visitPackage || { visita_obra: 0, reunion_diseno: 0, obsequio: 0 },
       })
     } else {
       setForm(emptyForm)
@@ -169,6 +171,43 @@ export default function FormProyecto() {
             placeholder="Notas adicionales..."
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
           />
+        </div>
+
+        {/* Paquete de visitas incluidas */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Visitas incluidas en el contrato</label>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Visitas a Obra</label>
+              <input
+                type="number"
+                min="0"
+                value={form.visitPackage?.visita_obra || 0}
+                onChange={(e) => setForm((f) => ({ ...f, visitPackage: { ...f.visitPackage, visita_obra: Number(e.target.value) || 0 } }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Reuniones de Diseño</label>
+              <input
+                type="number"
+                min="0"
+                value={form.visitPackage?.reunion_diseno || 0}
+                onChange={(e) => setForm((f) => ({ ...f, visitPackage: { ...f.visitPackage, reunion_diseno: Number(e.target.value) || 0 } }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Obsequios</label>
+              <input
+                type="number"
+                min="0"
+                value={form.visitPackage?.obsequio || 0}
+                onChange={(e) => setForm((f) => ({ ...f, visitPackage: { ...f.visitPackage, obsequio: Number(e.target.value) || 0 } }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
         </div>
 
         <label className="flex items-center gap-2 cursor-pointer">

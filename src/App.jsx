@@ -10,9 +10,13 @@ import Tesoreria from './pages/contabilidad/Tesoreria'
 import GBA from './pages/contabilidad/GBA'
 import Contratistas from './pages/contabilidad/Contratistas'
 import Equipo from './pages/rrhh/Equipo'
+import EmpleadoDetalle from './pages/rrhh/EmpleadoDetalle'
 import Nomina from './pages/rrhh/Nomina'
 import Contratos from './pages/rrhh/Contratos'
 import Horarios from './pages/rrhh/Horarios'
+import Bitacoras from './pages/proyectos/Bitacoras'
+import VisitasGlobal from './pages/proyectos/Visitas'
+import ResumenGerencia from './pages/gerencia/ResumenGerencia'
 import Publicidad from './pages/marketing/Publicidad'
 import Redes from './pages/marketing/Redes'
 
@@ -23,9 +27,13 @@ const views = {
   reportes: Reportes,
   tesoreria: Tesoreria,
   gba: GBA,
+  'resumen-gerencia': ResumenGerencia,
   contratistas: Contratistas,
   equipo: Equipo,
+  'empleado-detalle': EmpleadoDetalle,
   nomina: Nomina,
+  bitacoras: Bitacoras,
+  visitas: VisitasGlobal,
   contratos: Contratos,
   horarios: Horarios,
   publicidad: Publicidad,

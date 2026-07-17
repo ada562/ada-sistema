@@ -88,9 +88,12 @@ export default function Sidebar() {
         }`}
       >
         <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">ADA Gestión</h1>
-            <p className="text-xs text-gray-500">Arquitectura y Diseño</p>
+          <div className="flex items-center gap-3">
+            <img src="/logo-ada.svg" alt="ADA" className="h-10 w-auto" />
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">Gestión</h1>
+              <p className="text-xs text-gray-500">Arquitectura y Diseño</p>
+            </div>
           </div>
           <button
             onClick={closeSidebar}

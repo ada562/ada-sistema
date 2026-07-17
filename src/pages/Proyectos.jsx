@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { FolderKanban, Plus, Eye, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../components/UI/Button'
@@ -12,12 +13,25 @@ const statusColors = {
   Terminado: 'bg-gray-100 text-gray-600',
 }
 
+const statusOptions = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'Activo', label: 'Activos' },
+  { value: 'Pausado', label: 'Pausados' },
+  { value: 'Terminado', label: 'Terminados' },
+]
+
 export default function Proyectos() {
   const setActiveView = useNavigationStore((s) => s.setActiveView)
   const { projects, openModal, deleteProject } = useProyectosStore()
+  const [filtroEstado, setFiltroEstado] = useState('todos')
+
+  const filtered = filtroEstado === 'todos'
+    ? projects
+    : projects.filter((p) => p.status === filtroEstado)
 
   const activos = projects.filter((p) => p.status === 'Activo').length
   const pausados = projects.filter((p) => p.status === 'Pausado').length
+  const terminados = projects.filter((p) => p.status === 'Terminado').length
 
   const handleDelete = (p) => {
     if (!window.confirm(`¿Eliminar el proyecto "${p.name}"? Esta acción no se puede deshacer.`)) return
@@ -27,18 +41,38 @@ export default function Proyectos() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <FolderKanban size={24} className="text-indigo-600" />
           <h2 className="text-xl font-semibold text-gray-900">Proyectos</h2>
-          <span className="text-sm text-gray-500 ml-2">
-            {activos} activos, {pausados} pausados
-          </span>
         </div>
         <Button onClick={() => openModal()}>
           <Plus size={16} />
           Nuevo proyecto
         </Button>
+      </div>
+
+      {/* Filtros por estado */}
+      <div className="flex items-center gap-2 mb-4">
+        {statusOptions.map((opt) => {
+          const count = opt.value === 'todos' ? projects.length
+            : opt.value === 'Activo' ? activos
+            : opt.value === 'Pausado' ? pausados
+            : terminados
+          return (
+            <button
+              key={opt.value}
+              onClick={() => setFiltroEstado(opt.value)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                filtroEstado === opt.value
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {opt.label} ({count})
+            </button>
+          )
+        })}
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -57,7 +91,7 @@ export default function Proyectos() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {projects.map((p) => (
+              {filtered.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">
                     {p.name}
@@ -114,6 +148,13 @@ export default function Proyectos() {
                   </td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                    No hay proyectos con estado "{filtroEstado}"
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
