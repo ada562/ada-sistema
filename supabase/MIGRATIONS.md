@@ -23,6 +23,7 @@
 | 013 | `013_empleado_portal_bitacora.sql` | 2026-07-21 | Portal de empleado: `perfiles.rol` gana `'empleado'`, `empleados.user_id` (login individual), `fn_empleado_id()`/`fn_semana_actual_inicio()`, RLS propia en `registro_horas`/`visitas`/`visita_asistentes` con bloqueo blando por semana, `visitas.tema` estructurado (+`tema_otro`), vistas `vw_proyectos_directorio`/`vw_empleados_directorio`, permisos `mi-bitacora` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 014 | `014_bitacora_otros_reposicion.sql` | 2026-07-21 | Correctiva + feature: `registro_horas.dias` CHECK relajado a `>= 0` (bug real, "Festivo" con `dias=0` habria fallado 23514), `proyecto_id` nullable + CHECK exige `nota` no vacia cuando no hay proyecto (fila "Otros") — "Reposición" reutiliza la convencion de `nota` sin cambio de esquema | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 015 | `015_arqueo_caja.sql` | 2026-07-21 | Feature: tabla `arqueo_caja` — compara el saldo del sistema (`vw_saldos_cuentas`, migracion 004) contra el conteo fisico real de una cuenta y guarda historial con la diferencia (sobrante/faltante). Pedido por el usuario para cuadrar caja al final del dia | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
+| 016 | `016_contratos_historial.sql` | 2026-07-21 | Feature: tabla `contratos` (historial completo por empleado, hoy `empleados.tipo_contrato`/`.contrato_hasta` solo guardaban el vigente), RPC `fn_registrar_contrato` (marca el anterior `Renovado`, inserta el nuevo `Vigente`, sincroniza `empleados`) — reemplaza el placeholder de `src/pages/rrhh/Contratos.jsx` | ⏳ Pendiente de ejecutar en Supabase |
 
 ---
 
@@ -283,3 +284,18 @@
 - **Notas:**
   - **2026-07-21 — bug encontrado en el primer intento de ejecucion (Postgres `42830`):** la version original definia `cuenta text NOT NULL REFERENCES public.cuentas(codigo)` (FK de una sola columna). Falla porque `cuentas.codigo` no tiene una constraint unica propia — solo existe `UNIQUE (tenant_id, codigo)` (compuesta, migracion 003), y Postgres exige que el conjunto de columnas referenciado por una FK coincida exactamente con una unique/PK existente. Corregido siguiendo el mismo precedente ya usado en `transacciones.cuenta` (migracion 004): FK compuesta `CONSTRAINT fk_arqueo_caja_cuenta FOREIGN KEY (tenant_id, cuenta) REFERENCES public.cuentas (tenant_id, codigo)`.
   - Cascada de frontend ya completada en el mismo corte: `dbArqueoCaja.js` (nuevo, `getArqueos`/`registrarArqueo`), `ArqueoCaja.jsx` (nuevo, modal con selector de cuenta, saldo del sistema vs. contado, diferencia con estilo sobrante/faltante, historial), botón "Arqueo de caja" en `Tesoreria.jsx`.
+
+### 016 — `contratos` (historial de contratos, modulo Contratos)
+- **Archivo:** `migrations/016_contratos_historial.sql`
+- **Fecha:** 2026-07-21
+- **Estado:** ⏳ Pendiente de ejecutar en Supabase
+- **Proposito:** `src/pages/rrhh/Contratos.jsx` era un placeholder puro. `empleados.tipo_contrato`/`.contrato_hasta` (migracion 007) ya existian pero solo guardan el contrato VIGENTE — cada renovacion pisaba el dato anterior sin dejar rastro. Se agrega una tabla de historial (una fila por contrato/renovacion) mas una RPC que registra una renovacion de forma atomica.
+- **Tablas afectadas:** `contratos` (CREATE) — `empleado_id`, `tipo_contrato` (mismas 5 categorias ya usadas en `FormEmpleado.jsx`), `fecha_inicio`, `fecha_fin` (nullable = termino indefinido, no vence), `salario_mensual`, `salario_no_constitutivo`, `estado` (`Vigente`/`Renovado`/`Vencido`/`Terminado`), `notas`.
+- **Funciones/triggers:**
+  - `fn_registrar_contrato(p_empleado_id, p_tipo_contrato, p_fecha_inicio, p_fecha_fin, p_salario_mensual, p_salario_no_constitutivo, p_notas)` — marca `Renovado` cualquier fila `Vigente` previa del mismo empleado, inserta la nueva como `Vigente`, y sincroniza `empleados.tipo_contrato`/`.contrato_hasta` — así la alerta "Contratos por vencer" ya existente en `Equipo.jsx` (`getExpiringContracts`, lee directo de `empleados`) sigue funcionando sin tocarla.
+  - `trg_audit_contratos` — reutiliza `fn_audit_trigger()` (migracion 004).
+- **RLS:** `SELECT` para `admin`/`rrhh`/`gerencia`; `UPDATE`/`DELETE` directo solo `admin`/`rrhh` (corregir errores de captura, mismo criterio que `pagos_contratistas`); `REVOKE INSERT ... FROM authenticated` — toda alta/renovación pasa por la RPC porque sincroniza 2 tablas y necesita ser atómica. `claude_readonly` con `SELECT` explícito.
+- **Dependencias:** `auth_rol()` (002), `fn_audit_trigger()` (004), `empleados` (007).
+- **Notas:**
+  - Los permisos de rol para el módulo `contratos` ya estaban sembrados desde la migración 002 (`gerencia`→leer, `rrhh`→leer/escribir) — no requiere migración de permisos nueva.
+  - Cascada de frontend en el mismo corte: `dbContratos.js` (nuevo), `useContratosStore.js` (nuevo, con realtime), `Contratos.jsx` reescrito (historial por empleado + alerta de vencimientos + modal "Registrar contrato").
