@@ -17,6 +17,12 @@ dist-ssr/
 *firebase-adminsdk*.json
 *serviceAccountKey*.json
 
+# Export/legado Firebase — datos reales de empleados/nomina/transacciones (PII)
+legado-adaapp/
+
+# Scripts/SQL generados para sembrar datos historicos (ya reflejados en migraciones)
+.sqlgen/
+
 # Logs
 logs
 *.log
