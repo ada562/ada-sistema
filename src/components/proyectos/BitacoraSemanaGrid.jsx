@@ -410,7 +410,20 @@ export default function BitacoraSemanaGrid({
                   const disabled = readOnly
                   return (
                     <td key={date} className="px-2 py-2 text-center">
-                      <div className="flex flex-col items-center gap-1">
+                      {/* onBlur vive en el contenedor, no en cada input: los
+                          dos campos de "Otros" se guardan juntos (ver
+                          commitOtrosCell) y si cada input confirmara por su
+                          cuenta, el blur del primero borraba el draft del
+                          segundo antes de que el usuario alcanzara a
+                          llenarlo -- perdida silenciosa de datos. Con
+                          relatedTarget solo se confirma cuando el foco sale
+                          de AMBOS campos de esta celda. */}
+                      <div
+                        className="flex flex-col items-center gap-1"
+                        onBlur={(e) => {
+                          if (!e.currentTarget.contains(e.relatedTarget)) commitOtrosCell(date)
+                        }}
+                      >
                         <input
                           type="number"
                           min="0"
@@ -418,7 +431,6 @@ export default function BitacoraSemanaGrid({
                           value={getCellValue(OTROS_ID, date)}
                           disabled={disabled}
                           onChange={(e) => handleDraftChange(OTROS_ID, date, e.target.value)}
-                          onBlur={() => commitOtrosCell(date)}
                           className={`w-14 text-center border rounded-lg px-1 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
                             disabled ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
                           }`}
@@ -429,7 +441,6 @@ export default function BitacoraSemanaGrid({
                           value={getOtrosDescValue(date)}
                           disabled={disabled}
                           onChange={(e) => setDraftValue(otrosNoteKey(date), e.target.value)}
-                          onBlur={() => commitOtrosCell(date)}
                           className={`w-20 text-center border rounded-lg px-1 py-0.5 text-[10px] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
                             disabled ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
                           }`}
