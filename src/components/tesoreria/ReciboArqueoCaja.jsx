@@ -76,12 +76,12 @@ export default function ReciboArqueoCaja({ open, onClose, arqueo }) {
           {/* Conteo */}
           <div className="section">
             <div className="section-title">Conteo de efectivo</div>
-            {arqueo.saldoSistema != null && (
-              <div className="row">
-                <span className="row-label">Saldo según sistema</span>
-                <span className="row-value">{fmtMoney(arqueo.saldoSistema)}</span>
+            {(arqueo.denominaciones || []).filter((d) => d.cantidad > 0).map((d) => (
+              <div className="row" key={d.denom}>
+                <span className="row-label">{fmtMoney(d.denom)} x {d.cantidad}</span>
+                <span className="row-value">{fmtMoney(d.subtotal)}</span>
               </div>
-            )}
+            ))}
             {arqueo.notas && (
               <div className="row">
                 <span className="row-label">Notas</span>
@@ -89,8 +89,8 @@ export default function ReciboArqueoCaja({ open, onClose, arqueo }) {
               </div>
             )}
             <div className="total">
-              <span>Efectivo contado a la fecha</span>
-              <span>{fmtMoney(arqueo.saldoContado)}</span>
+              <span>Total efectivo contado</span>
+              <span>{fmtMoney(arqueo.total)}</span>
             </div>
           </div>
 

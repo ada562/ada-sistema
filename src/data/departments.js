@@ -16,6 +16,7 @@ import {
   TrendingUp,
   ShieldCheck,
   NotebookPen,
+  ClipboardCheck,
 } from 'lucide-react'
 
 export const topLevelItems = []
@@ -46,6 +47,7 @@ export const departments = [
     icon: Landmark,
     modules: [
       { id: 'tesoreria', label: 'Tesorería', icon: Wallet },
+      { id: 'arqueo-caja', label: 'Arqueo de Caja', icon: ClipboardCheck },
       { id: 'gba', label: 'GBA', icon: Handshake },
       { id: 'contratistas', label: 'Contratistas', icon: Handshake },
     ],

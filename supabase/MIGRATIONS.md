@@ -27,6 +27,7 @@
 | 017 | `017_empleados_horario.sql` | 2026-07-21 | Feature: `ALTER TABLE empleados` agrega `tipo_horario` (asigna a cada empleado una de las 2 jornadas fijas oficiales — "Equipo de Diseño"/"Equipo Administrativo" — definidas en `src/lib/horarios.js`) — reemplaza el placeholder de `src/pages/rrhh/Horarios.jsx` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 018 | `018_empleado_documentos.sql` | 2026-07-21 | Feature: tabla `empleado_documentos` + bucket privado de Storage `empleados-documentos` — subida real de cédula/hoja de vida/contrato PDF/certificados/otros por empleado, reemplaza los flags booleanos sin archivo real de `empleados.doc_*` (migración 007) | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 019 | `019_fix_fn_registrar_transaccion_uuid.sql` | 2026-07-21 | Correctiva urgente: `fn_registrar_transaccion` recreada con `p_proyecto_id uuid`/`p_servicio_id uuid` (antes `text`, desde la migración 005) — desalineada desde la migración 010 que cambió esas columnas de `transacciones` a `uuid`, rompiendo TODA alta de transacción en Tesorería con error "column proyecto_id is of type uuid but expression is of type text" | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
+| 020 | `020_permiso_arqueo_caja.sql` | 2026-07-21 | Feature: semilla de `permisos` para el nuevo id de vista `arqueo-caja` (`contabilidad`→leer/escribir, `gerencia`→leer) — Arqueo de Caja pasó de botón/modal dentro de Tesorería a página propia en el sidebar | ⏳ Pendiente de ejecutar en Supabase |
 
 
 ---
@@ -289,6 +290,7 @@
   - **2026-07-21 — bug encontrado en el primer intento de ejecucion (Postgres `42830`):** la version original definia `cuenta text NOT NULL REFERENCES public.cuentas(codigo)` (FK de una sola columna). Falla porque `cuentas.codigo` no tiene una constraint unica propia — solo existe `UNIQUE (tenant_id, codigo)` (compuesta, migracion 003), y Postgres exige que el conjunto de columnas referenciado por una FK coincida exactamente con una unique/PK existente. Corregido siguiendo el mismo precedente ya usado en `transacciones.cuenta` (migracion 004): FK compuesta `CONSTRAINT fk_arqueo_caja_cuenta FOREIGN KEY (tenant_id, cuenta) REFERENCES public.cuentas (tenant_id, codigo)`.
   - Cascada de frontend ya completada en el mismo corte: `dbArqueoCaja.js` (nuevo, `getArqueos`/`registrarArqueo`), `ArqueoCaja.jsx` (nuevo, modal con selector de cuenta, saldo del sistema vs. contado, diferencia con estilo sobrante/faltante, historial), botón "Arqueo de caja" en `Tesoreria.jsx`.
   - **2026-07-21 (correctiva):** el usuario pidió que el arqueo NO sea un registro sistematizado/auditado — es solo control personal para comparar saldo del día. `dbArqueoCaja.js` se reescribió para usar `localStorage` (via `storage.js`) en vez de esta tabla; la tabla `arqueo_caja` y su RLS/auditoría quedan sin uso desde el frontend (no se elimina el schema, por si se retoma más adelante).
+  - **2026-07-21 (segunda correctiva):** el usuario reportó que el conteo "no restaba los gastos" — comparar contra `balances.efectivo` (`vw_saldos_cuentas`) confundía, porque ese saldo depende de que TODA transacción de efectivo esté bien registrada en Tesorería, algo que el usuario no puede garantizar. Pidió sacar el arqueo de Tesorería y convertirlo en un "contador de dinero y monedas" puro. Rediseño: `dbArqueoCaja.js` deja de guardar `saldoSistema`/`diferencia`, ahora guarda `denominaciones` (desglose por billete/moneda) + `total`; `ArqueoCaja.jsx` (el modal viejo) se eliminó, reemplazado por la página `src/pages/contabilidad/ArqueoCaja.jsx` con su propio id de vista (`arqueo-caja`) en el sidebar — ya no hay botón ni referencia dentro de `Tesoreria.jsx`. `ReciboArqueoCaja.jsx` se ajustó para imprimir el desglose de denominaciones en vez del saldo del sistema. Requiere la migración 020 (semilla de permisos para el id de vista nuevo).
 
 ### 016 — `contratos` (historial de contratos, modulo Contratos)
 - **Archivo:** `migrations/016_contratos_historial.sql`
@@ -341,3 +343,14 @@
 - **Notas:**
   - Sin cambios de frontend — `dbTesoreria.js` ya enviaba `data.projectId`/`data.serviceId` como string uuid o `null`, el mismatch estaba solo del lado de la función SQL.
   - Ningún dato existente se toca (no hay `UPDATE`/`ALTER TABLE` sobre `transacciones`), es una recreación pura de función.
+
+### 020 — Permiso para `arqueo-caja` (nueva página propia)
+- **Archivo:** `migrations/020_permiso_arqueo_caja.sql`
+- **Fecha:** 2026-07-21
+- **Estado:** ⏳ Pendiente de ejecutar en Supabase
+- **Propósito:** Arqueo de Caja (ver notas de la migración 015) pasó de ser un botón/modal dentro de Tesorería a una página propia (`src/pages/contabilidad/ArqueoCaja.jsx`) con su propio id de vista en el sidebar (`arqueo-caja`). La sidebar (`Sidebar.jsx`) y el guard de `App.jsx` llaman `usePermission('arqueo-caja')` — sin una fila en `permisos`, cualquier rol no-`admin` (incluido `contabilidad`, que sí tenía acceso al botón viejo vía el permiso de `tesoreria`) queda sin acceso al módulo nuevo.
+- **Tablas afectadas:** `permisos` (INSERT) — `('contabilidad','arqueo-caja','leer')`, `('contabilidad','arqueo-caja','escribir')`, `('gerencia','arqueo-caja','leer')`, mismo criterio ya sembrado para `tesoreria` en la migración 002.
+- **Dependencias:** `002_perfiles_rbac.sql` (tabla `permisos`).
+- **Notas:**
+  - `admin` no necesita fila explícita — `usePermission()` del cliente hace bypass total para ese rol.
+  - Arqueo de Caja sigue sin sistematizar (localStorage, sin tabla propia en Supabase) — esta migración solo cubre el permiso de la vista, no crea ni toca tablas de datos.
