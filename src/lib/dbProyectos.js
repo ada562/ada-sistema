@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import { getTransactions } from './dbTesoreria'
-import { getTimelogsByProject } from './dbTimelogs'
+import { getTimelogs, getTimelogsByProject } from './dbTimelogs'
 import { getEmpleados } from './dbEmpleados'
 import { getSettings } from './dbSettings'
 
@@ -126,10 +126,16 @@ export async function deleteProyecto(id) {
   if (error) throw error
 }
 
-export async function getProjectMetrics(projectId) {
-  const allTx = await getTransactions()
-  const transactions = allTx.filter((tx) => tx.projectId === projectId)
-  const timelogs = await getTimelogsByProject(projectId)
+/**
+ * Pura -- recibe transacciones/registros de horas ya cargados (de todo el
+ * tenant) y filtra por projectId en memoria. Separada de getProjectMetrics
+ * para que getAllProjectsWithMetrics pueda traer cada tabla UNA sola vez
+ * y calcular las metricas de los N proyectos sin volver a golpear
+ * Supabase por cada uno (ver nota de rendimiento abajo).
+ */
+function computeProjectMetrics(projectId, allTransactions, allTimelogs, empleadosPorId, workDaysPerMonth) {
+  const transactions = allTransactions.filter((tx) => tx.projectId === projectId)
+  const timelogs = allTimelogs.filter((t) => t.projectId === projectId)
 
   const ingresos = transactions
     .filter((tx) => tx.type === 'ingreso')
@@ -138,10 +144,6 @@ export async function getProjectMetrics(projectId) {
   const gastos = transactions
     .filter((tx) => tx.type === 'gasto')
     .reduce((sum, tx) => sum + tx.amount, 0)
-
-  const empleados = await getEmpleados()
-  const empleadosPorId = new Map(empleados.map((e) => [e.id, e]))
-  const { workDaysPerMonth } = await getSettings()
 
   let costoManoObra = 0
   for (const log of timelogs) {
@@ -164,12 +166,37 @@ export async function getProjectMetrics(projectId) {
   }
 }
 
+export async function getProjectMetrics(projectId) {
+  const [allTransactions, timelogs, empleados, settings] = await Promise.all([
+    getTransactions(),
+    getTimelogsByProject(projectId),
+    getEmpleados(),
+    getSettings(),
+  ])
+  const empleadosPorId = new Map(empleados.map((e) => [e.id, e]))
+  return computeProjectMetrics(projectId, allTransactions, timelogs, empleadosPorId, settings.workDaysPerMonth)
+}
+
+/**
+ * Antes esta funcion llamaba a getProjectMetrics(p.id) por cada proyecto,
+ * y esa a su vez volvia a traer TODA la tabla de transacciones/empleados/
+ * configuracion por proyecto -- con 42 proyectos reales en produccion eso
+ * son ~170 consultas a Supabase para cargar una sola pantalla (causa real
+ * de la pagina "Proyectos" quedando en skeleton indefinidamente / muy
+ * lenta). Ahora cada tabla se trae UNA sola vez y las metricas de los N
+ * proyectos se calculan en memoria.
+ */
 export async function getAllProjectsWithMetrics() {
-  const projects = await getProyectos()
-  return Promise.all(
-    projects.map(async (p) => ({
-      ...p,
-      metrics: await getProjectMetrics(p.id),
-    }))
-  )
+  const [projects, allTransactions, allTimelogs, empleados, settings] = await Promise.all([
+    getProyectos(),
+    getTransactions(),
+    getTimelogs(),
+    getEmpleados(),
+    getSettings(),
+  ])
+  const empleadosPorId = new Map(empleados.map((e) => [e.id, e]))
+  return projects.map((p) => ({
+    ...p,
+    metrics: computeProjectMetrics(p.id, allTransactions, allTimelogs, empleadosPorId, settings.workDaysPerMonth),
+  }))
 }
