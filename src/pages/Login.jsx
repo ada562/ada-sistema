@@ -12,8 +12,7 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      const session = await login(email, password)
-      toast.success(`Bienvenido, ${session.user.email}`)
+      await login(email, password)
       // useAuthStore recibe el cambio de sesion via onAuthStateChange
     } catch {
       toast.error('Correo o contraseña incorrectos')
