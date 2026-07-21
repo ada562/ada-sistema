@@ -159,6 +159,26 @@ export async function setEmpleadoPassword(empleadoId, newPassword, accessToken) 
   return body
 }
 
+/**
+ * Crea la cuenta de portal (Supabase Auth) de un empleado y la vincula a
+ * empleados.user_id, vía api/admin/create-empleado-account.js (unico lugar
+ * que usa la service role key para esto). Requiere la sesion del admin que
+ * hace la llamada, igual que setEmpleadoPassword.
+ */
+export async function createEmpleadoAccount(empleadoId, email, password, accessToken) {
+  const res = await fetch('/api/admin/create-empleado-account', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ empleadoId, email, password }),
+  })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body.error || 'No se pudo crear la cuenta de portal')
+  return body
+}
+
 export async function getDailyRate(empleado) {
   const { workDaysPerMonth } = await getSettings()
   return (empleado.monthlyRate + (empleado.nonConstitutiveSalary || 0)) / workDaysPerMonth

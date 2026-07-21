@@ -7,7 +7,7 @@ import FormEmpleado from '../../components/equipo/FormEmpleado'
 import { useNavigationStore } from '../../store/useNavigationStore'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { useAuthStore } from '../../store/useAuthStore'
-import { getAge, getDailyRate, setEmpleadoPassword } from '../../lib/dbEmpleados'
+import { getAge, getDailyRate, setEmpleadoPassword, createEmpleadoAccount } from '../../lib/dbEmpleados'
 import { fmtMoney, fmtDate } from '../../lib/formatters'
 
 const statusColors = {
@@ -63,6 +63,7 @@ export default function EmpleadoDetalle() {
   const { session, perfil } = useAuthStore()
   const isAdmin = perfil?.rol === 'admin'
   const [passwordModal, setPasswordModal] = useState(false)
+  const [createAccountModal, setCreateAccountModal] = useState(false)
 
   const [dailyRate, setDailyRate] = useState(0)
 
@@ -123,6 +124,11 @@ export default function EmpleadoDetalle() {
           {isAdmin && emp.userId && (
             <Button variant="outline" size="sm" onClick={() => setPasswordModal(true)}>
               <KeyRound size={14} /> Cambiar contraseña
+            </Button>
+          )}
+          {isAdmin && !emp.userId && (
+            <Button variant="outline" size="sm" onClick={() => setCreateAccountModal(true)}>
+              <KeyRound size={14} /> Crear cuenta de portal
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={() => openModal(emp)}>
@@ -215,6 +221,17 @@ export default function EmpleadoDetalle() {
           accessToken={session?.access_token}
         />
       )}
+
+      {isAdmin && !emp.userId && (
+        <CrearCuentaModal
+          open={createAccountModal}
+          onClose={() => setCreateAccountModal(false)}
+          empleadoId={emp.id}
+          empleadoNombre={emp.name}
+          empleadoEmail={emp.email}
+          accessToken={session?.access_token}
+        />
+      )}
     </div>
   )
 }
@@ -276,6 +293,85 @@ function CambiarPasswordModal({ open, onClose, empleadoId, empleadoNombre, acces
         <div className="flex justify-end gap-3 pt-2">
           <Button variant="ghost" onClick={handleClose} disabled={saving}>Cancelar</Button>
           <Button onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : 'Cambiar contraseña'}</Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+/* ─── Modal: Crear cuenta de portal (solo admin) ─── */
+
+function CrearCuentaModal({ open, onClose, empleadoId, empleadoNombre, empleadoEmail, accessToken }) {
+  const [email, setEmail] = useState(empleadoEmail || '')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (open) setEmail(empleadoEmail || '')
+  }, [open, empleadoEmail])
+
+  const handleClose = () => {
+    setPassword('')
+    setConfirmPassword('')
+    onClose()
+  }
+
+  const handleSave = async () => {
+    if (!email.trim()) return toast.error('El correo es obligatorio')
+    if (password.length < 8) return toast.error('La contraseña debe tener al menos 8 caracteres')
+    if (password !== confirmPassword) return toast.error('Las contraseñas no coinciden')
+
+    setSaving(true)
+    try {
+      await createEmpleadoAccount(empleadoId, email.trim(), password, accessToken)
+      toast.success(`Cuenta de portal creada para ${empleadoNombre}`)
+      handleClose()
+    } catch (err) {
+      toast.error(err.message || 'No se pudo crear la cuenta de portal')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={handleClose} title={`Crear cuenta de portal — ${empleadoNombre}`}>
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Correo de acceso</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="empleado@correo.com"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña inicial</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mínimo 8 caracteres"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <p className="text-xs text-gray-400">
+          El empleado usará este correo y contraseña para entrar a "Mi Bitácora". Puede cambiarla después desde aquí.
+        </p>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="ghost" onClick={handleClose} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Creando...' : 'Crear cuenta'}</Button>
         </div>
       </div>
     </Modal>
