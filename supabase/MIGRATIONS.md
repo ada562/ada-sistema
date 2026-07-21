@@ -27,7 +27,7 @@
 | 017 | `017_empleados_horario.sql` | 2026-07-21 | Feature: `ALTER TABLE empleados` agrega `tipo_horario` (asigna a cada empleado una de las 2 jornadas fijas oficiales — "Equipo de Diseño"/"Equipo Administrativo" — definidas en `src/lib/horarios.js`) — reemplaza el placeholder de `src/pages/rrhh/Horarios.jsx` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 018 | `018_empleado_documentos.sql` | 2026-07-21 | Feature: tabla `empleado_documentos` + bucket privado de Storage `empleados-documentos` — subida real de cédula/hoja de vida/contrato PDF/certificados/otros por empleado, reemplaza los flags booleanos sin archivo real de `empleados.doc_*` (migración 007) | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 019 | `019_fix_fn_registrar_transaccion_uuid.sql` | 2026-07-21 | Correctiva urgente: `fn_registrar_transaccion` recreada con `p_proyecto_id uuid`/`p_servicio_id uuid` (antes `text`, desde la migración 005) — desalineada desde la migración 010 que cambió esas columnas de `transacciones` a `uuid`, rompiendo TODA alta de transacción en Tesorería con error "column proyecto_id is of type uuid but expression is of type text" | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
-| 020 | `020_permiso_arqueo_caja.sql` | 2026-07-21 | Feature: semilla de `permisos` para el nuevo id de vista `arqueo-caja` (`contabilidad`→leer/escribir, `gerencia`→leer) — Arqueo de Caja pasó de botón/modal dentro de Tesorería a página propia en el sidebar | ⏳ Pendiente de ejecutar en Supabase |
+| 020 | `020_permiso_arqueo_caja.sql` | 2026-07-21 | Feature: semilla de `permisos` para el nuevo id de vista `arqueo-caja` (`contabilidad`→leer/escribir, `gerencia`→leer) — Arqueo de Caja pasó de botón/modal dentro de Tesorería a página propia en el sidebar | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 
 
 ---
@@ -347,7 +347,7 @@
 ### 020 — Permiso para `arqueo-caja` (nueva página propia)
 - **Archivo:** `migrations/020_permiso_arqueo_caja.sql`
 - **Fecha:** 2026-07-21
-- **Estado:** ⏳ Pendiente de ejecutar en Supabase
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21
 - **Propósito:** Arqueo de Caja (ver notas de la migración 015) pasó de ser un botón/modal dentro de Tesorería a una página propia (`src/pages/contabilidad/ArqueoCaja.jsx`) con su propio id de vista en el sidebar (`arqueo-caja`). La sidebar (`Sidebar.jsx`) y el guard de `App.jsx` llaman `usePermission('arqueo-caja')` — sin una fila en `permisos`, cualquier rol no-`admin` (incluido `contabilidad`, que sí tenía acceso al botón viejo vía el permiso de `tesoreria`) queda sin acceso al módulo nuevo.
 - **Tablas afectadas:** `permisos` (INSERT) — `('contabilidad','arqueo-caja','leer')`, `('contabilidad','arqueo-caja','escribir')`, `('gerencia','arqueo-caja','leer')`, mismo criterio ya sembrado para `tesoreria` en la migración 002.
 - **Dependencias:** `002_perfiles_rbac.sql` (tabla `permisos`).
