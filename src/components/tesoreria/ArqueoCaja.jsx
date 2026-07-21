@@ -1,39 +1,34 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { ClipboardCheck } from 'lucide-react'
+import { ClipboardCheck, Printer } from 'lucide-react'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
+import ReciboArqueoCaja from './ReciboArqueoCaja'
 import { useTesoreriaStore } from '../../store/useTesoreriaStore'
 import { getArqueos, registrarArqueo } from '../../lib/dbArqueoCaja'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 
-const cuentas = [
-  { key: 'efectivo', label: 'Efectivo' },
-  { key: 'banco', label: 'Banco' },
-  { key: 'nequi', label: 'Nequi' },
-]
-
 export default function ArqueoCaja({ open, onClose }) {
   const balances = useTesoreriaStore((s) => s.balances)
-  const [cuenta, setCuenta] = useState('efectivo')
   const [saldoContado, setSaldoContado] = useState('')
   const [notas, setNotas] = useState('')
   const [historial, setHistorial] = useState([])
   const [loadingHistorial, setLoadingHistorial] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [reciboArqueo, setReciboArqueo] = useState(null)
 
-  const saldoSistema = balances[cuenta] ?? 0
+  const saldoSistema = balances.efectivo ?? 0
   const contado = Number(saldoContado)
   const diferencia = saldoContado !== '' ? contado - saldoSistema : null
 
   useEffect(() => {
     if (!open) return
     setLoadingHistorial(true)
-    getArqueos(cuenta)
+    getArqueos()
       .then(setHistorial)
       .catch(() => toast.error('No se pudo cargar el historial de arqueos'))
       .finally(() => setLoadingHistorial(false))
-  }, [open, cuenta])
+  }, [open])
 
   if (!open) return null
 
@@ -46,7 +41,6 @@ export default function ArqueoCaja({ open, onClose }) {
     try {
       const nuevo = await registrarArqueo({
         date: todayIso(),
-        account: cuenta,
         saldoSistema,
         saldoContado: contado,
         notas,
@@ -55,6 +49,7 @@ export default function ArqueoCaja({ open, onClose }) {
       setSaldoContado('')
       setNotas('')
       toast.success('Arqueo registrado')
+      setReciboArqueo(nuevo)
     } catch (err) {
       toast.error(err.message || 'No se pudo registrar el arqueo')
     } finally {
@@ -63,22 +58,8 @@ export default function ArqueoCaja({ open, onClose }) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Arqueo de caja">
+    <Modal open={open} onClose={onClose} title="Arqueo de caja (efectivo)">
       <div className="space-y-4">
-        <div className="flex gap-2">
-          {cuentas.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setCuenta(c.key)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                cuenta === c.key ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-
         <div className="bg-gray-50 rounded-lg p-4 space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Saldo según sistema</span>
@@ -125,7 +106,7 @@ export default function ArqueoCaja({ open, onClose }) {
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-gray-700 mb-2">Historial ({cuentas.find((c) => c.key === cuenta)?.label})</p>
+          <p className="text-sm font-semibold text-gray-700 mb-2">Historial de conteos</p>
           {loadingHistorial ? (
             <p className="text-sm text-gray-400">Cargando...</p>
           ) : historial.length === 0 ? (
@@ -139,15 +120,26 @@ export default function ArqueoCaja({ open, onClose }) {
                     <p className="text-xs text-gray-400">Sistema: {fmtMoney(a.saldoSistema)} · Contado: {fmtMoney(a.saldoContado)}</p>
                     {a.notas && <p className="text-xs text-gray-400 italic">{a.notas}</p>}
                   </div>
-                  <span className={`font-semibold ${a.diferencia === 0 ? 'text-gray-600' : a.diferencia > 0 ? 'text-green-700' : 'text-red-600'}`}>
-                    {a.diferencia > 0 ? '+' : ''}{fmtMoney(a.diferencia)}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-semibold ${a.diferencia === 0 ? 'text-gray-600' : a.diferencia > 0 ? 'text-green-700' : 'text-red-600'}`}>
+                      {a.diferencia > 0 ? '+' : ''}{fmtMoney(a.diferencia)}
+                    </span>
+                    <button
+                      onClick={() => setReciboArqueo(a)}
+                      className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50"
+                      title="Imprimir recibo"
+                    >
+                      <Printer size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      <ReciboArqueoCaja open={!!reciboArqueo} onClose={() => setReciboArqueo(null)} arqueo={reciboArqueo} />
     </Modal>
   )
 }
