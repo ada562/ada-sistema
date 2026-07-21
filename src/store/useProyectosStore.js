@@ -10,6 +10,7 @@ import {
 export const useProyectosStore = create((set, get) => ({
   projects: [],
   loading: true,
+  error: null,
 
   modalOpen: false,
   editingProject: null,
@@ -18,9 +19,13 @@ export const useProyectosStore = create((set, get) => ({
   closeModal: () => set({ modalOpen: false, editingProject: null }),
 
   fetchAll: async () => {
-    set({ loading: true })
-    const projects = await getAllProjectsWithMetrics()
-    set({ projects, loading: false })
+    set({ loading: true, error: null })
+    try {
+      const projects = await getAllProjectsWithMetrics()
+      set({ projects, loading: false })
+    } catch (err) {
+      set({ error: err.message || 'No se pudieron cargar los proyectos', loading: false })
+    }
   },
 
   addProject: async (data) => {

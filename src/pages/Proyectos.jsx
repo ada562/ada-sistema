@@ -22,7 +22,7 @@ const statusOptions = [
 
 export default function Proyectos() {
   const setActiveView = useNavigationStore((s) => s.setActiveView)
-  const { projects, loading, fetchAll, initRealtime, teardownRealtime, openModal, deleteProject } = useProyectosStore()
+  const { projects, loading, error, fetchAll, initRealtime, teardownRealtime, openModal, deleteProject } = useProyectosStore()
   const [filtroEstado, setFiltroEstado] = useState('todos')
 
   useEffect(() => {
@@ -50,6 +50,16 @@ export default function Proyectos() {
       <div className="space-y-4 animate-pulse">
         <div className="h-6 w-48 bg-gray-200 rounded" />
         <div className="h-64 bg-gray-200 rounded-lg" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <p className="text-red-700 font-medium mb-3">No se pudieron cargar los proyectos</p>
+        <p className="text-sm text-red-600 mb-4">{error}</p>
+        <Button onClick={fetchAll}>Reintentar</Button>
       </div>
     )
   }
