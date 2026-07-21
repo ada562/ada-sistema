@@ -15,6 +15,7 @@ import {
   BriefcaseBusiness,
   TrendingUp,
   ShieldCheck,
+  NotebookPen,
 } from 'lucide-react'
 
 export const topLevelItems = []
@@ -36,6 +37,7 @@ export const departments = [
       { id: 'proyectos', label: 'Proyectos ADA', icon: FolderKanban },
       { id: 'bitacoras', label: 'Bitácoras', icon: ClipboardList },
       { id: 'visitas', label: 'Visitas', icon: MapPin },
+      { id: 'mi-bitacora', label: 'Mi Bitácora', icon: NotebookPen },
     ],
   },
   {

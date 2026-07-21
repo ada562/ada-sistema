@@ -22,6 +22,7 @@ const Contratos = lazy(() => import('./pages/rrhh/Contratos'))
 const Horarios = lazy(() => import('./pages/rrhh/Horarios'))
 const Bitacoras = lazy(() => import('./pages/proyectos/Bitacoras'))
 const VisitasGlobal = lazy(() => import('./pages/proyectos/Visitas'))
+const MiBitacora = lazy(() => import('./pages/proyectos/MiBitacora'))
 const ResumenGerencia = lazy(() => import('./pages/gerencia/ResumenGerencia'))
 const Publicidad = lazy(() => import('./pages/marketing/Publicidad'))
 const Redes = lazy(() => import('./pages/marketing/Redes'))
@@ -40,6 +41,7 @@ const views = {
   nomina: Nomina,
   bitacoras: Bitacoras,
   visitas: VisitasGlobal,
+  'mi-bitacora': MiBitacora,
   contratos: Contratos,
   horarios: Horarios,
   publicidad: Publicidad,

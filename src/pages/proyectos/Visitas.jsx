@@ -8,6 +8,7 @@ import { useProyectosStore } from '../../store/useProyectosStore'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 import { useNavigationStore } from '../../store/useNavigationStore'
+import { TEMA_OPTIONS, getTemaLabel } from '../../lib/visitaTemas'
 
 const VISIT_TYPES = [
   { value: 'visita_obra', label: 'Visita a Obra', icon: HardHat, color: 'text-orange-600', bg: 'bg-orange-50', badge: 'bg-orange-100 text-orange-700' },
@@ -236,7 +237,7 @@ export default function Visitas() {
                           {getProjectName(v.projectId)}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-gray-700 max-w-[200px] truncate">{v.topic || '—'}</td>
+                      <td className="px-4 py-3 text-gray-700 max-w-[200px] truncate">{getTemaLabel(v.topic, v.topicOther) || '—'}</td>
                       <td className="px-4 py-3 text-xs text-gray-600">
                         {(v.attendeeIds || []).map((id) => getEmpName(id)).join(', ') || '—'}
                       </td>
@@ -292,8 +293,8 @@ function FormVisitaGlobal({ open, data, proyectos, empleados, visitas, getProyec
 
   const resetForm = () => {
     setForm(data
-      ? { projectId: data.projectId, tipo: data.tipo || 'visita_obra', date: data.date, topic: data.topic, attendeeIds: data.attendeeIds || [], notes: data.notes, amount: data.amount, invoiced: data.invoiced }
-      : { projectId: '', tipo: 'visita_obra', date: todayIso(), topic: '', attendeeIds: [], notes: '', amount: '', invoiced: false }
+      ? { projectId: data.projectId, tipo: data.tipo || 'visita_obra', date: data.date, topic: data.topic, topicOther: data.topicOther || '', attendeeIds: data.attendeeIds || [], notes: data.notes, amount: data.amount, invoiced: data.invoiced }
+      : { projectId: '', tipo: 'visita_obra', date: todayIso(), topic: '', topicOther: '', attendeeIds: [], notes: '', amount: '', invoiced: false }
     )
   }
 
@@ -401,8 +402,18 @@ function FormVisitaGlobal({ open, data, proyectos, empleados, visitas, getProyec
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Tema</label>
-          <input type="text" value={form.topic || ''} onChange={(e) => set('topic', e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+          <select value={form.topic || ''} onChange={(e) => set('topic', e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">Sin especificar</option>
+            {TEMA_OPTIONS.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+          {form.topic === 'otro' && (
+            <input type="text" value={form.topicOther || ''} onChange={(e) => set('topicOther', e.target.value)}
+              placeholder="Especifica el tema..."
+              className="mt-2 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Asistentes</label>

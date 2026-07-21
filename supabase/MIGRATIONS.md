@@ -20,6 +20,8 @@
 | 010 | `010_proyectos_servicios.sql` | 2026-07-18 | Fase 8-9: tablas `proyectos`/`servicios_proyecto`/`proyecto_equipo`, `legacy_id` persistido, seed real (42 proyectos, 2 servicios, `firebase_export/projects.json`/`services.json`), remapeo de `transacciones.proyecto_id`/`.servicio_id` de `text` a `uuid` con FK real | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 011 | `011_visitas_registro_horas.sql` | 2026-07-18 | Fase 10 (parcial, sin PowerSync): tablas `visitas`/`visita_asistentes`/`registro_horas`, `empleados.legacy_id` retroactivo, seed real (31 visitas, 9 registro_horas, `firebase_export/visits.json`/`timelogs.json`) | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 012 | `012_calendario_tributario.sql` | 2026-07-18 | Tabla `calendario_tributario`, seed real (5 registros fijos de `dbCalendario.js`) — reemplaza `localStorage` clave `ada_calendario_tributario`, consumida hoy solo desde `ResumenGerencia.jsx` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
+| 013 | `013_empleado_portal_bitacora.sql` | 2026-07-21 | Portal de empleado: `perfiles.rol` gana `'empleado'`, `empleados.user_id` (login individual), `fn_empleado_id()`/`fn_semana_actual_inicio()`, RLS propia en `registro_horas`/`visitas`/`visita_asistentes` con bloqueo blando por semana, `visitas.tema` estructurado (+`tema_otro`), vistas `vw_proyectos_directorio`/`vw_empleados_directorio`, permisos `mi-bitacora` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
+| 014 | `014_bitacora_otros_reposicion.sql` | 2026-07-21 | Correctiva + feature: `registro_horas.dias` CHECK relajado a `>= 0` (bug real, "Festivo" con `dias=0` habria fallado 23514), `proyecto_id` nullable + CHECK exige `nota` no vacia cuando no hay proyecto (fila "Otros") — "Reposición" reutiliza la convencion de `nota` sin cambio de esquema | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 
 ---
 
@@ -228,3 +230,42 @@
 - **Notas:**
   - Sin modulo propio en el RBAC (`departments.js` no tiene un id `calendario` — vive embebido en `resumen-gerencia`, que ya tiene permisos sembrados en la migracion 002 para gerencia leer/escribir). Si en el futuro se separa en su propio modulo, agregar la fila correspondiente a `permisos` y ajustar estas politicas.
   - Cascada pendiente en frontend: reescritura de `dbCalendario.js` a Supabase y actualizacion de `ResumenGerencia.jsx` (elimina el hack `setTick`/`refresh()` del modal `FormCalendario` inline).
+
+### 013 — Portal de empleado (login individual + Mi Bitacora)
+- **Archivo:** `migrations/013_empleado_portal_bitacora.sql`
+- **Fecha:** 2026-07-21
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21
+- **Proposito:** el usuario pidio que cada empleado activo tenga su propia cuenta de acceso ("clave y contraseña ... con la estructura de antes") con una vista de "Mi Bitacora" (registro de horas + visitas propias, matriz semanal por proyecto), sin poder editar registros de semanas ya cerradas. Esta migracion prepara todo el esquema/RLS necesario; **no crea ninguna cuenta de Supabase Auth** — eso se hace despues via Admin API una vez el usuario confirme la lista final de correos, y queda fuera de este archivo SQL.
+- **Tablas afectadas:**
+  - `perfiles` (ALTER, correctiva) — `rol` CHECK gana el valor `'empleado'` (localiza el nombre real del constraint via `pg_constraint` en vez de asumirlo, por si Postgres lo nombro distinto al esperado).
+  - `empleados` (ALTER) — nueva columna `user_id uuid UNIQUE REFERENCES auth.users(id)`, vinculo 1:1 con el login individual. Nueva politica `empleados_select_propio` (el empleado lee su propia fila completa).
+  - `registro_horas` (RLS adicional) — `registro_horas_select_propio`/`registro_horas_write_propio`: el empleado ve/edita solo sus propias filas (`empleado_id = fn_empleado_id()`), y solo puede escribir si `fecha >= fn_semana_actual_inicio()` (bloqueo blando — admin/coordinador no estan sujetos a esta restriccion, sus politicas de la migracion 011 siguen intactas).
+  - `visitas` (RLS adicional + columna) — `visitas_select_propio`/`visitas_write_propio`: visible/editable solo si el empleado figura en `visita_asistentes` (excepto INSERT, que no puede exigir la fila de asistente porque esta se crea despues, mismo flujo de `dbVisitas.js` hoy), mismo bloqueo blando por semana. Nueva columna `tema_otro text` (texto libre cuando `tema = 'otro'`) y `CHECK` `tema IN ('interiorismo','iluminacion','arquitectura','otro')` (o `NULL`, para no romper el historico).
+  - `visita_asistentes` (RLS adicional) — `visita_asistentes_select_propio`/`visita_asistentes_write_propio`: un empleado solo puede ver/insertar/eliminar su propia fila de asistencia (no puede anotar a otros).
+  - `vw_proyectos_directorio` (CREATE, vista) — `id, tenant_id, nombre, estado` de `proyectos`, sin datos financieros.
+  - `vw_empleados_directorio` (CREATE, vista) — `id, tenant_id, nombre, cargo` de `empleados` activos, sin datos personales/salariales.
+  - `permisos` (INSERT) — `('empleado','mi-bitacora','leer')`, `('empleado','mi-bitacora','escribir')`.
+- **Funciones:**
+  - `fn_empleado_id()` — `SECURITY DEFINER STABLE`, resuelve el `empleados.id` del usuario autenticado actual (mismo patron que `auth_rol()`, migracion 002). Reutilizada por las 3 tablas de RLS propia de esta migracion.
+  - `fn_semana_actual_inicio()` — `STABLE`, devuelve el lunes de la semana calendario actual (`date_trunc('week', current_date)`). Es el mecanismo completo del "bloqueo blando": no existe tabla de cierre semanal, se compara la fecha del registro contra este valor directamente en las politicas RLS.
+- **RLS de las 2 vistas nuevas:** `security_invoker = false` (default) a proposito — corren con el privilegio del owner de la vista, no heredan la RLS restrictiva de `proyectos`/`empleados` (que excluye al rol `empleado`). Es el mecanismo para exponer columnas no sensibles sin dar acceso de fila completa a las tablas base. `GRANT SELECT` explicito a `authenticated` y `claude_readonly`.
+- **Dependencias:** `auth_rol()`, `perfiles` (migracion 002); `empleados` (migracion 007); `proyectos` (migracion 010); `visitas`/`visita_asistentes`/`registro_horas` (migracion 011, ejecutada — la normalizacion de `tema` y el `CHECK` nuevo se verificaron contra los valores reales de produccion antes de escribir esta migracion: 28 filas `NULL`, 2 `'Arquitectura'`, 1 `'Interiorismo'`, ninguna viola el `CHECK` nuevo).
+- **Notas:**
+  - No incluida en este archivo (tareas de frontend/operacion separadas, en curso): creacion de las cuentas de Supabase Auth de los 9 empleados + vinculacion `empleados.user_id`; reescritura de `dbTimelogs.js`/`dbVisitas.js`/`dbEmpleados.js` y sus stores para el modelo "mis registros"; registro del modulo `mi-bitacora` en `src/data/departments.js` + `Sidebar.jsx`; rediseno de `Bitacoras.jsx` como matriz semanal por proyecto; selector de tema en `FormVisita.jsx`; API route admin (`SUPABASE_SERVICE_ROLE_KEY`) para cambiar la contraseña de un empleado desde la matriz.
+  - El bloqueo blando es deliberadamente simple (comparacion de fecha en RLS) en vez de una tabla de "cierres semanales" — evita una abstraccion que el alcance actual no pidio (no hay requerimiento de cerrar semanas manualmente con auditoria propia, solo de impedir edicion retroactiva por el empleado).
+  - **2026-07-21 — bug encontrado en el primer intento de ejecucion (Postgres `P0001`):** el bloque `DO $$` que localiza el CHECK constraint de `perfiles.rol` buscaba el texto literal `'IN'` en `pg_get_constraintdef()`, pero Postgres reescribe internamente `rol IN (...)` como `rol = ANY (ARRAY[...])` — el `LIKE '%rol%IN%'` nunca hacia match, y el `RAISE EXCEPTION` de seguridad freno la migracion antes de cualquier `ALTER`/`CREATE` (transaccion completa revertida por el `BEGIN`/`COMMIT`, sin efecto en produccion). Corregido: ahora localiza el constraint por la columna real via `pg_constraint.conkey` + `pg_attribute.attname = 'rol'`, sin depender del texto reconstruido.
+
+### 014 — `registro_horas`: dias >= 0, proyecto_id nullable ("Otros"), "Reposición"
+- **Archivo:** `migrations/014_bitacora_otros_reposicion.sql`
+- **Fecha:** 2026-07-21
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21
+- **Proposito:** tres ajustes a `registro_horas` pedidos por el usuario tras probar en vivo el calendario semanal de Bitacora (`BitacoraSemanaGrid.jsx`, migracion 013).
+- **Tablas afectadas:** `registro_horas` (ALTER, sin tablas nuevas):
+  1. **Bug real encontrado al revisar este pedido** (no reportado por el usuario, hallado por inspeccion): la migracion 011 creo `registro_horas.dias` con `CHECK (dias > 0)`. La funcionalidad "Festivo" (agregada en la sesion de rediseño del calendario, migracion 013) guarda una fila con `dias=0, nota='Festivo'` — nunca se probo contra la base de datos real; el `INSERT`/`UPDATE` habria fallado con `23514`. Se relaja a `CHECK (dias >= 0)`.
+  2. `proyecto_id` pasa a nullable — nueva fila "Otros" en el calendario para actividades sin proyecto (trabajo interno/administrativo); nuevo `CHECK` exige `nota` no vacia cuando `proyecto_id IS NULL` (el empleado debe describir que hizo).
+  3. "Reposición" (dia de fin de semana trabajado que se compensa despues) NO requiere cambio de esquema — reutiliza la misma convencion de `nota` ya usada por "Festivo" (`nota='Reposición'`, `dias>0`); documentado aqui junto al resto de la decision, sin `ALTER` propio.
+- **RLS:** sin cambios — las politicas de `registro_horas` (migraciones 011/013) ya cubren `proyecto_id IS NULL` porque filtran por `empleado_id`/rol, no por `proyecto_id`.
+- **Dependencias:** `011_visitas_registro_horas.sql` (`registro_horas` ya existe); logicamente posterior a `013` aunque no depende de sus objetos.
+- **Notas:**
+  - El bloque `DO $$` que dropea el CHECK de `dias` localiza el nombre real del constraint via `pg_constraint`/`pg_class`/`pg_attribute` (mismo patron defensivo de la migracion 013) en vez de asumir el nombre por defecto de Postgres.
+  - Cascada pendiente en frontend: `BitacoraSemanaGrid.jsx` (fila fija "Otros" con descripcion obligatoria, checkbox "Reposición" en columnas Sábado/Domingo, redondeo de totales), `Bitacoras.jsx` (`FormBitacoraGlobal` debe soportar `proyecto_id = NULL`).

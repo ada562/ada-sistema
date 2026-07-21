@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, User, Pencil, Trash2, Phone, Mail, MapPin, Shield, FileText, CheckCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, User, Pencil, Trash2, Phone, Mail, MapPin, Shield, FileText, CheckCircle, XCircle, KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
+import Modal from '../../components/UI/Modal'
 import FormEmpleado from '../../components/equipo/FormEmpleado'
 import { useNavigationStore } from '../../store/useNavigationStore'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
-import { getAge, getDailyRate } from '../../lib/dbEmpleados'
+import { useAuthStore } from '../../store/useAuthStore'
+import { getAge, getDailyRate, setEmpleadoPassword } from '../../lib/dbEmpleados'
 import { fmtMoney, fmtDate } from '../../lib/formatters'
 
 const statusColors = {
@@ -54,6 +56,13 @@ export default function EmpleadoDetalle() {
   const { openModal, deleteEmployee, employees, getEmpleadoById } = useEmpleadosStore()
   const emp = getEmpleadoById(viewParam)
   const supervisorName = emp?.supervisor ? employees.find((e) => e.id === emp.supervisor)?.name || '—' : null
+
+  // Cambio de contrasena de portal: capacidad exclusiva de admin (no es un
+  // permiso de modulo normal via usePermission -- es la misma restriccion
+  // que ya aplica el server en api/admin/set-empleado-password.js).
+  const { session, perfil } = useAuthStore()
+  const isAdmin = perfil?.rol === 'admin'
+  const [passwordModal, setPasswordModal] = useState(false)
 
   const [dailyRate, setDailyRate] = useState(0)
 
@@ -111,6 +120,11 @@ export default function EmpleadoDetalle() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {isAdmin && emp.userId && (
+            <Button variant="outline" size="sm" onClick={() => setPasswordModal(true)}>
+              <KeyRound size={14} /> Cambiar contraseña
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => openModal(emp)}>
             <Pencil size={14} /> Editar
           </Button>
@@ -191,6 +205,79 @@ export default function EmpleadoDetalle() {
       </div>
 
       <FormEmpleado />
+
+      {isAdmin && emp.userId && (
+        <CambiarPasswordModal
+          open={passwordModal}
+          onClose={() => setPasswordModal(false)}
+          empleadoId={emp.id}
+          empleadoNombre={emp.name}
+          accessToken={session?.access_token}
+        />
+      )}
     </div>
+  )
+}
+
+/* ─── Modal: Cambiar contraseña de portal (solo admin) ─── */
+
+function CambiarPasswordModal({ open, onClose, empleadoId, empleadoNombre, accessToken }) {
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const handleClose = () => {
+    setPassword('')
+    setConfirmPassword('')
+    onClose()
+  }
+
+  const handleSave = async () => {
+    if (password.length < 8) return toast.error('La contraseña debe tener al menos 8 caracteres')
+    if (password !== confirmPassword) return toast.error('Las contraseñas no coinciden')
+
+    setSaving(true)
+    try {
+      await setEmpleadoPassword(empleadoId, password, accessToken)
+      toast.success(`Contraseña actualizada para ${empleadoNombre}`)
+      handleClose()
+    } catch (err) {
+      toast.error(err.message || 'No se pudo cambiar la contraseña')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={handleClose} title={`Cambiar contraseña — ${empleadoNombre}`}>
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mínimo 8 caracteres"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <p className="text-xs text-gray-400">
+          El empleado deberá usar esta nueva contraseña en su próximo inicio de sesión del portal.
+        </p>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="ghost" onClick={handleClose} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : 'Cambiar contraseña'}</Button>
+        </div>
+      </div>
+    </Modal>
   )
 }

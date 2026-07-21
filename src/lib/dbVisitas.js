@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
 const VISITA_COLUMNS =
-  'id,proyecto_id,tipo,fecha,tema,notas,monto,facturado,created_at,visita_asistentes(empleado_id)'
+  'id,proyecto_id,tipo,fecha,tema,tema_otro,notas,monto,facturado,created_at,visita_asistentes(empleado_id)'
 
 function visitaFromRow(r) {
   return {
@@ -10,6 +10,7 @@ function visitaFromRow(r) {
     tipo: r.tipo,
     date: r.fecha,
     topic: r.tema,
+    topicOther: r.tema_otro,
     attendeeIds: (r.visita_asistentes || []).map((a) => a.empleado_id),
     notes: r.notas,
     amount: Number(r.monto) || 0,
@@ -58,7 +59,8 @@ export async function addVisita(data) {
       proyecto_id: data.projectId,
       tipo: data.tipo || 'visita_obra',
       fecha: data.date || null,
-      tema: data.topic || '',
+      tema: data.topic || null,
+      tema_otro: data.topic === 'otro' ? (data.topicOther || null) : null,
       notas: data.notes || '',
       monto: Number(data.amount) || 0,
       facturado: data.invoiced || false,
@@ -76,7 +78,8 @@ export async function updateVisita(id, data) {
     .update({
       tipo: data.tipo || 'visita_obra',
       fecha: data.date || null,
-      tema: data.topic || '',
+      tema: data.topic || null,
+      tema_otro: data.topic === 'otro' ? (data.topicOther || null) : null,
       notas: data.notes || '',
       monto: Number(data.amount) || 0,
       facturado: data.invoiced || false,

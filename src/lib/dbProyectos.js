@@ -44,6 +44,30 @@ export async function getProyectoById(id) {
   return data ? proyectoFromRow(data) : null
 }
 
+const DIRECTORIO_COLUMNS = 'id,nombre,estado'
+
+function directorioFromRow(r) {
+  return { id: r.id, name: r.nombre, status: r.estado }
+}
+
+/**
+ * Directorio minimo de proyectos (id, nombre, estado) via la vista
+ * 'vw_proyectos_directorio' (migracion 013) -- sin columnas sensibles
+ * (valor_contrato, notas, etc). Es lo unico a lo que el rol 'empleado'
+ * tiene acceso para elegir un proyecto en su portal ('Mi Bitacora'), ya
+ * que la tabla 'proyectos' completa esta restringida por RLS a
+ * admin/gerencia/coordinador.
+ */
+export async function getProyectosDirectorio() {
+  const { data, error } = await supabase
+    .from('vw_proyectos_directorio')
+    .select(DIRECTORIO_COLUMNS)
+    .eq('tenant_id', 'ada')
+    .order('nombre', { ascending: true })
+  if (error) throw error
+  return data.map(directorioFromRow)
+}
+
 export async function getProyectosActivos() {
   const { data, error } = await supabase
     .from('proyectos')

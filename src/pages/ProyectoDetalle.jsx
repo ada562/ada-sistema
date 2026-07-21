@@ -16,7 +16,9 @@ import { useVisitasStore } from '../store/useVisitasStore'
 import { useEmpleadosStore } from '../store/useEmpleadosStore'
 import { getTransactions } from '../lib/dbTesoreria'
 import { getDailyRate } from '../lib/dbEmpleados'
+import { getSettings } from '../lib/dbSettings'
 import { fmtMoney, fmtDate } from '../lib/formatters'
+import { getTemaLabel } from '../lib/visitaTemas'
 
 const statusColors = {
   Activo: 'bg-green-100 text-green-700',
@@ -78,6 +80,7 @@ export default function ProyectoDetalle() {
 
   // Costeo de mano de obra: async porque getDailyRate() depende de getSettings() (Supabase)
   const [manoObra, setManoObra] = useState({ byEmployee: {}, total: 0, loading: true })
+  const [aiuPct, setAiuPct] = useState({ administracionPct: 0, imprevistosPct: 0, utilidadPct: 0, loading: true })
 
   // Transacciones del proyecto: async porque dbTesoreria.js ahora consulta Supabase
   const [transactions, setTransactions] = useState([])
@@ -144,6 +147,23 @@ export default function ProyectoDetalle() {
     return () => { cancelled = true }
   }, [proyecto, allTimelogs, empleadosLoading, employees, getEmpleadoById, getTimelogsByProject])
 
+  useEffect(() => {
+    let cancelled = false
+    getSettings()
+      .then((s) => {
+        if (!cancelled) {
+          setAiuPct({
+            administracionPct: s.administracionPct,
+            imprevistosPct: s.imprevistosPct,
+            utilidadPct: s.utilidadPct,
+            loading: false,
+          })
+        }
+      })
+      .catch(() => { if (!cancelled) setAiuPct((prev) => ({ ...prev, loading: false })) })
+    return () => { cancelled = true }
+  }, [])
+
   if (proyectosLoading) {
     return (
       <div className="space-y-4 animate-pulse">
@@ -196,6 +216,14 @@ export default function ProyectoDetalle() {
   const manoObraByEmployee = manoObra.byEmployee
   const gastosDirectos = gastos.reduce((sum, tx) => sum + tx.amount, 0)
   const costoInterno = costoManoObra + gastosDirectos
+
+  // AIU (Administración, Imprevistos, Utilidad) sobre la mano de obra: cuánto cobrarle al cliente
+  const aiuTotalPct = aiuPct.administracionPct + aiuPct.imprevistosPct + aiuPct.utilidadPct
+  const valorAdministracion = costoManoObra * (aiuPct.administracionPct / 100)
+  const valorImprevistos = costoManoObra * (aiuPct.imprevistosPct / 100)
+  const valorUtilidad = costoManoObra * (aiuPct.utilidadPct / 100)
+  const valorAIU = valorAdministracion + valorImprevistos + valorUtilidad
+  const valorACobrarManoObra = costoManoObra + valorAIU
 
   const margenBruto = abonosTotales - costoInterno
   const pctMargen = valorNetoConIva > 0 ? ((margenBruto / valorNetoConIva) * 100).toFixed(1) : '0.0'
@@ -467,6 +495,35 @@ export default function ProyectoDetalle() {
             </tbody>
           </table>
         )}
+        {!manoObra.loading && Object.keys(manoObraByEmployee).length > 0 && (
+          <div className="border-t border-gray-100 px-4 py-3 bg-indigo-50/50">
+            <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wider mb-2">
+              Cuánto cobrar (AIU sobre mano de obra)
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-gray-500">Administración ({aiuPct.administracionPct}%)</p>
+                <p className="font-medium text-gray-800">{fmtMoney(valorAdministracion)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Imprevistos ({aiuPct.imprevistosPct}%)</p>
+                <p className="font-medium text-gray-800">{fmtMoney(valorImprevistos)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Utilidad ({aiuPct.utilidadPct}%)</p>
+                <p className="font-medium text-gray-800">{fmtMoney(valorUtilidad)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">AIU total ({aiuTotalPct}%)</p>
+                <p className="font-semibold text-indigo-700">{fmtMoney(valorAIU)}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between mt-3 pt-2 border-t border-indigo-100">
+              <span className="text-sm font-semibold text-gray-700">Valor a cobrar por mano de obra</span>
+              <span className="text-lg font-bold text-indigo-700">{fmtMoney(valorACobrarManoObra)}</span>
+            </div>
+          </div>
+        )}
       </Section>
 
       {/* ═══ B · OTROS GASTOS DIRECTOS ═══ */}
@@ -592,7 +649,7 @@ export default function ProyectoDetalle() {
                 return (
                   <tr key={v.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2 whitespace-nowrap">{fmtDate(v.date)}</td>
-                    <td className="px-4 py-2 text-gray-600">{v.topic || '—'}</td>
+                    <td className="px-4 py-2 text-gray-600">{getTemaLabel(v.topic, v.topicOther) || '—'}</td>
                     <td className="px-4 py-2 text-gray-600 text-xs max-w-[150px]">{asistentes.join(', ') || '—'}</td>
                     <td className="px-4 py-2 text-gray-500 text-xs max-w-[250px] truncate">{v.notes || '—'}</td>
                     <td className="px-4 py-2 text-right font-medium">{v.amount ? fmtMoney(v.amount) : '—'}</td>

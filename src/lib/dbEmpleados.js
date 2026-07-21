@@ -5,7 +5,7 @@ const COLUMNS = 'id,nombre,cedula,fecha_nacimiento,genero,estado_civil,foto_url,
   'telefono,email,direccion,ciudad,' +
   'contacto_emergencia_nombre,contacto_emergencia_relacion,contacto_emergencia_telefono,contacto_emergencia_direccion,' +
   'cargo,departamento,supervisor_id,fecha_ingreso,tipo_contrato,contrato_hasta,' +
-  'tarifa_mensual,salario_no_constitutivo,carga_pct,estado,' +
+  'tarifa_mensual,salario_no_constitutivo,carga_pct,estado,user_id,' +
   'eps,pension,arl,caja_compensacion,' +
   'doc_cedula,doc_hoja_vida,doc_contrato,doc_certificados,created_at'
 
@@ -39,6 +39,7 @@ function empleadoFromRow(r) {
     nonConstitutiveSalary: Number(r.salario_no_constitutivo) || 0,
     cargaPct: Number(r.carga_pct) || 0,
     status: r.estado,
+    userId: r.user_id || null,
 
     eps: r.eps || '',
     pension: r.pension || '',
@@ -135,6 +136,27 @@ export async function setEmpleadoPin(empleadoId, pin) {
     p_pin: pin,
   })
   if (error) throw error
+}
+
+/**
+ * Cambia la contrasena de la cuenta de portal (Supabase Auth) de un
+ * empleado. Requiere la sesion del admin que hace la llamada (su
+ * access_token) -- la unica ruta server-side del proyecto
+ * (api/admin/set-empleado-password.js) valida ahi mismo que sea admin antes
+ * de usar la service role key.
+ */
+export async function setEmpleadoPassword(empleadoId, newPassword, accessToken) {
+  const res = await fetch('/api/admin/set-empleado-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ empleadoId, newPassword }),
+  })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body.error || 'No se pudo cambiar la contraseña')
+  return body
 }
 
 export async function getDailyRate(empleado) {
