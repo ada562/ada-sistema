@@ -42,7 +42,7 @@ export default function FormServicio({ projectId }) {
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name.trim()) {
       toast.error('El nombre del servicio es obligatorio')
@@ -51,14 +51,18 @@ export default function FormServicio({ projectId }) {
 
     const data = { ...form, projectId }
 
-    if (editingServicio) {
-      updateServicio(editingServicio.id, data)
-      toast.success('Servicio actualizado')
-    } else {
-      addServicio(data)
-      toast.success('Servicio agregado')
+    try {
+      if (editingServicio) {
+        await updateServicio(editingServicio.id, data)
+        toast.success('Servicio actualizado')
+      } else {
+        await addServicio(data)
+        toast.success('Servicio agregado')
+      }
+      closeModal()
+    } catch (err) {
+      toast.error('Error al guardar el servicio: ' + err.message)
     }
-    closeModal()
   }
 
   return (
@@ -143,7 +147,7 @@ export default function FormServicio({ projectId }) {
             >
               <option value="Activo">Activo</option>
               <option value="Pausado">Pausado</option>
-              <option value="Terminado">Terminado</option>
+              <option value="Finalizado">Finalizado</option>
             </select>
           </div>
           <div>

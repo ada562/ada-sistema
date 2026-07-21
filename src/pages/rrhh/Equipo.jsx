@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Users, Plus, Eye, Pencil, Trash2, Phone, AlertTriangle, Cake, FileWarning } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
@@ -6,7 +6,7 @@ import FormEmpleado from '../../components/equipo/FormEmpleado'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { useNavigationStore } from '../../store/useNavigationStore'
 import { getAge, getUpcomingBirthdays, getExpiringContracts } from '../../lib/dbEmpleados'
-import { fmtMoney, fmtDate } from '../../lib/formatters'
+import { fmtDate } from '../../lib/formatters'
 
 const statusColors = {
   Activo: 'bg-green-100 text-green-700',
@@ -25,20 +25,30 @@ const statusOptions = [
 
 export default function Equipo() {
   const setActiveView = useNavigationStore((s) => s.setActiveView)
-  const { employees, openModal, deleteEmployee } = useEmpleadosStore()
+  const { employees, openModal, deleteEmployee, fetchAll, initRealtime, teardownRealtime } = useEmpleadosStore()
   const [filtroEstado, setFiltroEstado] = useState('Activo')
+
+  useEffect(() => {
+    fetchAll()
+    initRealtime()
+    return () => teardownRealtime()
+  }, [fetchAll, initRealtime, teardownRealtime])
 
   const filtered = filtroEstado === 'todos'
     ? employees
     : employees.filter((e) => e.status === filtroEstado)
 
-  const birthdays = getUpcomingBirthdays()
-  const expiringContracts = getExpiringContracts()
+  const birthdays = getUpcomingBirthdays(employees)
+  const expiringContracts = getExpiringContracts(employees)
 
-  const handleDelete = (e) => {
+  const handleDelete = async (e) => {
     if (!window.confirm(`¿Eliminar a "${e.name}"?`)) return
-    deleteEmployee(e.id)
-    toast.success('Empleado eliminado')
+    try {
+      await deleteEmployee(e.id)
+      toast.success('Empleado eliminado')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo eliminar el empleado')
+    }
   }
 
   const countByStatus = (s) => employees.filter((e) => e.status === s).length

@@ -9,7 +9,7 @@ const emptyForm = {
   phone: '', email: '', address: '', city: '',
   emergencyName: '', emergencyRelation: '', emergencyPhone: '', emergencyAddress: '',
   role: '', department: '', supervisor: '', startDate: '', contractType: '', contractUntil: '',
-  monthlyRate: '', nonConstitutiveSalary: '', cargaPct: '', status: 'Activo', pin: '',
+  monthlyRate: '', nonConstitutiveSalary: '', cargaPct: '', status: 'Activo',
   eps: '', pension: '', arl: '', cajaCompensacion: '',
   docCedula: false, docHojaVida: false, docContrato: false, docCertificados: false,
 }
@@ -35,8 +35,9 @@ function Field({ label, children }) {
 const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 
 export default function FormEmpleado() {
-  const { modalOpen, editingEmployee, closeModal, addEmployee, updateEmployee } = useEmpleadosStore()
+  const { modalOpen, editingEmployee, closeModal, addEmployee, updateEmployee, employees } = useEmpleadosStore()
   const [form, setForm] = useState(emptyForm)
+  const supervisorOptions = employees.filter((e) => e.id !== editingEmployee?.id)
 
   useEffect(() => {
     if (editingEmployee) {
@@ -55,20 +56,24 @@ export default function FormEmpleado() {
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name.trim()) {
       toast.error('El nombre es obligatorio')
       return
     }
-    if (editingEmployee) {
-      updateEmployee(editingEmployee.id, form)
-      toast.success('Empleado actualizado')
-    } else {
-      addEmployee(form)
-      toast.success('Empleado agregado')
+    try {
+      if (editingEmployee) {
+        await updateEmployee(editingEmployee.id, form)
+        toast.success('Empleado actualizado')
+      } else {
+        await addEmployee(form)
+        toast.success('Empleado agregado')
+      }
+      closeModal()
+    } catch (err) {
+      toast.error(err.message || 'No se pudo guardar el empleado')
     }
-    closeModal()
   }
 
   return (
@@ -151,7 +156,10 @@ export default function FormEmpleado() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Jefe inmediato">
-            <input type="text" name="supervisor" value={form.supervisor} onChange={handleChange} className={inputCls} />
+            <select name="supervisor" value={form.supervisor} onChange={handleChange} className={inputCls}>
+              <option value="">Seleccionar...</option>
+              {supervisorOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
           </Field>
           <Field label="Estado">
             <select name="status" value={form.status} onChange={handleChange} className={inputCls}>

@@ -1,44 +1,83 @@
-import timelogsData from '../../firebase_export/timelogs.json'
-import { load, save } from './storage'
+import { supabase } from './supabase'
 
-let timelogs = load('ada_timelogs', timelogsData)
+const TIMELOG_COLUMNS = 'id,empleado_id,proyecto_id,fecha,dias,nota,created_at'
 
-export function getTimelogs() {
-  return timelogs
-}
-
-export function getTimelogsByProject(projectId) {
-  return timelogs.filter((t) => t.projectId === projectId)
-}
-
-export function getTimelogsByEmployee(employeeId) {
-  return timelogs.filter((t) => t.employeeId === employeeId)
-}
-
-export function addTimelog(data) {
-  const id = 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
-  const newTimelog = {
-    id,
-    employeeId: data.employeeId,
-    projectId: data.projectId,
-    date: data.date || '',
-    days: Number(data.days) || 0,
-    note: data.note || '',
+function timelogFromRow(r) {
+  return {
+    id: r.id,
+    employeeId: r.empleado_id,
+    projectId: r.proyecto_id,
+    date: r.fecha,
+    days: Number(r.dias) || 0,
+    note: r.nota,
+    createdAt: r.created_at,
   }
-  timelogs = [newTimelog, ...timelogs]
-  save('ada_timelogs', timelogs)
-  return newTimelog
 }
 
-export function updateTimelog(id, data) {
-  timelogs = timelogs.map((t) =>
-    t.id === id ? { ...t, ...data, days: Number(data.days) || 0 } : t
-  )
-  save('ada_timelogs', timelogs)
-  return timelogs.find((t) => t.id === id)
+export async function getTimelogs() {
+  const { data, error } = await supabase
+    .from('registro_horas')
+    .select(TIMELOG_COLUMNS)
+    .eq('tenant_id', 'ada')
+    .order('fecha', { ascending: false })
+  if (error) throw error
+  return data.map(timelogFromRow)
 }
 
-export function deleteTimelog(id) {
-  timelogs = timelogs.filter((t) => t.id !== id)
-  save('ada_timelogs', timelogs)
+export async function getTimelogsByProject(projectId) {
+  const { data, error } = await supabase
+    .from('registro_horas')
+    .select(TIMELOG_COLUMNS)
+    .eq('tenant_id', 'ada')
+    .eq('proyecto_id', projectId)
+    .order('fecha', { ascending: false })
+  if (error) throw error
+  return data.map(timelogFromRow)
+}
+
+export async function getTimelogsByEmployee(employeeId) {
+  const { data, error } = await supabase
+    .from('registro_horas')
+    .select(TIMELOG_COLUMNS)
+    .eq('tenant_id', 'ada')
+    .eq('empleado_id', employeeId)
+    .order('fecha', { ascending: false })
+  if (error) throw error
+  return data.map(timelogFromRow)
+}
+
+export async function addTimelog(data) {
+  const { data: row, error } = await supabase
+    .from('registro_horas')
+    .insert({
+      tenant_id: 'ada',
+      empleado_id: data.employeeId,
+      proyecto_id: data.projectId,
+      fecha: data.date || null,
+      dias: Number(data.days) || 0,
+      nota: data.note || '',
+    })
+    .select(TIMELOG_COLUMNS)
+    .single()
+  if (error) throw error
+  return timelogFromRow(row)
+}
+
+export async function updateTimelog(id, data) {
+  const { error } = await supabase
+    .from('registro_horas')
+    .update({
+      empleado_id: data.employeeId,
+      proyecto_id: data.projectId,
+      fecha: data.date || null,
+      dias: Number(data.days) || 0,
+      nota: data.note || '',
+    })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteTimelog(id) {
+  const { error } = await supabase.from('registro_horas').delete().eq('id', id)
+  if (error) throw error
 }

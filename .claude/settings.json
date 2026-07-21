@@ -14,11 +14,76 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup",
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "echo '📋 ADA Gestión — recuerda leer PROYECTO_CONTEXTO.md antes de proceder'"
+            "command": "bash hooks/migration-check-session.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/migration-post-write.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-security-on-auth.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-architect-on-new-module.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-qa-on-crud.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/migration-post-write.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-security-on-auth.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-qa-on-crud.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/migration-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-reviewer-on-commit.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-optimizer-on-build.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-docs-on-feature.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/agent-deploy-on-push.sh"
           }
         ]
       }

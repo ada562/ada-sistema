@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BadgeDollarSign, DollarSign, Printer, Check, Gift, Calculator, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
 import ReciboNomina from '../../components/nomina/ReciboNomina'
-import { getEmpleadosActivos } from '../../lib/dbEmpleados'
-import { getPayrollPayments, registrarPagoNomina } from '../../lib/dbNomina'
+import { useEmpleadosStore } from '../../store/useEmpleadosStore'
+import { useNominaStore } from '../../store/useNominaStore'
 import { getSettings } from '../../lib/dbSettings'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 
@@ -43,14 +43,25 @@ const TABS = [
 /* ─── Main Component ─── */
 
 export default function Nomina() {
+  const { getEmpleadosActivos, fetchAll: fetchEmpleados, initRealtime: initEmpleadosRealtime, teardownRealtime: teardownEmpleadosRealtime } = useEmpleadosStore()
+  const { payments: allPayments, fetchAll: fetchPagos, initRealtime: initPagosRealtime, teardownRealtime: teardownPagosRealtime, registrarPago } = useNominaStore()
   const empleados = getEmpleadosActivos().filter((e) => e.monthlyRate > 0)
-  const allPayments = getPayrollPayments()
-  const settings = getSettings()
-  const cargaPct = settings.cargaPrestacionalPct || 29
+  const [cargaPct, setCargaPct] = useState(29)
+
+  useEffect(() => {
+    getSettings().then((s) => setCargaPct(s.cargaPrestacionalPct || 29))
+    fetchEmpleados()
+    initEmpleadosRealtime()
+    fetchPagos()
+    initPagosRealtime()
+    return () => {
+      teardownEmpleadosRealtime()
+      teardownPagosRealtime()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [activeTab, setActiveTab] = useState('quincena')
-  const [, setTick] = useState(0)
-  const refresh = () => setTick((t) => t + 1)
 
   return (
     <div>
@@ -80,10 +91,10 @@ export default function Nomina() {
       </div>
 
       {activeTab === 'quincena' && (
-        <TabQuincena empleados={empleados} allPayments={allPayments} refresh={refresh} />
+        <TabQuincena empleados={empleados} allPayments={allPayments} registrarPago={registrarPago} />
       )}
       {activeTab === 'primas' && (
-        <TabPrimas empleados={empleados} allPayments={allPayments} refresh={refresh} />
+        <TabPrimas empleados={empleados} allPayments={allPayments} registrarPago={registrarPago} />
       )}
       {activeTab === 'resumen' && (
         <TabResumen empleados={empleados} cargaPct={cargaPct} />
@@ -96,7 +107,7 @@ export default function Nomina() {
    TAB 1: PAGOS QUINCENALES
    ═══════════════════════════════════════════════ */
 
-function TabQuincena({ empleados, allPayments, refresh }) {
+function TabQuincena({ empleados, allPayments, registrarPago }) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
@@ -245,7 +256,7 @@ function TabQuincena({ empleados, allPayments, refresh }) {
         {...payModal}
         period={period}
         onClose={() => setPayModal({ open: false, emp: null, tipo: '' })}
-        onPaid={refresh}
+        registrarPago={registrarPago}
       />
       <ReciboNomina
         open={reciboModal.open}
@@ -261,7 +272,7 @@ function TabQuincena({ empleados, allPayments, refresh }) {
    TAB 2: PRIMAS
    ═══════════════════════════════════════════════ */
 
-function TabPrimas({ empleados, allPayments, refresh }) {
+function TabPrimas({ empleados, allPayments, registrarPago }) {
   const semestres = getSemestres()
   const [selectedSem, setSelectedSem] = useState(() => {
     const m = new Date().getMonth()
@@ -387,7 +398,7 @@ function TabPrimas({ empleados, allPayments, refresh }) {
       <PagarPrimaModal
         {...payModal}
         onClose={() => setPayModal({ open: false, emp: null, tipo: '' })}
-        onPaid={refresh}
+        registrarPago={registrarPago}
       />
       <ReciboNomina
         open={reciboModal.open}
@@ -543,7 +554,7 @@ function PayStatusCell({ paid, payment, emp, onPay, onRecibo }) {
 
 /* ─── Modal pago quincena ─── */
 
-function PagarModal({ open, emp, tipo, amount, period, onClose, onPaid }) {
+function PagarModal({ open, emp, tipo, amount, period, onClose, registrarPago }) {
   const [method, setMethod] = useState('banco')
   const [notes, setNotes] = useState('')
 
@@ -551,25 +562,26 @@ function PagarModal({ open, emp, tipo, amount, period, onClose, onPaid }) {
 
   const tipoLabel = tipo === 'legal' ? 'Salario Legal' : 'Salario No Constitutivo'
 
-  const handlePay = () => {
-    registrarPagoNomina({
-      employeeId: emp.id,
-      employeeName: emp.name,
-      employeeRole: emp.role,
-      date: todayIso(),
-      tipo,
-      quincena: period.quincena,
-      periodStart: period.periodStart,
-      periodEnd: period.periodEnd,
-      amount,
-      method,
-      notes,
-    })
-    toast.success(`${tipoLabel} pagado a ${emp.name}`)
-    onPaid()
-    onClose()
-    setNotes('')
-    setMethod('banco')
+  const handlePay = async () => {
+    try {
+      await registrarPago({
+        employeeId: emp.id,
+        date: todayIso(),
+        tipo,
+        quincena: period.quincena,
+        periodStart: period.periodStart,
+        periodEnd: period.periodEnd,
+        amount,
+        method,
+        notes,
+      })
+      toast.success(`${tipoLabel} pagado a ${emp.name}`)
+      onClose()
+      setNotes('')
+      setMethod('banco')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo registrar el pago')
+    }
   }
 
   return (
@@ -600,7 +612,7 @@ function PagarModal({ open, emp, tipo, amount, period, onClose, onPaid }) {
 
 /* ─── Modal pago prima ─── */
 
-function PagarPrimaModal({ open, emp, tipo, amount, sem, onClose, onPaid }) {
+function PagarPrimaModal({ open, emp, tipo, amount, sem, onClose, registrarPago }) {
   const [method, setMethod] = useState('banco')
   const [notes, setNotes] = useState('')
 
@@ -608,26 +620,27 @@ function PagarPrimaModal({ open, emp, tipo, amount, sem, onClose, onPaid }) {
 
   const tipoLabel = tipo === 'prima_legal' ? 'Prima Legal' : 'Prima No Constitutivo'
 
-  const handlePay = () => {
-    registrarPagoNomina({
-      employeeId: emp.id,
-      employeeName: emp.name,
-      employeeRole: emp.role,
-      date: todayIso(),
-      tipo,
-      quincena: 0,
-      semestre: sem.semestre,
-      periodStart: sem.periodStart,
-      periodEnd: sem.periodEnd,
-      amount,
-      method,
-      notes,
-    })
-    toast.success(`${tipoLabel} pagada a ${emp.name}`)
-    onPaid()
-    onClose()
-    setNotes('')
-    setMethod('banco')
+  const handlePay = async () => {
+    try {
+      await registrarPago({
+        employeeId: emp.id,
+        date: todayIso(),
+        tipo,
+        quincena: 0,
+        semestre: sem.semestre,
+        periodStart: sem.periodStart,
+        periodEnd: sem.periodEnd,
+        amount,
+        method,
+        notes,
+      })
+      toast.success(`${tipoLabel} pagada a ${emp.name}`)
+      onClose()
+      setNotes('')
+      setMethod('banco')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo registrar el pago')
+    }
   }
 
   return (

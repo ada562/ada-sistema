@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { supabase } from '../lib/supabase'
 import {
   getTransactions,
   addTransaction,
@@ -7,9 +8,20 @@ import {
   getAccountBalances,
 } from '../lib/dbTesoreria'
 
+const emptyBalances = { banco: 0, efectivo: 0, nequi: 0 }
+
+function friendlyError(e) {
+  if (e?.code === '55P03') {
+    return new Error('Otro usuario está registrando un movimiento en esta cuenta ahora mismo, intenta de nuevo en un momento.')
+  }
+  return e
+}
+
 export const useTesoreriaStore = create((set, get) => ({
-  transactions: getTransactions(),
-  balances: getAccountBalances(),
+  transactions: [],
+  balances: emptyBalances,
+  loading: true,
+  balancesLoading: true,
 
   filters: {
     tipo: 'todos',
@@ -22,6 +34,18 @@ export const useTesoreriaStore = create((set, get) => ({
 
   modalOpen: false,
   editingTx: null,
+
+  fetchAll: async () => {
+    set({ loading: true, balancesLoading: true })
+    const [transactions, balances] = await Promise.all([getTransactions(), getAccountBalances()])
+    set({ transactions, balances, loading: false, balancesLoading: false })
+  },
+
+  fetchBalances: async () => {
+    set({ balancesLoading: true })
+    const balances = await getAccountBalances()
+    set({ balances, balancesLoading: false })
+  },
 
   setFilter: (key, value) =>
     set((state) => ({
@@ -43,19 +67,31 @@ export const useTesoreriaStore = create((set, get) => ({
   openModal: (tx = null) => set({ modalOpen: true, editingTx: tx }),
   closeModal: () => set({ modalOpen: false, editingTx: null }),
 
-  addTx: (data) => {
-    addTransaction(data)
-    set({ transactions: getTransactions(), balances: getAccountBalances() })
+  addTx: async (data) => {
+    try {
+      await addTransaction(data)
+      await get().fetchAll()
+    } catch (e) {
+      throw friendlyError(e)
+    }
   },
 
-  updateTx: (id, data) => {
-    updateTransaction(id, data)
-    set({ transactions: getTransactions(), balances: getAccountBalances() })
+  updateTx: async (id, data) => {
+    try {
+      await updateTransaction(id, data)
+      await get().fetchAll()
+    } catch (e) {
+      throw friendlyError(e)
+    }
   },
 
-  deleteTx: (id) => {
-    deleteTransaction(id)
-    set({ transactions: getTransactions(), balances: getAccountBalances() })
+  deleteTx: async (id) => {
+    try {
+      await deleteTransaction(id)
+      await get().fetchAll()
+    } catch (e) {
+      throw friendlyError(e)
+    }
   },
 
   getFilteredTransactions: () => {
@@ -71,5 +107,23 @@ export const useTesoreriaStore = create((set, get) => ({
         return true
       })
       .sort((a, b) => b.date.localeCompare(a.date))
+  },
+
+  _channel: null,
+  initRealtime: () => {
+    if (get()._channel) return
+    const channel = supabase
+      .channel('transacciones-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transacciones', filter: 'tenant_id=eq.ada' },
+        () => get().fetchAll()
+      )
+      .subscribe()
+    set({ _channel: channel })
+  },
+  teardownRealtime: () => {
+    get()._channel?.unsubscribe()
+    set({ _channel: null })
   },
 }))

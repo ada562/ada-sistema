@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
-import { getEmpleadosActivos } from '../../lib/dbEmpleados'
-import { addTimelog, updateTimelog } from '../../lib/dbTimelogs'
+import { useEmpleadosStore } from '../../store/useEmpleadosStore'
+import { useTimelogsStore } from '../../store/useTimelogsStore'
 import { todayIso } from '../../lib/formatters'
 
 const emptyForm = {
@@ -15,7 +15,10 @@ const emptyForm = {
 
 export default function FormBitacora({ projectId, open, onClose, editing = null }) {
   const [form, setForm] = useState(emptyForm)
+  const getEmpleadosActivos = useEmpleadosStore((s) => s.getEmpleadosActivos)
   const empleados = getEmpleadosActivos()
+  const addTimelog = useTimelogsStore((s) => s.addTimelog)
+  const updateTimelog = useTimelogsStore((s) => s.updateTimelog)
 
   useEffect(() => {
     if (editing) {
@@ -35,7 +38,7 @@ export default function FormBitacora({ projectId, open, onClose, editing = null 
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.employeeId) {
       toast.error('Selecciona una persona')
@@ -48,14 +51,18 @@ export default function FormBitacora({ projectId, open, onClose, editing = null 
 
     const data = { ...form, projectId }
 
-    if (editing) {
-      updateTimelog(editing.id, data)
-      toast.success('Registro actualizado')
-    } else {
-      addTimelog(data)
-      toast.success('Horas registradas')
+    try {
+      if (editing) {
+        await updateTimelog(editing.id, data)
+        toast.success('Registro actualizado')
+      } else {
+        await addTimelog(data)
+        toast.success('Horas registradas')
+      }
+      onClose()
+    } catch (err) {
+      toast.error('Error al guardar el registro: ' + err.message)
     }
-    onClose()
   }
 
   return (

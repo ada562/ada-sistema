@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Handshake, Plus, ArrowUpRight, ArrowDownLeft, RefreshCw, Trash2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
 import { getTransactions, addTransaction, deleteTransaction, updateTransaction } from '../../lib/dbTesoreria'
-import { getProyectos } from '../../lib/dbProyectos'
+import { useProyectosStore } from '../../store/useProyectosStore'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 
 const MOVEMENT_TYPES = [
@@ -18,11 +18,27 @@ function getMovementMeta(type) {
 }
 
 export default function GBA() {
-  const allTransactions = getTransactions()
-  const allProjects = getProyectos()
+  const [allTransactions, setAllTransactions] = useState([])
   const [formModal, setFormModal] = useState({ open: false, data: null })
-  const [, setTick] = useState(0)
-  const refresh = () => setTick((t) => t + 1)
+
+  const {
+    projects: allProjects,
+    fetchAll: fetchProyectos,
+    initRealtime: initProyectosRealtime,
+    teardownRealtime: teardownProyectosRealtime,
+  } = useProyectosStore()
+
+  const refresh = () => {
+    getTransactions().then(setAllTransactions)
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    getTransactions().then((txs) => { if (!cancelled) setAllTransactions(txs) })
+    fetchProyectos()
+    initProyectosRealtime()
+    return () => { cancelled = true; teardownProyectosRealtime() }
+  }, [fetchProyectos, initProyectosRealtime, teardownProyectosRealtime])
 
   // GBA movements (transactions with category GBA and gbaMovement set)
   const gbaMovements = allTransactions
@@ -48,11 +64,15 @@ export default function GBA() {
   const saldoEnContra = totalRecibido // ADA le debe a GBA
   const saldoNeto = saldoAFavor - saldoEnContra
 
-  const handleDelete = (tx) => {
+  const handleDelete = async (tx) => {
     if (!window.confirm('¿Eliminar este movimiento GBA?')) return
-    deleteTransaction(tx.id)
-    toast.success('Movimiento eliminado')
-    refresh()
+    try {
+      await deleteTransaction(tx.id)
+      toast.success('Movimiento eliminado')
+      refresh()
+    } catch (err) {
+      toast.error(err.message || 'No se pudo eliminar el movimiento')
+    }
   }
 
   return (
@@ -160,7 +180,7 @@ export default function GBA() {
                       <span>{p.client || 'Sin cliente'}</span>
                       <span className={`px-2 py-0.5 rounded-full font-medium ${
                         p.status === 'Activo' ? 'bg-green-100 text-green-700' :
-                        p.status === 'Terminado' ? 'bg-gray-100 text-gray-500' :
+                        p.status === 'Finalizado' ? 'bg-gray-100 text-gray-500' :
                         'bg-amber-100 text-amber-700'
                       }`}>{p.status}</span>
                     </div>
@@ -204,36 +224,40 @@ function FormGBAMovement({ open, data, onClose, onSaved }) {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const amount = Number(form.amount)
     if (!amount || amount <= 0) return toast.error('Monto inválido')
 
-    if (isEdit) {
-      updateTransaction(data.id, {
-        date: form.date,
-        amount,
-        gbaMovement: form.gbaMovement,
-        description: form.description,
-        category: 'GBA',
-      })
-      toast.success('Movimiento actualizado')
-    } else {
-      addTransaction({
-        date: form.date,
-        type: form.gbaMovement === 'prestamo_recibido' ? 'ingreso' : 'gasto',
-        account: null,
-        amount,
-        category: 'GBA',
-        projectId: null,
-        description: form.description,
-        gbaMovement: form.gbaMovement,
-        facturado: true,
-      })
-      toast.success('Movimiento GBA registrado')
+    try {
+      if (isEdit) {
+        await updateTransaction(data.id, {
+          date: form.date,
+          amount,
+          gbaMovement: form.gbaMovement,
+          description: form.description,
+          category: 'GBA',
+        })
+        toast.success('Movimiento actualizado')
+      } else {
+        await addTransaction({
+          date: form.date,
+          type: form.gbaMovement === 'prestamo_recibido' ? 'ingreso' : 'gasto',
+          account: null,
+          amount,
+          category: 'GBA',
+          projectId: null,
+          description: form.description,
+          gbaMovement: form.gbaMovement,
+          facturado: true,
+        })
+        toast.success('Movimiento GBA registrado')
+      }
+      onSaved()
+      onClose()
+      setForm({})
+    } catch (err) {
+      toast.error(err.message || 'No se pudo guardar el movimiento')
     }
-    onSaved()
-    onClose()
-    setForm({})
   }
 
   return (

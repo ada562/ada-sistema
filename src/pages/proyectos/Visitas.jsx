@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MapPin, Plus, Pencil, Trash2, HardHat, Palette, Gift } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
-import { getVisitas, addVisita, updateVisita, deleteVisita } from '../../lib/dbVisitas'
-import { getProyectos, getProyectoById } from '../../lib/dbProyectos'
-import { getEmpleadosActivos, getEmpleadoById } from '../../lib/dbEmpleados'
+import { useVisitasStore } from '../../store/useVisitasStore'
+import { useProyectosStore } from '../../store/useProyectosStore'
+import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 import { useNavigationStore } from '../../store/useNavigationStore'
 
@@ -20,14 +20,56 @@ function getTypeMeta(tipo) {
 }
 
 export default function Visitas() {
-  const visitas = getVisitas().sort((a, b) => b.date.localeCompare(a.date))
-  const proyectos = getProyectos()
   const [filterProject, setFilterProject] = useState('')
   const [filterType, setFilterType] = useState('')
   const [formModal, setFormModal] = useState({ open: false, data: null })
-  const [, setTick] = useState(0)
-  const refresh = () => setTick((t) => t + 1)
   const { setActiveView } = useNavigationStore()
+
+  const {
+    visitas: rawVisitas,
+    addVisita,
+    updateVisita,
+    deleteVisita,
+    fetchAll: fetchVisitas,
+    initRealtime: initVisitasRealtime,
+    teardownRealtime: teardownVisitasRealtime,
+  } = useVisitasStore()
+
+  const {
+    projects: proyectos,
+    getProyectoById,
+    fetchAll: fetchProyectos,
+    initRealtime: initProyectosRealtime,
+    teardownRealtime: teardownProyectosRealtime,
+  } = useProyectosStore()
+
+  const {
+    getEmpleadosActivos,
+    getEmpleadoById,
+    fetchAll: fetchEmpleados,
+    initRealtime: initEmpleadosRealtime,
+    teardownRealtime: teardownEmpleadosRealtime,
+  } = useEmpleadosStore()
+
+  useEffect(() => {
+    fetchVisitas()
+    initVisitasRealtime()
+    fetchProyectos()
+    initProyectosRealtime()
+    fetchEmpleados()
+    initEmpleadosRealtime()
+    return () => {
+      teardownVisitasRealtime()
+      teardownProyectosRealtime()
+      teardownEmpleadosRealtime()
+    }
+  }, [
+    fetchVisitas, initVisitasRealtime, teardownVisitasRealtime,
+    fetchProyectos, initProyectosRealtime, teardownProyectosRealtime,
+    fetchEmpleados, initEmpleadosRealtime, teardownEmpleadosRealtime,
+  ])
+
+  const visitas = [...rawVisitas].sort((a, b) => b.date.localeCompare(a.date))
   const empleados = getEmpleadosActivos()
 
   const filtered = visitas.filter((v) => {
@@ -42,11 +84,14 @@ export default function Visitas() {
     count: visitas.filter((v) => v.tipo === vt.value).length,
   }))
 
-  const handleDelete = (v) => {
+  const handleDelete = async (v) => {
     if (!window.confirm('¿Eliminar esta visita?')) return
-    deleteVisita(v.id)
-    toast.success('Visita eliminada')
-    refresh()
+    try {
+      await deleteVisita(v.id)
+      toast.success('Visita eliminada')
+    } catch (err) {
+      toast.error('Error al eliminar la visita: ' + err.message)
+    }
   }
 
   const getProjectName = (id) => proyectos.find((p) => p.id === id)?.name || '—'
@@ -229,8 +274,11 @@ export default function Visitas() {
         data={formModal.data}
         proyectos={proyectos}
         empleados={empleados}
+        visitas={visitas}
+        getProyectoById={getProyectoById}
         onClose={() => setFormModal({ open: false, data: null })}
-        onSaved={refresh}
+        addVisita={addVisita}
+        updateVisita={updateVisita}
       />
     </div>
   )
@@ -238,7 +286,7 @@ export default function Visitas() {
 
 /* ─── Modal: Crear/Editar Visita ─── */
 
-function FormVisitaGlobal({ open, data, proyectos, empleados, onClose, onSaved }) {
+function FormVisitaGlobal({ open, data, proyectos, empleados, visitas, getProyectoById, onClose, addVisita, updateVisita }) {
   const [form, setForm] = useState({})
   const isEdit = !!data
 
@@ -270,22 +318,25 @@ function FormVisitaGlobal({ open, data, proyectos, empleados, onClose, onSaved }
   const selectedProject = form.projectId ? getProyectoById(form.projectId) : null
   const pkg = selectedProject?.visitPackage || {}
   const included = pkg[form.tipo] || 0
-  const allVisitas = form.projectId ? getVisitas().filter((v) => v.projectId === form.projectId && v.tipo === form.tipo) : []
+  const allVisitas = form.projectId ? visitas.filter((v) => v.projectId === form.projectId && v.tipo === form.tipo) : []
   const used = allVisitas.length - (isEdit && data?.tipo === form.tipo ? 1 : 0) // don't count current if editing same type
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.projectId) return toast.error('Selecciona un proyecto')
 
-    if (isEdit) {
-      updateVisita(data.id, form)
-      toast.success('Visita actualizada')
-    } else {
-      addVisita(form)
-      toast.success('Visita registrada')
+    try {
+      if (isEdit) {
+        await updateVisita(data.id, form)
+        toast.success('Visita actualizada')
+      } else {
+        await addVisita(form)
+        toast.success('Visita registrada')
+      }
+      onClose()
+      setForm({})
+    } catch (err) {
+      toast.error('Error al guardar la visita: ' + err.message)
     }
-    onSaved()
-    onClose()
-    setForm({})
   }
 
   return (

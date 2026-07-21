@@ -46,21 +46,25 @@ export default function FormProyecto() {
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name.trim()) {
       toast.error('El nombre del proyecto es obligatorio')
       return
     }
 
-    if (editingProject) {
-      updateProject(editingProject.id, form)
-      toast.success('Proyecto actualizado')
-    } else {
-      addProject(form)
-      toast.success('Proyecto creado')
+    try {
+      if (editingProject) {
+        await updateProject(editingProject.id, form)
+        toast.success('Proyecto actualizado')
+      } else {
+        await addProject(form)
+        toast.success('Proyecto creado')
+      }
+      closeModal()
+    } catch (err) {
+      toast.error('Error al guardar el proyecto: ' + err.message)
     }
-    closeModal()
   }
 
   return (
@@ -118,7 +122,7 @@ export default function FormProyecto() {
             >
               <option value="Activo">Activo</option>
               <option value="Pausado">Pausado</option>
-              <option value="Terminado">Terminado</option>
+              <option value="Finalizado">Finalizado</option>
             </select>
           </div>
           <div>

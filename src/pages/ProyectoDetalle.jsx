@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowLeft, FolderKanban, Pencil, Trash2, Plus, Layers, FileText, Printer } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../components/UI/Button'
@@ -11,24 +11,59 @@ import CuentaCobro from '../components/proyectos/CuentaCobro'
 import { useNavigationStore } from '../store/useNavigationStore'
 import { useProyectosStore } from '../store/useProyectosStore'
 import { useServiciosStore } from '../store/useServiciosStore'
-import { getProyectoById } from '../lib/dbProyectos'
-import { getServiciosByProject } from '../lib/dbServicios'
+import { useTimelogsStore } from '../store/useTimelogsStore'
+import { useVisitasStore } from '../store/useVisitasStore'
+import { useEmpleadosStore } from '../store/useEmpleadosStore'
 import { getTransactions } from '../lib/dbTesoreria'
-import { getTimelogsByProject } from '../lib/dbTimelogs'
-import { getVisitasByProject } from '../lib/dbVisitas'
-import { getEmpleadoById, getDailyRate } from '../lib/dbEmpleados'
+import { getDailyRate } from '../lib/dbEmpleados'
 import { fmtMoney, fmtDate } from '../lib/formatters'
 
 const statusColors = {
   Activo: 'bg-green-100 text-green-700',
   Pausado: 'bg-yellow-100 text-yellow-700',
-  Terminado: 'bg-gray-100 text-gray-600',
+  Finalizado: 'bg-gray-100 text-gray-600',
 }
 
 export default function ProyectoDetalle() {
   const { viewParam, setActiveView } = useNavigationStore()
-  const { openModal: openProjectModal, deleteProject } = useProyectosStore()
-  const { openModal: openServiceModal, deleteServicio } = useServiciosStore()
+  const {
+    loading: proyectosLoading,
+    getProyectoById,
+    fetchAll: fetchProyectos,
+    initRealtime: initProyectosRealtime,
+    teardownRealtime: teardownProyectosRealtime,
+    openModal: openProjectModal,
+    deleteProject,
+  } = useProyectosStore()
+  const {
+    getByProject: getServiciosByProject,
+    fetchAll: fetchServicios,
+    initRealtime: initServiciosRealtime,
+    teardownRealtime: teardownServiciosRealtime,
+    openModal: openServiceModal,
+    deleteServicio,
+  } = useServiciosStore()
+  const {
+    timelogs: allTimelogs,
+    getByProject: getTimelogsByProject,
+    fetchAll: fetchTimelogs,
+    initRealtime: initTimelogsRealtime,
+    teardownRealtime: teardownTimelogsRealtime,
+  } = useTimelogsStore()
+  const {
+    getByProject: getVisitasByProject,
+    fetchAll: fetchVisitas,
+    initRealtime: initVisitasRealtime,
+    teardownRealtime: teardownVisitasRealtime,
+  } = useVisitasStore()
+  const {
+    employees,
+    getEmpleadoById,
+    loading: empleadosLoading,
+    fetchAll: fetchEmpleados,
+    initRealtime: initEmpleadosRealtime,
+    teardownRealtime: teardownEmpleadosRealtime,
+  } = useEmpleadosStore()
   const proyecto = getProyectoById(viewParam)
 
   // Modal states
@@ -37,9 +72,86 @@ export default function ProyectoDetalle() {
   const [gastoModal, setGastoModal] = useState({ open: false, editing: null })
   const [pagoModal, setPagoModal] = useState({ open: false, editing: null })
   const [cuentaCobroOpen, setCuentaCobroOpen] = useState(false)
-  // Force re-render after mutations
-  const [, setTick] = useState(0)
+  // Force re-fetch de transacciones (Tesorería no tiene store propio inyectado aquí)
+  const [tick, setTick] = useState(0)
   const refresh = () => setTick((t) => t + 1)
+
+  // Costeo de mano de obra: async porque getDailyRate() depende de getSettings() (Supabase)
+  const [manoObra, setManoObra] = useState({ byEmployee: {}, total: 0, loading: true })
+
+  // Transacciones del proyecto: async porque dbTesoreria.js ahora consulta Supabase
+  const [transactions, setTransactions] = useState([])
+
+  useEffect(() => {
+    fetchProyectos()
+    initProyectosRealtime()
+    fetchServicios()
+    initServiciosRealtime()
+    fetchTimelogs()
+    initTimelogsRealtime()
+    fetchVisitas()
+    initVisitasRealtime()
+    fetchEmpleados()
+    initEmpleadosRealtime()
+    return () => {
+      teardownProyectosRealtime()
+      teardownServiciosRealtime()
+      teardownTimelogsRealtime()
+      teardownVisitasRealtime()
+      teardownEmpleadosRealtime()
+    }
+  }, [
+    fetchProyectos, initProyectosRealtime, teardownProyectosRealtime,
+    fetchServicios, initServiciosRealtime, teardownServiciosRealtime,
+    fetchTimelogs, initTimelogsRealtime, teardownTimelogsRealtime,
+    fetchVisitas, initVisitasRealtime, teardownVisitasRealtime,
+    fetchEmpleados, initEmpleadosRealtime, teardownEmpleadosRealtime,
+  ])
+
+  useEffect(() => {
+    if (!proyecto) return
+    let cancelled = false
+    getTransactions().then((txs) => {
+      if (!cancelled) setTransactions(txs.filter((tx) => tx.projectId === proyecto.id))
+    })
+    return () => { cancelled = true }
+  }, [proyecto, tick])
+
+  useEffect(() => {
+    if (!proyecto || empleadosLoading) return
+    let cancelled = false
+
+    async function loadManoObra() {
+      setManoObra((prev) => ({ ...prev, loading: true }))
+      const logs = getTimelogsByProject(proyecto.id)
+      const byEmployee = {}
+      let total = 0
+      for (const log of logs) {
+        const emp = getEmpleadoById(log.employeeId)
+        if (emp) {
+          const rate = await getDailyRate(emp)
+          const costo = log.days * rate
+          total += costo
+          if (!byEmployee[emp.id]) byEmployee[emp.id] = { emp, days: 0, costo: 0, rate }
+          byEmployee[emp.id].days += log.days
+          byEmployee[emp.id].costo += costo
+        }
+      }
+      if (!cancelled) setManoObra({ byEmployee, total, loading: false })
+    }
+
+    loadManoObra()
+    return () => { cancelled = true }
+  }, [proyecto, allTimelogs, empleadosLoading, employees, getEmpleadoById, getTimelogsByProject])
+
+  if (proyectosLoading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-6 w-48 bg-gray-200 rounded" />
+        <div className="h-64 bg-gray-200 rounded-lg" />
+      </div>
+    )
+  }
 
   if (!proyecto) {
     return (
@@ -56,7 +168,6 @@ export default function ProyectoDetalle() {
   const servicios = getServiciosByProject(proyecto.id)
   const servicioPrincipal = servicios.find((s) => s.isPrimary) || null
   const serviciosDerivados = servicios.filter((s) => !s.isPrimary)
-  const transactions = getTransactions().filter((tx) => tx.projectId === proyecto.id)
   const timelogs = getTimelogsByProject(proyecto.id)
   const visitas = getVisitasByProject(proyecto.id)
 
@@ -80,22 +191,9 @@ export default function ProyectoDetalle() {
   const saldoPendiente = valorNetoConIva - abonosTotales
   const pctPagado = valorNetoConIva > 0 ? Math.min((abonosTotales / valorNetoConIva) * 100, 100) : 0
 
-  // Costo interno: mano de obra + gastos directos
-  let costoManoObra = 0
-  const manoObraByEmployee = {}
-  for (const log of timelogs) {
-    const emp = getEmpleadoById(log.employeeId)
-    if (emp) {
-      const rate = getDailyRate(emp)
-      const costo = log.days * rate
-      costoManoObra += costo
-      if (!manoObraByEmployee[emp.id]) {
-        manoObraByEmployee[emp.id] = { emp, days: 0, costo: 0 }
-      }
-      manoObraByEmployee[emp.id].days += log.days
-      manoObraByEmployee[emp.id].costo += costo
-    }
-  }
+  // Costo interno: mano de obra (async, ver useEffect arriba) + gastos directos
+  const costoManoObra = manoObra.total
+  const manoObraByEmployee = manoObra.byEmployee
   const gastosDirectos = gastos.reduce((sum, tx) => sum + tx.amount, 0)
   const costoInterno = costoManoObra + gastosDirectos
 
@@ -103,17 +201,16 @@ export default function ProyectoDetalle() {
   const pctMargen = valorNetoConIva > 0 ? ((margenBruto / valorNetoConIva) * 100).toFixed(1) : '0.0'
   const cajaDisponible = abonosTotales - costoInterno
 
-  const handleDeleteProject = () => {
+  const handleDeleteProject = async () => {
     if (!window.confirm(`¿Eliminar el proyecto "${proyecto.name}"?`)) return
-    deleteProject(proyecto.id)
+    await deleteProject(proyecto.id)
     toast.success('Proyecto eliminado')
     setActiveView('proyectos')
   }
 
-  const handleDeleteServicio = (s) => {
+  const handleDeleteServicio = async (s) => {
     if (!window.confirm(`¿Eliminar el servicio "${s.name}"?`)) return
-    deleteServicio(s.id)
-    refresh()
+    await deleteServicio(s.id)
     toast.success('Servicio eliminado')
   }
 
@@ -333,7 +430,12 @@ export default function ProyectoDetalle() {
         action="Registrar horas"
         onAction={() => setBitacoraModal({ open: true, editing: null })}
       >
-        {Object.keys(manoObraByEmployee).length === 0 ? (
+        {manoObra.loading ? (
+          <div className="px-4 py-6 space-y-2 animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-full" />
+            <div className="h-4 bg-gray-200 rounded w-full" />
+          </div>
+        ) : Object.keys(manoObraByEmployee).length === 0 ? (
           <EmptyRow>Sin horas registradas todavía.</EmptyRow>
         ) : (
           <table className="w-full text-sm">
@@ -347,12 +449,12 @@ export default function ProyectoDetalle() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {Object.values(manoObraByEmployee).map(({ emp, days, costo }) => (
+              {Object.values(manoObraByEmployee).map(({ emp, days, costo, rate }) => (
                 <tr key={emp.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2 text-gray-900">{emp.name}</td>
                   <td className="px-4 py-2 text-gray-600">{emp.role || '—'}</td>
                   <td className="px-4 py-2 text-right">{days}</td>
-                  <td className="px-4 py-2 text-right text-gray-600">{fmtMoney(getDailyRate(emp))}</td>
+                  <td className="px-4 py-2 text-right text-gray-600">{fmtMoney(rate)}</td>
                   <td className="px-4 py-2 text-right font-medium text-orange-700">{fmtMoney(costo)}</td>
                 </tr>
               ))}
@@ -554,13 +656,13 @@ export default function ProyectoDetalle() {
         projectId={proyecto.id}
         open={bitacoraModal.open}
         editing={bitacoraModal.editing}
-        onClose={() => { setBitacoraModal({ open: false, editing: null }); refresh() }}
+        onClose={() => setBitacoraModal({ open: false, editing: null })}
       />
       <FormVisita
         projectId={proyecto.id}
         open={visitaModal.open}
         editing={visitaModal.editing}
-        onClose={() => { setVisitaModal({ open: false, editing: null }); refresh() }}
+        onClose={() => setVisitaModal({ open: false, editing: null })}
       />
       <FormPago
         projectId={proyecto.id}

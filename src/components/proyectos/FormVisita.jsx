@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
-import { getEmpleadosActivos } from '../../lib/dbEmpleados'
-import { addVisita, updateVisita } from '../../lib/dbVisitas'
+import { useEmpleadosStore } from '../../store/useEmpleadosStore'
+import { useVisitasStore } from '../../store/useVisitasStore'
 import { todayIso } from '../../lib/formatters'
 
 const VISIT_TYPES = [
@@ -23,7 +23,10 @@ const emptyForm = {
 
 export default function FormVisita({ projectId, open, onClose, editing = null }) {
   const [form, setForm] = useState(emptyForm)
+  const getEmpleadosActivos = useEmpleadosStore((s) => s.getEmpleadosActivos)
   const empleados = getEmpleadosActivos()
+  const addVisita = useVisitasStore((s) => s.addVisita)
+  const updateVisita = useVisitasStore((s) => s.updateVisita)
 
   useEffect(() => {
     if (editing) {
@@ -54,7 +57,7 @@ export default function FormVisita({ projectId, open, onClose, editing = null })
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.date) {
       toast.error('La fecha es obligatoria')
@@ -63,14 +66,18 @@ export default function FormVisita({ projectId, open, onClose, editing = null })
 
     const data = { ...form, projectId }
 
-    if (editing) {
-      updateVisita(editing.id, data)
-      toast.success('Visita actualizada')
-    } else {
-      addVisita(data)
-      toast.success('Visita registrada')
+    try {
+      if (editing) {
+        await updateVisita(editing.id, data)
+        toast.success('Visita actualizada')
+      } else {
+        await addVisita(data)
+        toast.success('Visita registrada')
+      }
+      onClose()
+    } catch (err) {
+      toast.error('Error al guardar la visita: ' + err.message)
     }
-    onClose()
   }
 
   return (

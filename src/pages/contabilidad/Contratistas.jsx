@@ -1,47 +1,60 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Handshake, Plus, Pencil, Trash2, DollarSign, ChevronDown, ChevronUp, Phone, Mail, FileText, Printer } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
-import {
-  getContratistas,
-  addContratista,
-  updateContratista,
-  deleteContratista,
-  getPaymentsByContractor,
-  addContractorPayment,
-  updateContractorPayment,
-  deleteContractorPayment,
-  registrarAbono,
-  getContratistaResumen,
-} from '../../lib/dbContratistas'
+import { useContratistasStore } from '../../store/useContratistasStore'
 import ReciboContratista from '../../components/contratistas/ReciboContratista'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 
 export default function Contratistas() {
-  const contratistas = getContratistas()
+  const contratistas = useContratistasStore((s) => s.contratistas)
+  const loading = useContratistasStore((s) => s.loading)
+  const fetchAll = useContratistasStore((s) => s.fetchAll)
+  const initRealtime = useContratistasStore((s) => s.initRealtime)
+  const teardownRealtime = useContratistasStore((s) => s.teardownRealtime)
+  const addContratista = useContratistasStore((s) => s.addContratista)
+  const updateContratista = useContratistasStore((s) => s.updateContratista)
+  const deleteContratistaAction = useContratistasStore((s) => s.deleteContratista)
+  const addPayment = useContratistasStore((s) => s.addPayment)
+  const updatePayment = useContratistasStore((s) => s.updatePayment)
+  const deletePayment = useContratistasStore((s) => s.deletePayment)
+  const registrarAbonoAction = useContratistasStore((s) => s.registrarAbono)
+  const getPaymentsByContractor = useContratistasStore((s) => s.getPaymentsByContractor)
+  const getContratistaResumen = useContratistasStore((s) => s.getContratistaResumen)
+
   const [expanded, setExpanded] = useState(null)
   const [formModal, setFormModal] = useState({ open: false, data: null })
   const [payModal, setPayModal] = useState({ open: false, contractorId: null, data: null })
   const [abonoModal, setAbonoModal] = useState({ open: false, payment: null, contractor: null })
   const [reciboModal, setReciboModal] = useState({ open: false, payment: null, contractor: null })
-  const [, setTick] = useState(0)
-  const refresh = () => setTick((t) => t + 1)
+
+  useEffect(() => {
+    fetchAll()
+    initRealtime()
+    return () => teardownRealtime()
+  }, [fetchAll, initRealtime, teardownRealtime])
 
   const toggle = (id) => setExpanded(expanded === id ? null : id)
 
-  const handleDeleteContratista = (c) => {
+  const handleDeleteContratista = async (c) => {
     if (!window.confirm(`¿Eliminar contratista "${c.name}"?`)) return
-    deleteContratista(c.id)
-    toast.success('Contratista eliminado')
-    refresh()
+    try {
+      await deleteContratistaAction(c.id)
+      toast.success('Contratista eliminado')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo eliminar el contratista')
+    }
   }
 
-  const handleDeletePayment = (p) => {
+  const handleDeletePayment = async (p) => {
     if (!window.confirm('¿Eliminar esta cuenta?')) return
-    deleteContractorPayment(p.id)
-    toast.success('Cuenta eliminada')
-    refresh()
+    try {
+      await deletePayment(p.id)
+      toast.success('Cuenta eliminada')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo eliminar la cuenta')
+    }
   }
 
   // Totals
@@ -55,6 +68,16 @@ export default function Contratistas() {
     },
     { facturado: 0, pagado: 0, pendiente: 0 }
   )
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -229,21 +252,23 @@ export default function Contratistas() {
         open={formModal.open}
         data={formModal.data}
         onClose={() => setFormModal({ open: false, data: null })}
-        onSaved={refresh}
+        addContratista={addContratista}
+        updateContratista={updateContratista}
       />
       <FormCuenta
         open={payModal.open}
         contractorId={payModal.contractorId}
         data={payModal.data}
         onClose={() => setPayModal({ open: false, contractorId: null, data: null })}
-        onSaved={refresh}
+        addPayment={addPayment}
+        updatePayment={updatePayment}
       />
       <AbonoModal
         open={abonoModal.open}
         payment={abonoModal.payment}
         contractor={abonoModal.contractor}
         onClose={() => setAbonoModal({ open: false, payment: null, contractor: null })}
-        onSaved={refresh}
+        registrarAbono={registrarAbonoAction}
       />
       <ReciboContratista
         open={reciboModal.open}
@@ -257,7 +282,7 @@ export default function Contratistas() {
 
 /* ─── Modal: Crear/Editar Contratista ─── */
 
-function FormContratista({ open, data, onClose, onSaved }) {
+function FormContratista({ open, data, onClose, addContratista, updateContratista }) {
   const [form, setForm] = useState({})
   const isEdit = !!data
 
@@ -270,18 +295,21 @@ function FormContratista({ open, data, onClose, onSaved }) {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name?.trim()) return toast.error('Nombre requerido')
-    if (isEdit) {
-      updateContratista(data.id, form)
-      toast.success('Contratista actualizado')
-    } else {
-      addContratista(form)
-      toast.success('Contratista creado')
+    try {
+      if (isEdit) {
+        await updateContratista(data.id, form)
+        toast.success('Contratista actualizado')
+      } else {
+        await addContratista(form)
+        toast.success('Contratista creado')
+      }
+      onClose()
+      setForm({})
+    } catch (err) {
+      toast.error(err.message || 'No se pudo guardar el contratista')
     }
-    onSaved()
-    onClose()
-    setForm({})
   }
 
   return (
@@ -320,7 +348,7 @@ function FormContratista({ open, data, onClose, onSaved }) {
 
 /* ─── Modal: Crear/Editar Cuenta ─── */
 
-function FormCuenta({ open, contractorId, data, onClose, onSaved }) {
+function FormCuenta({ open, contractorId, data, onClose, addPayment, updatePayment }) {
   const [form, setForm] = useState({})
   const isEdit = !!data
 
@@ -333,17 +361,20 @@ function FormCuenta({ open, contractorId, data, onClose, onSaved }) {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
-  const handleSave = () => {
-    if (isEdit) {
-      updateContractorPayment(data.id, form)
-      toast.success('Cuenta actualizada')
-    } else {
-      addContractorPayment({ ...form, contractorId })
-      toast.success('Cuenta creada')
+  const handleSave = async () => {
+    try {
+      if (isEdit) {
+        await updatePayment(data.id, form)
+        toast.success('Cuenta actualizada')
+      } else {
+        await addPayment({ ...form, contractorId })
+        toast.success('Cuenta creada')
+      }
+      onClose()
+      setForm({})
+    } catch (err) {
+      toast.error(err.message || 'No se pudo guardar la cuenta')
     }
-    onSaved()
-    onClose()
-    setForm({})
   }
 
   return (
@@ -377,7 +408,7 @@ function FormCuenta({ open, contractorId, data, onClose, onSaved }) {
 
 /* ─── Modal: Registrar Abono ─── */
 
-function AbonoModal({ open, payment, contractor, onClose, onSaved }) {
+function AbonoModal({ open, payment, contractor, onClose, registrarAbono }) {
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState('banco')
 
@@ -385,17 +416,20 @@ function AbonoModal({ open, payment, contractor, onClose, onSaved }) {
 
   const pendiente = payment.amount - payment.paidAmount
 
-  const handleAbono = () => {
+  const handleAbono = async () => {
     const monto = Number(amount)
     if (!monto || monto <= 0) return toast.error('Monto inválido')
     if (monto > pendiente) return toast.error(`El abono excede el pendiente (${fmtMoney(pendiente)})`)
 
-    registrarAbono(payment.id, { amount: monto, method, date: todayIso() })
-    toast.success(`Abono de ${fmtMoney(monto)} registrado`)
-    onSaved()
-    onClose()
-    setAmount('')
-    setMethod('banco')
+    try {
+      await registrarAbono(payment.id, { amount: monto, method, date: todayIso() })
+      toast.success(`Abono de ${fmtMoney(monto)} registrado`)
+      onClose()
+      setAmount('')
+      setMethod('banco')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo registrar el abono')
+    }
   }
 
   return (

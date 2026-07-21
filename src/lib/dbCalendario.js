@@ -1,62 +1,70 @@
-import { load, save } from './storage'
+import { supabase } from './supabase'
 
-const KEY = 'ada_calendario_tributario'
+const CALENDARIO_COLUMNS = 'id,nombre,frecuencia,dia_del_mes,monto,notas,created_at'
 
-const defaultItems = [
-  { id: 'cal_1', name: 'Movistar', frequency: 'mensual', dayOfMonth: 25, amount: 0, notes: '' },
-  { id: 'cal_2', name: 'Planillas (seguridad social)', frequency: 'mensual', dayOfMonth: 5, amount: 0, notes: '' },
-  { id: 'cal_3', name: 'Leasing', frequency: 'mensual', dayOfMonth: 11, amount: 1906000, notes: '' },
-  { id: 'cal_4', name: 'Industria y Comercio', frequency: 'bimestral', dayOfMonth: 10, amount: 0, notes: 'Sep, Nov, Ene, Mar, May, Jul' },
-  { id: 'cal_5', name: 'Primas de servicios', frequency: 'semestral', dayOfMonth: 30, amount: 0, notes: 'Junio y Diciembre' },
-]
-
-let items = load(KEY, defaultItems)
-
-export function getCalendarioItems() {
-  return items
-}
-
-export function addCalendarioItem(data) {
-  const id = 'cal_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)
-  const item = {
-    id,
-    name: data.name || '',
-    frequency: data.frequency || 'mensual',
-    dayOfMonth: Number(data.dayOfMonth) || 1,
-    amount: Number(data.amount) || 0,
-    notes: data.notes || '',
+function calendarioFromRow(r) {
+  return {
+    id: r.id,
+    name: r.nombre,
+    frequency: r.frecuencia,
+    dayOfMonth: r.dia_del_mes,
+    amount: Number(r.monto) || 0,
+    notes: r.notas,
+    createdAt: r.created_at,
   }
-  items = [item, ...items]
-  save(KEY, items)
-  return item
 }
 
-export function updateCalendarioItem(id, data) {
-  items = items.map((i) =>
-    i.id === id
-      ? {
-          ...i,
-          name: data.name || '',
-          frequency: data.frequency || 'mensual',
-          dayOfMonth: Number(data.dayOfMonth) || 1,
-          amount: Number(data.amount) || 0,
-          notes: data.notes || '',
-        }
-      : i
-  )
-  save(KEY, items)
-  return items.find((i) => i.id === id)
+export async function getCalendarioItems() {
+  const { data, error } = await supabase
+    .from('calendario_tributario')
+    .select(CALENDARIO_COLUMNS)
+    .eq('tenant_id', 'ada')
+    .order('dia_del_mes', { ascending: true })
+  if (error) throw error
+  return data.map(calendarioFromRow)
 }
 
-export function deleteCalendarioItem(id) {
-  items = items.filter((i) => i.id !== id)
-  save(KEY, items)
+export async function addCalendarioItem(data) {
+  const { data: row, error } = await supabase
+    .from('calendario_tributario')
+    .insert({
+      tenant_id: 'ada',
+      nombre: data.name || '',
+      frecuencia: data.frequency || 'mensual',
+      dia_del_mes: Number(data.dayOfMonth) || 1,
+      monto: Number(data.amount) || 0,
+      notas: data.notes || '',
+    })
+    .select(CALENDARIO_COLUMNS)
+    .single()
+  if (error) throw error
+  return calendarioFromRow(row)
+}
+
+export async function updateCalendarioItem(id, data) {
+  const { error } = await supabase
+    .from('calendario_tributario')
+    .update({
+      nombre: data.name || '',
+      frecuencia: data.frequency || 'mensual',
+      dia_del_mes: Number(data.dayOfMonth) || 1,
+      monto: Number(data.amount) || 0,
+      notas: data.notes || '',
+    })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteCalendarioItem(id) {
+  const { error } = await supabase.from('calendario_tributario').delete().eq('id', id)
+  if (error) throw error
 }
 
 /**
  * Returns upcoming payments sorted by proximity.
  */
-export function getProximosPagos() {
+export async function getProximosPagos() {
+  const items = await getCalendarioItems()
   const today = new Date()
   const currentDay = today.getDate()
   const currentMonth = today.getMonth()

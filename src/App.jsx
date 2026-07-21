@@ -1,27 +1,30 @@
-import { useState } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import Layout from './components/UI/Layout'
 import Login from './pages/Login'
+import SinAcceso from './components/UI/SinAcceso'
 import { useNavigationStore } from './store/useNavigationStore'
-import { getSession, logout } from './lib/dbAuth'
+import { useAuthStore } from './store/useAuthStore'
+import { usePermisosStore } from './store/usePermisosStore'
+import { usePermission } from './hooks/usePermission'
 
-import Dashboard from './pages/Dashboard'
-import Proyectos from './pages/Proyectos'
-import ProyectoDetalle from './pages/ProyectoDetalle'
-import Reportes from './pages/Reportes'
-import Tesoreria from './pages/contabilidad/Tesoreria'
-import GBA from './pages/contabilidad/GBA'
-import Contratistas from './pages/contabilidad/Contratistas'
-import Equipo from './pages/rrhh/Equipo'
-import EmpleadoDetalle from './pages/rrhh/EmpleadoDetalle'
-import Nomina from './pages/rrhh/Nomina'
-import Contratos from './pages/rrhh/Contratos'
-import Horarios from './pages/rrhh/Horarios'
-import Bitacoras from './pages/proyectos/Bitacoras'
-import VisitasGlobal from './pages/proyectos/Visitas'
-import ResumenGerencia from './pages/gerencia/ResumenGerencia'
-import Publicidad from './pages/marketing/Publicidad'
-import Redes from './pages/marketing/Redes'
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Proyectos = lazy(() => import('./pages/Proyectos'))
+const ProyectoDetalle = lazy(() => import('./pages/ProyectoDetalle'))
+const Reportes = lazy(() => import('./pages/Reportes'))
+const Tesoreria = lazy(() => import('./pages/contabilidad/Tesoreria'))
+const GBA = lazy(() => import('./pages/contabilidad/GBA'))
+const Contratistas = lazy(() => import('./pages/contabilidad/Contratistas'))
+const Equipo = lazy(() => import('./pages/rrhh/Equipo'))
+const EmpleadoDetalle = lazy(() => import('./pages/rrhh/EmpleadoDetalle'))
+const Nomina = lazy(() => import('./pages/rrhh/Nomina'))
+const Contratos = lazy(() => import('./pages/rrhh/Contratos'))
+const Horarios = lazy(() => import('./pages/rrhh/Horarios'))
+const Bitacoras = lazy(() => import('./pages/proyectos/Bitacoras'))
+const VisitasGlobal = lazy(() => import('./pages/proyectos/Visitas'))
+const ResumenGerencia = lazy(() => import('./pages/gerencia/ResumenGerencia'))
+const Publicidad = lazy(() => import('./pages/marketing/Publicidad'))
+const Redes = lazy(() => import('./pages/marketing/Redes'))
 
 const views = {
   dashboard: Dashboard,
@@ -43,21 +46,60 @@ const views = {
   redes: Redes,
 }
 
+function PageSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="h-6 w-48 bg-gray-200 rounded" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="h-24 bg-gray-200 rounded-lg" />
+        <div className="h-24 bg-gray-200 rounded-lg" />
+        <div className="h-24 bg-gray-200 rounded-lg" />
+      </div>
+    </div>
+  )
+}
+
+function FullPageSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <PageSkeleton />
+    </div>
+  )
+}
+
 export default function App() {
-  const [session, setSession] = useState(getSession)
+  const session = useAuthStore((s) => s.session)
+  const perfil = useAuthStore((s) => s.perfil)
+  const loading = useAuthStore((s) => s.loading)
+  const init = useAuthStore((s) => s.init)
+  const logout = useAuthStore((s) => s.logout)
+  const fetchPermisos = usePermisosStore((s) => s.fetchAll)
   const activeView = useNavigationStore((s) => s.activeView)
+  const puedeVerVista = usePermission(activeView)
   const Page = views[activeView] || Dashboard
 
-  const handleLogout = () => {
-    logout()
-    setSession(null)
+  useEffect(() => {
+    init()
+  }, [init])
+
+  useEffect(() => {
+    if (session) fetchPermisos()
+  }, [session, fetchPermisos])
+
+  if (loading) {
+    return (
+      <>
+        <Toaster richColors position="top-right" />
+        <FullPageSkeleton />
+      </>
+    )
   }
 
   if (!session) {
     return (
       <>
         <Toaster richColors position="top-right" />
-        <Login onLogin={setSession} />
+        <Login />
       </>
     )
   }
@@ -65,8 +107,10 @@ export default function App() {
   return (
     <>
       <Toaster richColors position="top-right" />
-      <Layout session={session} onLogout={handleLogout}>
-        <Page />
+      <Layout session={session} perfil={perfil} onLogout={logout}>
+        <Suspense fallback={<PageSkeleton />}>
+          {puedeVerVista ? <Page /> : <SinAcceso />}
+        </Suspense>
       </Layout>
     </>
   )

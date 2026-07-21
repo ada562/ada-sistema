@@ -3,25 +3,23 @@ import { LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { login } from '../lib/dbAuth'
 
-export default function Login({ onLogin }) {
-  const [username, setUsername] = useState('')
+export default function Login() {
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-
-    setTimeout(() => {
-      const session = login(username, password)
-      if (session) {
-        toast.success(`Bienvenido, ${session.name}`)
-        onLogin(session)
-      } else {
-        toast.error('Usuario o contraseña incorrectos')
-      }
+    try {
+      const session = await login(email, password)
+      toast.success(`Bienvenido, ${session.user.email}`)
+      // useAuthStore recibe el cambio de sesion via onAuthStateChange
+    } catch {
+      toast.error('Correo o contraseña incorrectos')
+    } finally {
       setLoading(false)
-    }, 400)
+    }
   }
 
   return (
@@ -45,12 +43,12 @@ export default function Login({ onLogin }) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Correo</label>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="nombre@adainteriors.co"
               autoFocus
               required
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"

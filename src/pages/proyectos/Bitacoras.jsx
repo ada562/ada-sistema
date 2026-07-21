@@ -1,24 +1,64 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ClipboardList, Plus, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
-import { getTimelogs, addTimelog, updateTimelog, deleteTimelog } from '../../lib/dbTimelogs'
-import { getProyectos } from '../../lib/dbProyectos'
-import { getEmpleadosActivos, getEmpleadoById } from '../../lib/dbEmpleados'
+import { useTimelogsStore } from '../../store/useTimelogsStore'
+import { useProyectosStore } from '../../store/useProyectosStore'
+import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { fmtDate, todayIso } from '../../lib/formatters'
 import { useNavigationStore } from '../../store/useNavigationStore'
 
 export default function Bitacoras() {
-  const timelogs = getTimelogs().sort((a, b) => b.date.localeCompare(a.date))
-  const proyectos = getProyectos()
   const [filterProject, setFilterProject] = useState('')
   const [filterEmployee, setFilterEmployee] = useState('')
   const [formModal, setFormModal] = useState({ open: false, data: null })
-  const [, setTick] = useState(0)
-  const refresh = () => setTick((t) => t + 1)
   const { setActiveView } = useNavigationStore()
 
+  const {
+    timelogs: rawTimelogs,
+    addTimelog,
+    updateTimelog,
+    deleteTimelog,
+    fetchAll: fetchTimelogs,
+    initRealtime: initTimelogsRealtime,
+    teardownRealtime: teardownTimelogsRealtime,
+  } = useTimelogsStore()
+
+  const {
+    projects: proyectos,
+    fetchAll: fetchProyectos,
+    initRealtime: initProyectosRealtime,
+    teardownRealtime: teardownProyectosRealtime,
+  } = useProyectosStore()
+
+  const {
+    getEmpleadosActivos,
+    getEmpleadoById,
+    fetchAll: fetchEmpleados,
+    initRealtime: initEmpleadosRealtime,
+    teardownRealtime: teardownEmpleadosRealtime,
+  } = useEmpleadosStore()
+
+  useEffect(() => {
+    fetchTimelogs()
+    initTimelogsRealtime()
+    fetchProyectos()
+    initProyectosRealtime()
+    fetchEmpleados()
+    initEmpleadosRealtime()
+    return () => {
+      teardownTimelogsRealtime()
+      teardownProyectosRealtime()
+      teardownEmpleadosRealtime()
+    }
+  }, [
+    fetchTimelogs, initTimelogsRealtime, teardownTimelogsRealtime,
+    fetchProyectos, initProyectosRealtime, teardownProyectosRealtime,
+    fetchEmpleados, initEmpleadosRealtime, teardownEmpleadosRealtime,
+  ])
+
+  const timelogs = [...rawTimelogs].sort((a, b) => b.date.localeCompare(a.date))
   const empleados = getEmpleadosActivos()
 
   const filtered = timelogs.filter((t) => {
@@ -29,11 +69,14 @@ export default function Bitacoras() {
 
   const totalDays = filtered.reduce((s, t) => s + t.days, 0)
 
-  const handleDelete = (t) => {
+  const handleDelete = async (t) => {
     if (!window.confirm('¿Eliminar este registro de bitácora?')) return
-    deleteTimelog(t.id)
-    toast.success('Registro eliminado')
-    refresh()
+    try {
+      await deleteTimelog(t.id)
+      toast.success('Registro eliminado')
+    } catch (err) {
+      toast.error('Error al eliminar el registro: ' + err.message)
+    }
   }
 
   const getProjectName = (id) => proyectos.find((p) => p.id === id)?.name || '—'
@@ -149,7 +192,8 @@ export default function Bitacoras() {
         proyectos={proyectos}
         empleados={empleados}
         onClose={() => setFormModal({ open: false, data: null })}
-        onSaved={refresh}
+        addTimelog={addTimelog}
+        updateTimelog={updateTimelog}
       />
     </div>
   )
@@ -157,7 +201,7 @@ export default function Bitacoras() {
 
 /* ─── Modal: Crear/Editar Bitácora ─── */
 
-function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, onSaved }) {
+function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, addTimelog, updateTimelog }) {
   const [form, setForm] = useState({})
   const isEdit = !!data
 
@@ -176,20 +220,23 @@ function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, onSaved
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.projectId) return toast.error('Selecciona un proyecto')
     if (!form.employeeId) return toast.error('Selecciona un empleado')
 
-    if (isEdit) {
-      updateTimelog(data.id, form)
-      toast.success('Registro actualizado')
-    } else {
-      addTimelog(form)
-      toast.success('Registro creado')
+    try {
+      if (isEdit) {
+        await updateTimelog(data.id, form)
+        toast.success('Registro actualizado')
+      } else {
+        await addTimelog(form)
+        toast.success('Registro creado')
+      }
+      onClose()
+      setForm({})
+    } catch (err) {
+      toast.error('Error al guardar el registro: ' + err.message)
     }
-    onSaved()
-    onClose()
-    setForm({})
   }
 
   return (

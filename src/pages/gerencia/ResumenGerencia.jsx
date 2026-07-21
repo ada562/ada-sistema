@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TrendingUp, Plus, Pencil, Trash2, AlertTriangle, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
 import { getTransactions, getAccountBalances } from '../../lib/dbTesoreria'
-import { getProyectos } from '../../lib/dbProyectos'
-import { getContratistas, getPaymentsByContractor } from '../../lib/dbContratistas'
-import { getEmpleadosActivos } from '../../lib/dbEmpleados'
+import { useProyectosStore } from '../../store/useProyectosStore'
+import { useContratistasStore } from '../../store/useContratistasStore'
+import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { getSettings } from '../../lib/dbSettings'
-import { getProximosPagos, getCalendarioItems, addCalendarioItem, updateCalendarioItem, deleteCalendarioItem } from '../../lib/dbCalendario'
+import { useCalendarioStore } from '../../store/useCalendarioStore'
 import { fmtMoney, fmtDate } from '../../lib/formatters'
 import { useNavigationStore } from '../../store/useNavigationStore'
 
@@ -16,19 +16,84 @@ const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Se
 const MONTH_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 export default function ResumenGerencia() {
-  const [, setTick] = useState(0)
-  const refresh = () => setTick((t) => t + 1)
   const [calModal, setCalModal] = useState({ open: false, data: null })
   const { setActiveView } = useNavigationStore()
 
-  const transactions = getTransactions()
-  const balances = getAccountBalances()
-  const proyectos = getProyectos()
-  const contratistas = getContratistas()
+  const [transactions, setTransactions] = useState([])
+  const [balances, setBalances] = useState({ banco: 0, efectivo: 0, nequi: 0 })
+  const [balancesLoading, setBalancesLoading] = useState(true)
+  const proyectos = useProyectosStore((s) => s.projects)
+  const fetchProyectos = useProyectosStore((s) => s.fetchAll)
+  const initProyectosRealtime = useProyectosStore((s) => s.initRealtime)
+  const teardownProyectosRealtime = useProyectosStore((s) => s.teardownRealtime)
+  const addCalendarioItem = useCalendarioStore((s) => s.addItem)
+  const updateCalendarioItem = useCalendarioStore((s) => s.updateItem)
+  const deleteCalendarioItem = useCalendarioStore((s) => s.deleteItem)
+  const getProximosPagos = useCalendarioStore((s) => s.getProximosPagos)
+  const fetchCalendario = useCalendarioStore((s) => s.fetchAll)
+  const initCalendarioRealtime = useCalendarioStore((s) => s.initRealtime)
+  const teardownCalendarioRealtime = useCalendarioStore((s) => s.teardownRealtime)
+  const contratistas = useContratistasStore((s) => s.contratistas)
+  const contratistasLoading = useContratistasStore((s) => s.loading)
+  const fetchContratistas = useContratistasStore((s) => s.fetchAll)
+  const initContratistasRealtime = useContratistasStore((s) => s.initRealtime)
+  const teardownContratistasRealtime = useContratistasStore((s) => s.teardownRealtime)
+  const getPaymentsByContractor = useContratistasStore((s) => s.getPaymentsByContractor)
+  const empleadosLoading = useEmpleadosStore((s) => s.loading)
+  const fetchEmpleados = useEmpleadosStore((s) => s.fetchAll)
+  const initEmpleadosRealtime = useEmpleadosStore((s) => s.initRealtime)
+  const teardownEmpleadosRealtime = useEmpleadosStore((s) => s.teardownRealtime)
+  const getEmpleadosActivos = useEmpleadosStore((s) => s.getEmpleadosActivos)
   const empleados = getEmpleadosActivos().filter((e) => e.monthlyRate > 0)
-  const settings = getSettings()
-  const cargaPct = settings.cargaPrestacionalPct || 29
+  const [cargaPct, setCargaPct] = useState(29)
   const proximosPagos = getProximosPagos()
+
+  useEffect(() => {
+    getSettings().then((s) => setCargaPct(s.cargaPrestacionalPct || 29))
+    Promise.all([getAccountBalances(), getTransactions()]).then(([b, tx]) => {
+      setBalances(b)
+      setTransactions(tx)
+      setBalancesLoading(false)
+    })
+  }, [])
+
+  useEffect(() => {
+    fetchProyectos()
+    initProyectosRealtime()
+    return () => teardownProyectosRealtime()
+  }, [fetchProyectos, initProyectosRealtime, teardownProyectosRealtime])
+
+  useEffect(() => {
+    fetchCalendario()
+    initCalendarioRealtime()
+    return () => teardownCalendarioRealtime()
+  }, [fetchCalendario, initCalendarioRealtime, teardownCalendarioRealtime])
+
+  useEffect(() => {
+    fetchContratistas()
+    initContratistasRealtime()
+    return () => teardownContratistasRealtime()
+  }, [fetchContratistas, initContratistasRealtime, teardownContratistasRealtime])
+
+  useEffect(() => {
+    fetchEmpleados()
+    initEmpleadosRealtime()
+    return () => teardownEmpleadosRealtime()
+  }, [fetchEmpleados, initEmpleadosRealtime, teardownEmpleadosRealtime])
+
+  if (balancesLoading || contratistasLoading || empleadosLoading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-6 w-48 bg-gray-200 rounded" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="h-24 bg-gray-200 rounded-lg" />
+          <div className="h-24 bg-gray-200 rounded-lg" />
+          <div className="h-24 bg-gray-200 rounded-lg" />
+          <div className="h-24 bg-gray-200 rounded-lg" />
+        </div>
+      </div>
+    )
+  }
 
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -195,7 +260,7 @@ export default function ResumenGerencia() {
                 <td className="py-2 text-center">
                   <div className="flex items-center justify-center gap-1">
                     <button onClick={() => setCalModal({ open: true, data: p })} className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50"><Pencil size={12} /></button>
-                    <button onClick={() => { deleteCalendarioItem(p.id); refresh(); toast.success('Eliminado') }} className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><Trash2 size={12} /></button>
+                    <button onClick={async () => { try { await deleteCalendarioItem(p.id); toast.success('Eliminado') } catch (err) { toast.error('Error al eliminar: ' + err.message) } }} className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><Trash2 size={12} /></button>
                   </div>
                 </td>
               </tr>
@@ -367,7 +432,8 @@ export default function ResumenGerencia() {
         open={calModal.open}
         data={calModal.data}
         onClose={() => setCalModal({ open: false, data: null })}
-        onSaved={refresh}
+        addCalendarioItem={addCalendarioItem}
+        updateCalendarioItem={updateCalendarioItem}
       />
     </div>
   )
@@ -398,7 +464,7 @@ function MetricCard({ label, value, sub, accent, negative, warn }) {
 }
 
 /* ─── Modal: Calendario tributario ─── */
-function FormCalendario({ open, data, onClose, onSaved }) {
+function FormCalendario({ open, data, onClose, addCalendarioItem, updateCalendarioItem }) {
   const [form, setForm] = useState({})
   const isEdit = !!data
 
@@ -417,18 +483,21 @@ function FormCalendario({ open, data, onClose, onSaved }) {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name?.trim()) return toast.error('Nombre requerido')
-    if (isEdit) {
-      updateCalendarioItem(data.id, form)
-      toast.success('Pago actualizado')
-    } else {
-      addCalendarioItem(form)
-      toast.success('Pago agregado')
+    try {
+      if (isEdit) {
+        await updateCalendarioItem(data.id, form)
+        toast.success('Pago actualizado')
+      } else {
+        await addCalendarioItem(form)
+        toast.success('Pago agregado')
+      }
+      onClose()
+      setForm({})
+    } catch (err) {
+      toast.error('Error al guardar el pago: ' + err.message)
     }
-    onSaved()
-    onClose()
-    setForm({})
   }
 
   return (
@@ -447,9 +516,7 @@ function FormCalendario({ open, data, onClose, onSaved }) {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
               <option value="mensual">Mensual</option>
               <option value="bimestral">Bimestral</option>
-              <option value="trimestral">Trimestral</option>
               <option value="semestral">Semestral</option>
-              <option value="anual">Anual</option>
             </select>
           </div>
           <div>

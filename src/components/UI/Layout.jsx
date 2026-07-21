@@ -2,12 +2,12 @@ import { Menu } from 'lucide-react'
 import { useNavigationStore } from '../../store/useNavigationStore'
 import Sidebar from './Sidebar'
 
-export default function Layout({ children, session, onLogout }) {
+export default function Layout({ children, session, perfil, onLogout }) {
   const { toggleSidebar } = useNavigationStore()
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar session={session} onLogout={onLogout} />
+      <Sidebar session={session} perfil={perfil} onLogout={onLogout} />
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 lg:hidden">
           <button

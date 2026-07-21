@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FolderKanban, Plus, Eye, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../components/UI/Button'
@@ -10,20 +10,26 @@ import { fmtMoney } from '../lib/formatters'
 const statusColors = {
   Activo: 'bg-green-100 text-green-700',
   Pausado: 'bg-yellow-100 text-yellow-700',
-  Terminado: 'bg-gray-100 text-gray-600',
+  Finalizado: 'bg-gray-100 text-gray-600',
 }
 
 const statusOptions = [
   { value: 'todos', label: 'Todos' },
   { value: 'Activo', label: 'Activos' },
   { value: 'Pausado', label: 'Pausados' },
-  { value: 'Terminado', label: 'Terminados' },
+  { value: 'Finalizado', label: 'Finalizados' },
 ]
 
 export default function Proyectos() {
   const setActiveView = useNavigationStore((s) => s.setActiveView)
-  const { projects, openModal, deleteProject } = useProyectosStore()
+  const { projects, loading, fetchAll, initRealtime, teardownRealtime, openModal, deleteProject } = useProyectosStore()
   const [filtroEstado, setFiltroEstado] = useState('todos')
+
+  useEffect(() => {
+    fetchAll()
+    initRealtime()
+    return () => teardownRealtime()
+  }, [fetchAll, initRealtime, teardownRealtime])
 
   const filtered = filtroEstado === 'todos'
     ? projects
@@ -31,12 +37,21 @@ export default function Proyectos() {
 
   const activos = projects.filter((p) => p.status === 'Activo').length
   const pausados = projects.filter((p) => p.status === 'Pausado').length
-  const terminados = projects.filter((p) => p.status === 'Terminado').length
+  const terminados = projects.filter((p) => p.status === 'Finalizado').length
 
-  const handleDelete = (p) => {
+  const handleDelete = async (p) => {
     if (!window.confirm(`¿Eliminar el proyecto "${p.name}"? Esta acción no se puede deshacer.`)) return
-    deleteProject(p.id)
+    await deleteProject(p.id)
     toast.success('Proyecto eliminado')
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-6 w-48 bg-gray-200 rounded" />
+        <div className="h-64 bg-gray-200 rounded-lg" />
+      </div>
+    )
   }
 
   return (

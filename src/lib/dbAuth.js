@@ -1,32 +1,35 @@
-import { load, save } from './storage'
+import { supabase } from './supabase'
 
-const KEY = 'ada_auth'
-const USERS_KEY = 'ada_users'
-
-const defaultUsers = [
-  { username: 'admin', password: 'ada', name: 'Administrador', role: 'admin' },
-]
-
-let users = load(USERS_KEY, defaultUsers)
-
-export function login(username, password) {
-  const user = users.find(
-    (u) => u.username.toLowerCase() === username.toLowerCase() && u.password === password
-  )
-  if (!user) return null
-  const session = { username: user.username, name: user.name, role: user.role, loggedAt: new Date().toISOString() }
-  save(KEY, session)
-  return session
+export async function login(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+  return data.session
 }
 
-export function logout() {
-  localStorage.removeItem(KEY)
+export async function logout() {
+  const { error } = await supabase.auth.signOut()
+  if (error) throw error
 }
 
-export function getSession() {
-  return load(KEY, null)
+export async function getCurrentSession() {
+  const { data, error } = await supabase.auth.getSession()
+  if (error) throw error
+  return data.session
 }
 
-export function isAuthenticated() {
-  return !!getSession()
+export async function getPerfil(userId) {
+  const { data, error } = await supabase
+    .from('perfiles')
+    .select('id,nombre,rol,activo')
+    .eq('id', userId)
+    .single()
+  if (error) throw error
+  return data
+}
+
+export function onAuthStateChange(callback) {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => callback(session))
+  return subscription
 }

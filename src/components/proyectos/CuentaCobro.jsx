@@ -7,13 +7,21 @@ import { getTransactions } from '../../lib/dbTesoreria'
 export default function CuentaCobro({ open, onClose, proyecto, servicios }) {
   const printRef = useRef()
   const [selected, setSelected] = useState([])
+  const [allTx, setAllTx] = useState([])
 
-  // Reset selection when modal opens
+  // Reset selection y traer transacciones del proyecto cuando se abre el modal
   useEffect(() => {
     if (open) {
       setSelected(servicios.map((s) => s.id))
+      let cancelled = false
+      getTransactions().then((txs) => {
+        if (!cancelled) {
+          setAllTx(txs.filter((tx) => tx.projectId === proyecto.id && tx.type === 'ingreso'))
+        }
+      })
+      return () => { cancelled = true }
     }
-  }, [open, servicios])
+  }, [open, servicios, proyecto.id])
 
   const toggleService = (id) => {
     setSelected((prev) =>
@@ -37,7 +45,6 @@ export default function CuentaCobro({ open, onClose, proyecto, servicios }) {
   const valorConIva = valorBase + ivaTotal
 
   // Pagos recibidos solo para los servicios seleccionados
-  const allTx = getTransactions().filter((tx) => tx.projectId === proyecto.id && tx.type === 'ingreso')
   const pagosSelected = allTx.filter((tx) => selected.includes(tx.serviceId))
   // Pagos sin servicio asignado se incluyen si se selecciona todo
   const pagosSinServicio = selected.length === servicios.length

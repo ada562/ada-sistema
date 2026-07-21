@@ -1,10 +1,11 @@
+import { useState, useEffect } from 'react'
 import { ArrowLeft, User, Pencil, Trash2, Phone, Mail, MapPin, Shield, FileText, CheckCircle, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import FormEmpleado from '../../components/equipo/FormEmpleado'
 import { useNavigationStore } from '../../store/useNavigationStore'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
-import { getEmpleadoById, getAge, getDailyRate } from '../../lib/dbEmpleados'
+import { getAge, getDailyRate } from '../../lib/dbEmpleados'
 import { fmtMoney, fmtDate } from '../../lib/formatters'
 
 const statusColors = {
@@ -50,8 +51,20 @@ function DocStatus({ label, ok }) {
 
 export default function EmpleadoDetalle() {
   const { viewParam, setActiveView } = useNavigationStore()
-  const { openModal, deleteEmployee } = useEmpleadosStore()
+  const { openModal, deleteEmployee, employees, getEmpleadoById } = useEmpleadosStore()
   const emp = getEmpleadoById(viewParam)
+  const supervisorName = emp?.supervisor ? employees.find((e) => e.id === emp.supervisor)?.name || '—' : null
+
+  const [dailyRate, setDailyRate] = useState(0)
+
+  useEffect(() => {
+    if (!emp) return
+    let cancelled = false
+    getDailyRate(emp).then((rate) => {
+      if (!cancelled) setDailyRate(rate)
+    })
+    return () => { cancelled = true }
+  }, [emp])
 
   if (!emp) {
     return (
@@ -63,13 +76,16 @@ export default function EmpleadoDetalle() {
   }
 
   const age = getAge(emp.birthDate)
-  const dailyRate = getDailyRate(emp)
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!window.confirm(`¿Eliminar a "${emp.name}"?`)) return
-    deleteEmployee(emp.id)
-    toast.success('Empleado eliminado')
-    setActiveView('equipo')
+    try {
+      await deleteEmployee(emp.id)
+      toast.success('Empleado eliminado')
+      setActiveView('equipo')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo eliminar el empleado')
+    }
   }
 
   return (
@@ -145,7 +161,7 @@ export default function EmpleadoDetalle() {
         <SectionCard title="Información laboral" icon={FileText} color="text-green-500">
           <InfoRow label="Cargo" value={emp.role} />
           <InfoRow label="Área" value={emp.department} />
-          <InfoRow label="Jefe inmediato" value={emp.supervisor} />
+          <InfoRow label="Jefe inmediato" value={supervisorName} />
           <InfoRow label="Fecha de ingreso" value={emp.startDate ? fmtDate(emp.startDate) : null} />
           <InfoRow label="Tipo de contrato" value={emp.contractType} />
           <InfoRow label="Vencimiento contrato" value={emp.contractUntil ? fmtDate(emp.contractUntil) : null} />

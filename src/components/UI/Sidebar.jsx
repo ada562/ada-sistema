@@ -1,11 +1,17 @@
 import { ChevronDown, ChevronRight, X, LogOut } from 'lucide-react'
 import { departments, topLevelItems } from '../../data/departments'
 import { useNavigationStore } from '../../store/useNavigationStore'
+import { usePermission, checkPermission } from '../../hooks/usePermission'
+import { useAuthStore } from '../../store/useAuthStore'
+import { usePermisosStore } from '../../store/usePermisosStore'
 
 function TopLevelItem({ item }) {
   const { activeView, setActiveView } = useNavigationStore()
+  const puedeVer = usePermission(item.id)
   const Icon = item.icon
   const isActive = activeView === item.id
+
+  if (!puedeVer) return null
 
   return (
     <button
@@ -22,12 +28,39 @@ function TopLevelItem({ item }) {
   )
 }
 
+function ModuleItem({ mod, isActive, onClick }) {
+  const puedeVer = usePermission(mod.id)
+  const ModIcon = mod.icon
+
+  if (!puedeVer) return null
+
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+        isActive
+          ? 'bg-indigo-50 text-indigo-700 font-medium'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+      }`}
+    >
+      <ModIcon size={16} />
+      {mod.label}
+    </button>
+  )
+}
+
 function DepartmentSection({ dept }) {
   const { activeView, setActiveView, expandedDepartments, toggleDepartment } =
     useNavigationStore()
+  const perfil = useAuthStore((s) => s.perfil)
+  const permisos = usePermisosStore((s) => s.permisos)
   const isExpanded = expandedDepartments.includes(dept.id)
   const DeptIcon = dept.icon
   const hasActiveChild = dept.modules.some((m) => activeView === m.id)
+
+  const tieneAlgunModulo = dept.modules.some((m) => checkPermission(perfil, permisos, m.id))
+
+  if (!tieneAlgunModulo) return null
 
   return (
     <div>
@@ -46,31 +79,21 @@ function DepartmentSection({ dept }) {
 
       {isExpanded && (
         <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-gray-200 pl-3">
-          {dept.modules.map((mod) => {
-            const ModIcon = mod.icon
-            const isActive = activeView === mod.id
-            return (
-              <button
-                key={mod.id}
-                onClick={() => setActiveView(mod.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  isActive
-                    ? 'bg-indigo-50 text-indigo-700 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                <ModIcon size={16} />
-                {mod.label}
-              </button>
-            )
-          })}
+          {dept.modules.map((mod) => (
+            <ModuleItem
+              key={mod.id}
+              mod={mod}
+              isActive={activeView === mod.id}
+              onClick={() => setActiveView(mod.id)}
+            />
+          ))}
         </div>
       )}
     </div>
   )
 }
 
-export default function Sidebar({ session, onLogout }) {
+export default function Sidebar({ session, perfil, onLogout }) {
   const { sidebarOpen, closeSidebar } = useNavigationStore()
 
   return (
@@ -131,8 +154,8 @@ export default function Sidebar({ session, onLogout }) {
           {session && (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">{session.name}</p>
-                <p className="text-xs text-gray-400">{session.username}</p>
+                <p className="text-sm font-medium text-gray-900">{perfil?.nombre || session.user.email}</p>
+                <p className="text-xs text-gray-400">{session.user.email}</p>
               </div>
               <button
                 onClick={onLogout}

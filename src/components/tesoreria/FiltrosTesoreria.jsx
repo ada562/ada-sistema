@@ -1,12 +1,17 @@
+import { useState, useEffect } from 'react'
 import { Filter, X } from 'lucide-react'
 import { useTesoreriaStore } from '../../store/useTesoreriaStore'
+import { useProyectosStore } from '../../store/useProyectosStore'
 import { getCategorias } from '../../lib/dbCategorias'
-import { getProyectos } from '../../lib/dbProyectos'
 
 export default function FiltrosTesoreria() {
   const { filters, setFilter, resetFilters } = useTesoreriaStore()
-  const categorias = getCategorias()
-  const proyectos = getProyectos()
+  const [categorias, setCategorias] = useState({ ingreso: [], gasto: [] })
+  const proyectos = useProyectosStore((s) => s.projects)
+
+  useEffect(() => {
+    getCategorias().then(setCategorias)
+  }, [])
 
   const allCategorias = [...new Set([
     ...categorias.gasto,

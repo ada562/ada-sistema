@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
-import { getServiciosByProject } from '../../lib/dbServicios'
+import { useServiciosStore } from '../../store/useServiciosStore'
 import { getCategoriasPorTipo } from '../../lib/dbCategorias'
 import { addTransaction, updateTransaction } from '../../lib/dbTesoreria'
 import { todayIso } from '../../lib/formatters'
@@ -18,9 +18,18 @@ const emptyForm = {
 
 export default function FormPago({ projectId, type = 'ingreso', open, onClose, editing = null }) {
   const [form, setForm] = useState(emptyForm)
+  const getServiciosByProject = useServiciosStore((s) => s.getByProject)
   const servicios = getServiciosByProject(projectId)
-  const categorias = getCategoriasPorTipo(type)
+  const [categorias, setCategorias] = useState([])
   const isGasto = type === 'gasto'
+
+  useEffect(() => {
+    let cancelled = false
+    getCategoriasPorTipo(type).then((cats) => {
+      if (!cancelled) setCategorias(cats)
+    })
+    return () => { cancelled = true }
+  }, [type])
 
   useEffect(() => {
     if (editing) {
@@ -42,7 +51,7 @@ export default function FormPago({ projectId, type = 'ingreso', open, onClose, e
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.amount || Number(form.amount) <= 0) {
       toast.error('El monto debe ser mayor a 0')
@@ -60,14 +69,18 @@ export default function FormPago({ projectId, type = 'ingreso', open, onClose, e
       serviceId: form.serviceId || null,
     }
 
-    if (editing) {
-      updateTransaction(editing.id, data)
-      toast.success(isGasto ? 'Gasto actualizado' : 'Pago actualizado')
-    } else {
-      addTransaction(data)
-      toast.success(isGasto ? 'Gasto registrado' : 'Pago registrado')
+    try {
+      if (editing) {
+        await updateTransaction(editing.id, data)
+        toast.success(isGasto ? 'Gasto actualizado' : 'Pago actualizado')
+      } else {
+        await addTransaction(data)
+        toast.success(isGasto ? 'Gasto registrado' : 'Pago registrado')
+      }
+      onClose()
+    } catch (err) {
+      toast.error(err.message || 'No se pudo guardar el movimiento')
     }
-    onClose()
   }
 
   return (

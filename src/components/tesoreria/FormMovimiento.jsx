@@ -3,8 +3,8 @@ import { toast } from 'sonner'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import { useTesoreriaStore } from '../../store/useTesoreriaStore'
+import { useProyectosStore } from '../../store/useProyectosStore'
 import { getCategoriasPorTipo } from '../../lib/dbCategorias'
-import { getProyectos } from '../../lib/dbProyectos'
 import { todayIso } from '../../lib/formatters'
 
 const emptyForm = {
@@ -20,7 +20,7 @@ const emptyForm = {
 export default function FormMovimiento() {
   const { modalOpen, editingTx, closeModal, addTx, updateTx } = useTesoreriaStore()
   const [form, setForm] = useState(emptyForm)
-  const proyectos = getProyectos()
+  const proyectos = useProyectosStore((s) => s.projects)
 
   useEffect(() => {
     if (editingTx) {
@@ -38,7 +38,15 @@ export default function FormMovimiento() {
     }
   }, [editingTx, modalOpen])
 
-  const categorias = getCategoriasPorTipo(form.type)
+  const [categorias, setCategorias] = useState([])
+
+  useEffect(() => {
+    let cancelled = false
+    getCategoriasPorTipo(form.type).then((cats) => {
+      if (!cancelled) setCategorias(cats)
+    })
+    return () => { cancelled = true }
+  }, [form.type])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -49,7 +57,7 @@ export default function FormMovimiento() {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.amount || Number(form.amount) <= 0) {
       toast.error('El monto debe ser mayor a 0')
@@ -66,14 +74,18 @@ export default function FormMovimiento() {
       projectId: form.projectId || null,
     }
 
-    if (editingTx) {
-      updateTx(editingTx.id, data)
-      toast.success('Movimiento actualizado')
-    } else {
-      addTx(data)
-      toast.success('Movimiento registrado')
+    try {
+      if (editingTx) {
+        await updateTx(editingTx.id, data)
+        toast.success('Movimiento actualizado')
+      } else {
+        await addTx(data)
+        toast.success('Movimiento registrado')
+      }
+      closeModal()
+    } catch (err) {
+      toast.error(err.message || 'No se pudo guardar el movimiento')
     }
-    closeModal()
   }
 
   return (

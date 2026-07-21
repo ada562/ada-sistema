@@ -1,19 +1,24 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTesoreriaStore } from '../../store/useTesoreriaStore'
-import { getProyectoById } from '../../lib/dbProyectos'
+import { useProyectosStore } from '../../store/useProyectosStore'
 import { fmtMoney, fmtDate } from '../../lib/formatters'
 
 const cuentaLabel = { banco: 'Banco', efectivo: 'Efectivo', nequi: 'Nequi' }
 
 export default function TablaMovimientos() {
   const { getFilteredTransactions, openModal, deleteTx } = useTesoreriaStore()
+  const getProyectoById = useProyectosStore((s) => s.getProyectoById)
   const transactions = getFilteredTransactions()
 
-  const handleDelete = (tx) => {
+  const handleDelete = async (tx) => {
     if (!window.confirm(`¿Eliminar movimiento "${tx.description || tx.category}" por ${fmtMoney(tx.amount)}?`)) return
-    deleteTx(tx.id)
-    toast.success('Movimiento eliminado')
+    try {
+      await deleteTx(tx.id)
+      toast.success('Movimiento eliminado')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo eliminar el movimiento')
+    }
   }
 
   if (transactions.length === 0) {
