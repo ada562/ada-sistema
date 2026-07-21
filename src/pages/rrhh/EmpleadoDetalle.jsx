@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, User, Pencil, Trash2, Phone, Mail, MapPin, Shield, FileText, CheckCircle, XCircle, KeyRound } from 'lucide-react'
+import { ArrowLeft, User, Pencil, Trash2, Phone, Mail, MapPin, Shield, FileText, KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
 import FormEmpleado from '../../components/equipo/FormEmpleado'
+import DocumentosEmpleado from '../../components/equipo/DocumentosEmpleado'
 import { useNavigationStore } from '../../store/useNavigationStore'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -35,18 +36,6 @@ function SectionCard({ title, icon: Icon, color, children }) {
         <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
       </div>
       <div className="px-4 py-3">{children}</div>
-    </div>
-  )
-}
-
-function DocStatus({ label, ok }) {
-  return (
-    <div className="flex items-center gap-2 py-1">
-      {ok
-        ? <CheckCircle size={14} className="text-green-500" />
-        : <XCircle size={14} className="text-red-400" />
-      }
-      <span className={`text-sm ${ok ? 'text-gray-700' : 'text-gray-400'}`}>{label}</span>
     </div>
   )
 }
@@ -203,10 +192,7 @@ export default function EmpleadoDetalle() {
 
         {/* Documentos */}
         <SectionCard title="Documentos" icon={FileText} color="text-orange-500">
-          <DocStatus label="Copia de cédula" ok={emp.docCedula} />
-          <DocStatus label="Hoja de vida" ok={emp.docHojaVida} />
-          <DocStatus label="Contrato" ok={emp.docContrato} />
-          <DocStatus label="Certificados" ok={emp.docCertificados} />
+          <DocumentosEmpleado empleadoId={emp.id} />
         </SectionCard>
       </div>
 

@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import FormEmpleado from '../../components/equipo/FormEmpleado'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
+import { useDocumentosStore } from '../../store/useDocumentosStore'
 import { useNavigationStore } from '../../store/useNavigationStore'
 import { getAge, getUpcomingBirthdays, getExpiringContracts } from '../../lib/dbEmpleados'
 import { fmtDate } from '../../lib/formatters'
@@ -26,13 +27,24 @@ const statusOptions = [
 export default function Equipo() {
   const setActiveView = useNavigationStore((s) => s.setActiveView)
   const { employees, openModal, deleteEmployee, fetchAll, initRealtime, teardownRealtime } = useEmpleadosStore()
+  const {
+    getByEmpleado,
+    fetchAll: fetchDocumentos,
+    initRealtime: initDocumentosRealtime,
+    teardownRealtime: teardownDocumentosRealtime,
+  } = useDocumentosStore()
   const [filtroEstado, setFiltroEstado] = useState('Activo')
 
   useEffect(() => {
     fetchAll()
     initRealtime()
-    return () => teardownRealtime()
-  }, [fetchAll, initRealtime, teardownRealtime])
+    fetchDocumentos()
+    initDocumentosRealtime()
+    return () => {
+      teardownRealtime()
+      teardownDocumentosRealtime()
+    }
+  }, [fetchAll, initRealtime, teardownRealtime, fetchDocumentos, initDocumentosRealtime, teardownDocumentosRealtime])
 
   const filtered = filtroEstado === 'todos'
     ? employees
@@ -131,11 +143,12 @@ export default function Equipo() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((emp) => {
           const age = getAge(emp.birthDate)
+          const empDocs = getByEmpleado(emp.id)
           const pendingDocs = [
-            !emp.docCedula && 'Cédula',
-            !emp.docHojaVida && 'HV',
-            !emp.docContrato && 'Contrato',
-            !emp.docCertificados && 'Cert.',
+            !empDocs.some((d) => d.tipo === 'cedula') && 'Cédula',
+            !empDocs.some((d) => d.tipo === 'hoja_vida') && 'HV',
+            !empDocs.some((d) => d.tipo === 'contrato') && 'Contrato',
+            !empDocs.some((d) => d.tipo === 'certificados') && 'Cert.',
           ].filter(Boolean)
 
           return (

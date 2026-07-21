@@ -7,8 +7,7 @@ const COLUMNS = 'id,nombre,cedula,fecha_nacimiento,genero,estado_civil,foto_url,
   'cargo,departamento,supervisor_id,fecha_ingreso,tipo_contrato,contrato_hasta,' +
   'tarifa_mensual,salario_no_constitutivo,carga_pct,estado,user_id,' +
   'tipo_horario,' +
-  'eps,pension,arl,caja_compensacion,' +
-  'doc_cedula,doc_hoja_vida,doc_contrato,doc_certificados,created_at'
+  'eps,pension,arl,caja_compensacion,created_at'
 
 function empleadoFromRow(r) {
   return {
@@ -49,11 +48,6 @@ function empleadoFromRow(r) {
     arl: r.arl || '',
     cajaCompensacion: r.caja_compensacion || '',
 
-    docCedula: r.doc_cedula || false,
-    docHojaVida: r.doc_hoja_vida || false,
-    docContrato: r.doc_contrato || false,
-    docCertificados: r.doc_certificados || false,
-
     createdAt: r.created_at,
   }
 }
@@ -89,10 +83,6 @@ function empleadoToRow(data) {
     pension: data.pension || '',
     arl: data.arl || '',
     caja_compensacion: data.cajaCompensacion || '',
-    doc_cedula: data.docCedula || false,
-    doc_hoja_vida: data.docHojaVida || false,
-    doc_contrato: data.docContrato || false,
-    doc_certificados: data.docCertificados || false,
   }
 }
 

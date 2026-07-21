@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { FileText, Plus, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react'
+import { FileText, Plus, AlertTriangle, ChevronDown, ChevronUp, Paperclip } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
+import DocumentosEmpleado from '../../components/equipo/DocumentosEmpleado'
 import { useContratosStore } from '../../store/useContratosStore'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
@@ -19,6 +20,7 @@ const estadoColors = {
 export default function Contratos() {
   const [formModal, setFormModal] = useState({ open: false, empleadoId: null })
   const [expanded, setExpanded] = useState(() => new Set())
+  const [expandedDocs, setExpandedDocs] = useState(() => new Set())
 
   const {
     contratos,
@@ -53,6 +55,15 @@ export default function Contratos() {
 
   const toggleExpand = (empleadoId) => {
     setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(empleadoId)) next.delete(empleadoId)
+      else next.add(empleadoId)
+      return next
+    })
+  }
+
+  const toggleDocs = (empleadoId) => {
+    setExpandedDocs((prev) => {
       const next = new Set(prev)
       if (next.has(empleadoId)) next.delete(empleadoId)
       else next.add(empleadoId)
@@ -104,6 +115,7 @@ export default function Contratos() {
             const vigente = historial.find((c) => c.status === 'Vigente')
             const pasados = historial.filter((c) => c.id !== vigente?.id)
             const isExpanded = expanded.has(emp.id)
+            const isDocsExpanded = expandedDocs.has(emp.id)
 
             return (
               <div key={emp.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -129,6 +141,13 @@ export default function Contratos() {
                     <Button variant="outline" size="sm" onClick={() => setFormModal({ open: true, empleadoId: emp.id })}>
                       {vigente ? 'Renovar' : 'Registrar'}
                     </Button>
+                    <button
+                      onClick={() => toggleDocs(emp.id)}
+                      className={`p-1.5 rounded-lg hover:bg-indigo-50 ${isDocsExpanded ? 'text-indigo-600 bg-indigo-50' : 'text-gray-400 hover:text-indigo-600'}`}
+                      title="Documentos"
+                    >
+                      <Paperclip size={16} />
+                    </button>
                     {pasados.length > 0 && (
                       <button
                         onClick={() => toggleExpand(emp.id)}
@@ -140,6 +159,12 @@ export default function Contratos() {
                     )}
                   </div>
                 </div>
+
+                {isDocsExpanded && (
+                  <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
+                    <DocumentosEmpleado empleadoId={emp.id} />
+                  </div>
+                )}
 
                 {isExpanded && pasados.length > 0 && (
                   <div className="border-t border-gray-100 bg-gray-50 px-4 py-2">

@@ -11,7 +11,6 @@ const emptyForm = {
   role: '', department: '', supervisor: '', startDate: '', contractType: '', contractUntil: '',
   monthlyRate: '', nonConstitutiveSalary: '', cargaPct: '', status: 'Activo',
   eps: '', pension: '', arl: '', cajaCompensacion: '',
-  docCedula: false, docHojaVida: false, docContrato: false, docCertificados: false,
 }
 
 const statusOptions = ['Activo', 'Vacaciones', 'Incapacidad', 'Retirado']
@@ -208,21 +207,9 @@ export default function FormEmpleado() {
           </Field>
         </div>
 
-        {/* ── Documentos ── */}
-        <SectionTitle>Documentos</SectionTitle>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { key: 'docCedula', label: 'Copia de cédula' },
-            { key: 'docHojaVida', label: 'Hoja de vida' },
-            { key: 'docContrato', label: 'Contrato' },
-            { key: 'docCertificados', label: 'Certificados' },
-          ].map(({ key, label }) => (
-            <label key={key} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-50">
-              <input type="checkbox" name={key} checked={form[key]} onChange={handleChange} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-              <span className="text-sm text-gray-700">{label}</span>
-            </label>
-          ))}
-        </div>
+        <p className="text-xs text-gray-400 mt-4">
+          Los documentos (cédula, hoja de vida, contrato, certificados) se suben desde la ficha del empleado, una vez guardado.
+        </p>
 
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="ghost" onClick={closeModal}>Cancelar</Button>
