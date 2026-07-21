@@ -24,7 +24,7 @@
 | 014 | `014_bitacora_otros_reposicion.sql` | 2026-07-21 | Correctiva + feature: `registro_horas.dias` CHECK relajado a `>= 0` (bug real, "Festivo" con `dias=0` habria fallado 23514), `proyecto_id` nullable + CHECK exige `nota` no vacia cuando no hay proyecto (fila "Otros") — "Reposición" reutiliza la convencion de `nota` sin cambio de esquema | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 015 | `015_arqueo_caja.sql` | 2026-07-21 | Feature: tabla `arqueo_caja` — compara el saldo del sistema (`vw_saldos_cuentas`, migracion 004) contra el conteo fisico real de una cuenta y guarda historial con la diferencia (sobrante/faltante). Pedido por el usuario para cuadrar caja al final del dia | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 016 | `016_contratos_historial.sql` | 2026-07-21 | Feature: tabla `contratos` (historial completo por empleado, hoy `empleados.tipo_contrato`/`.contrato_hasta` solo guardaban el vigente), RPC `fn_registrar_contrato` (marca el anterior `Renovado`, inserta el nuevo `Vigente`, sincroniza `empleados`) — reemplaza el placeholder de `src/pages/rrhh/Contratos.jsx` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
-| 017 | `017_empleados_horario.sql` | 2026-07-21 | Feature: `ALTER TABLE empleados` agrega `horario_entrada`/`horario_salida`/`dias_laborales` (jornada laboral fija de referencia, distinta del registro de horas trabajadas de Bitácora/`registro_horas`) — reemplaza el placeholder de `src/pages/rrhh/Horarios.jsx` | ⏳ Pendiente de ejecutar en Supabase |
+| 017 | `017_empleados_horario.sql` | 2026-07-21 | Feature: `ALTER TABLE empleados` agrega `tipo_horario` (asigna a cada empleado una de las 2 jornadas fijas oficiales — "Equipo de Diseño"/"Equipo Administrativo" — definidas en `src/lib/horarios.js`) — reemplaza el placeholder de `src/pages/rrhh/Horarios.jsx` | ⏳ Pendiente de ejecutar en Supabase |
 
 
 ---
@@ -306,11 +306,10 @@
 - **Archivo:** `migrations/017_empleados_horario.sql`
 - **Fecha:** 2026-07-21
 - **Estado:** ⏳ Pendiente de ejecutar en Supabase
-- **Proposito:** `src/pages/rrhh/Horarios.jsx` era un placeholder puro. Confirmado con el usuario (AskUserQuestion) que el alcance es la jornada laboral FIJA de referencia por empleado (hora de entrada/salida, días laborales) — no un control de asistencia ni una solicitud de permisos, y explícitamente distinto del registro de horas trabajadas que ya existe (`registro_horas`, migración 011, consumido por Bitácora/Mi Bitácora).
-- **Tablas afectadas:** `ALTER TABLE empleados` — agrega `horario_entrada` (time), `horario_salida` (time), `dias_laborales` (text[], default lunes-viernes, CHECK contra los 7 días válidos).
+- **Proposito:** `src/pages/rrhh/Horarios.jsx` era un placeholder puro. Alcance inicial confirmado con el usuario (AskUserQuestion): jornada laboral de referencia, no control de asistencia ni solicitud de permisos, y explícitamente distinto del registro de horas trabajadas que ya existe (`registro_horas`, migración 011, consumido por Bitácora/Mi Bitácora). Revisado el mismo día con el memo interno real de la empresa: no es un horario libre por empleado, son dos jornadas fijas comunicadas oficialmente — "Equipo de Diseño" (L-V, 8:00-17:25, almuerzo 1-2pm) y "Equipo Administrativo" (horario distinto por día, incluye sábado medio día). El detalle día a día de cada jornada vive en `src/lib/horarios.js` (`PLANTILLAS_HORARIO`), no en la base de datos, porque es política de la empresa (no editable desde la UI); la tabla solo guarda a cuál de las dos pertenece cada empleado.
+- **Tablas afectadas:** `ALTER TABLE empleados` — agrega `tipo_horario` (text, nullable, `CHECK IN ('Equipo de Diseño','Equipo Administrativo')`).
 - **RLS/auditoría:** ninguna nueva — es una columna más de `empleados`, cubierta por las políticas `empleados_select`/`empleados_write` y el trigger `trg_audit_empleados` ya existentes (migración 007).
 - **Dependencias:** `empleados` (007).
 - **Notas:**
   - Los permisos de rol para el módulo `horarios` ya estaban sembrados desde la migración 002 — no requiere migración de permisos nueva.
-  - Cascada de frontend en el mismo corte: `dbEmpleados.js` (mapeo de los 3 campos nuevos), `Horarios.jsx` (reescrito — tabla de empleados activos con entrada/salida/días, modal de edición).
-  - Cascada de frontend en el mismo corte: `dbContratos.js` (nuevo), `useContratosStore.js` (nuevo, con realtime), `Contratos.jsx` reescrito (historial por empleado + alerta de vencimientos + modal "Registrar contrato").
+  - Cascada de frontend en el mismo corte: `src/lib/horarios.js` (nuevo, plantillas fijas), `dbEmpleados.js` (mapeo de `tipo_horario`), `Horarios.jsx` (reescrito — jornadas de referencia + asignación por empleado via `<select>`).
