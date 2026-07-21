@@ -211,8 +211,8 @@ function FormGBAMovement({ open, data, onClose, onSaved }) {
 
   const resetForm = () => {
     setForm(data
-      ? { date: data.date, amount: data.amount, gbaMovement: data.gbaMovement, description: data.description }
-      : { date: todayIso(), amount: '', gbaMovement: 'prestamo_otorgado', description: '' }
+      ? { date: data.date, amount: data.amount, gbaMovement: data.gbaMovement, description: data.description, account: data.account || 'efectivo' }
+      : { date: todayIso(), amount: '', gbaMovement: 'prestamo_otorgado', description: '', account: 'efectivo' }
     )
   }
 
@@ -233,6 +233,7 @@ function FormGBAMovement({ open, data, onClose, onSaved }) {
         await updateTransaction(data.id, {
           date: form.date,
           amount,
+          account: form.account,
           gbaMovement: form.gbaMovement,
           description: form.description,
           category: 'GBA',
@@ -242,7 +243,7 @@ function FormGBAMovement({ open, data, onClose, onSaved }) {
         await addTransaction({
           date: form.date,
           type: form.gbaMovement === 'prestamo_recibido' ? 'ingreso' : 'gasto',
-          account: null,
+          account: form.account,
           amount,
           category: 'GBA',
           projectId: null,
@@ -283,6 +284,16 @@ function FormGBAMovement({ open, data, onClose, onSaved }) {
             <input type="number" value={form.amount || ''} onChange={(e) => set('amount', e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Cuenta de la que sale / a la que entra</label>
+          <select value={form.account || 'efectivo'} onChange={(e) => set('account', e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="banco">Banco</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="nequi">Nequi</option>
+          </select>
+          <p className="text-xs text-gray-400 mt-1">Sin esto el movimiento no se resta/suma en los saldos de Tesorería</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
