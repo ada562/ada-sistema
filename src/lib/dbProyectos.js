@@ -1,7 +1,8 @@
 import { supabase } from './supabase'
 import { getTransactions } from './dbTesoreria'
 import { getTimelogsByProject } from './dbTimelogs'
-import { getEmpleados, getDailyRate } from './dbEmpleados'
+import { getEmpleados } from './dbEmpleados'
+import { getSettings } from './dbSettings'
 
 const PROYECTO_COLUMNS =
   'id,nombre,cliente,tipo_servicio,estado,fecha_inicio,valor_contrato,iva_pct,notas,es_gba,paquete_visitas,created_at'
@@ -140,12 +141,13 @@ export async function getProjectMetrics(projectId) {
 
   const empleados = await getEmpleados()
   const empleadosPorId = new Map(empleados.map((e) => [e.id, e]))
+  const { workDaysPerMonth } = await getSettings()
 
   let costoManoObra = 0
   for (const log of timelogs) {
     const emp = empleadosPorId.get(log.employeeId)
     if (emp) {
-      const rate = await getDailyRate(emp)
+      const rate = (emp.monthlyRate + (emp.nonConstitutiveSalary || 0)) / workDaysPerMonth
       costoManoObra += log.days * rate
     }
   }

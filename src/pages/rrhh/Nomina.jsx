@@ -421,6 +421,7 @@ function TabResumen({ empleados, cargaPct }) {
   let grandPrimaLegal = 0
   let grandPrimaNoConst = 0
   let grandTotal = 0
+  let grandTotalAnual = 0
 
   const rows = empleados.map((emp) => {
     const salLegal = emp.monthlyRate
@@ -429,6 +430,7 @@ function TabResumen({ empleados, cargaPct }) {
     const primaLegalMes = Math.round(salLegal / 12)
     const primaNoConstMes = Math.round(salNoConst / 12)
     const totalMes = salLegal + salNoConst + aportes + primaLegalMes + primaNoConstMes
+    const totalAnual = totalMes * 12
 
     grandSalarioLegal += salLegal
     grandSalarioNoConst += salNoConst
@@ -436,8 +438,9 @@ function TabResumen({ empleados, cargaPct }) {
     grandPrimaLegal += primaLegalMes
     grandPrimaNoConst += primaNoConstMes
     grandTotal += totalMes
+    grandTotalAnual += totalAnual
 
-    return { emp, salLegal, salNoConst, aportes, primaLegalMes, primaNoConstMes, totalMes }
+    return { emp, salLegal, salNoConst, aportes, primaLegalMes, primaNoConstMes, totalMes, totalAnual }
   })
 
   return (
@@ -457,6 +460,10 @@ function TabResumen({ empleados, cargaPct }) {
           <p className="text-xs text-indigo-600 uppercase font-semibold">Costo total mensual</p>
           <p className="text-xl font-bold text-indigo-700">{fmtMoney(grandTotal)}</p>
         </div>
+        <div className="bg-indigo-100 border border-indigo-300 rounded-lg p-4">
+          <p className="text-xs text-indigo-700 uppercase font-semibold">Costo total anual</p>
+          <p className="text-xl font-bold text-indigo-800">{fmtMoney(grandTotalAnual)}</p>
+        </div>
       </div>
 
       {/* Table */}
@@ -473,10 +480,11 @@ function TabResumen({ empleados, cargaPct }) {
                 <th className="px-3 py-3 font-medium text-gray-600 text-right">Prov. Prima Legal</th>
                 <th className="px-3 py-3 font-medium text-gray-600 text-right">Prov. Prima No C.</th>
                 <th className="px-3 py-3 font-medium text-gray-600 text-right bg-indigo-50">Total mes</th>
+                <th className="px-3 py-3 font-medium text-gray-600 text-right bg-indigo-100">Total año</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {rows.map(({ emp, salLegal, salNoConst, aportes, primaLegalMes, primaNoConstMes, totalMes }) => (
+              {rows.map(({ emp, salLegal, salNoConst, aportes, primaLegalMes, primaNoConstMes, totalMes, totalAnual }) => (
                 <tr key={emp.id} className="hover:bg-gray-50">
                   <td className="px-3 py-3 font-medium text-gray-900">{emp.name}</td>
                   <td className="px-3 py-3 text-gray-600 text-xs">{emp.role}</td>
@@ -490,6 +498,7 @@ function TabResumen({ empleados, cargaPct }) {
                     {primaNoConstMes > 0 ? fmtMoney(primaNoConstMes) : <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-3 py-3 text-right font-bold text-indigo-700 bg-indigo-50">{fmtMoney(totalMes)}</td>
+                  <td className="px-3 py-3 text-right font-bold text-indigo-800 bg-indigo-100">{fmtMoney(totalAnual)}</td>
                 </tr>
               ))}
             </tbody>
@@ -502,6 +511,7 @@ function TabResumen({ empleados, cargaPct }) {
                 <td className="px-3 py-3 text-right text-amber-700">{fmtMoney(grandPrimaLegal)}</td>
                 <td className="px-3 py-3 text-right text-amber-700">{fmtMoney(grandPrimaNoConst)}</td>
                 <td className="px-3 py-3 text-right text-indigo-700 bg-indigo-50">{fmtMoney(grandTotal)}</td>
+                <td className="px-3 py-3 text-right text-indigo-800 bg-indigo-100">{fmtMoney(grandTotalAnual)}</td>
               </tr>
             </tfoot>
           </table>
@@ -557,10 +567,16 @@ function PayStatusCell({ paid, payment, emp, onPay, onRecibo }) {
 function PagarModal({ open, emp, tipo, amount, period, onClose, registrarPago }) {
   const [method, setMethod] = useState('banco')
   const [notes, setNotes] = useState('')
+  const [montoFinal, setMontoFinal] = useState(amount)
+
+  useEffect(() => {
+    setMontoFinal(amount)
+  }, [amount, emp, tipo])
 
   if (!emp || !open) return null
 
   const tipoLabel = tipo === 'legal' ? 'Salario Legal' : 'Salario No Constitutivo'
+  const montoValido = Number(montoFinal) > 0
 
   const handlePay = async () => {
     try {
@@ -571,7 +587,7 @@ function PagarModal({ open, emp, tipo, amount, period, onClose, registrarPago })
         quincena: period.quincena,
         periodStart: period.periodStart,
         periodEnd: period.periodEnd,
-        amount,
+        amount: Number(montoFinal),
         method,
         notes,
       })
@@ -592,9 +608,15 @@ function PagarModal({ open, emp, tipo, amount, period, onClose, registrarPago })
           <ModalRow label="Cargo" value={emp.role} />
           <ModalRow label="Concepto" value={tipoLabel} accent />
           <ModalRow label="Período" value={`Q${period.quincena} — ${fmtDate(period.periodStart)} a ${fmtDate(period.periodEnd)}`} />
-          <div className="flex justify-between text-lg border-t border-gray-200 pt-2 mt-2">
-            <span className="font-semibold text-gray-700">Monto a pagar</span>
-            <span className="font-bold text-green-700">{fmtMoney(amount)}</span>
+          <div className="border-t border-gray-200 pt-2 mt-2">
+            <label className="text-sm font-semibold text-gray-700 block mb-1">Monto a pagar (editable)</label>
+            <p className="text-xs text-gray-400 mb-1">Calculado: {fmtMoney(amount)}. Ajusta si el neto real es distinto (deducciones, ajustes, etc.)</p>
+            <input
+              type="number"
+              value={montoFinal}
+              onChange={(e) => setMontoFinal(e.target.value)}
+              className="w-full text-lg font-bold text-green-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
           </div>
         </div>
 
@@ -602,7 +624,7 @@ function PagarModal({ open, emp, tipo, amount, period, onClose, registrarPago })
 
         <div className="flex justify-end gap-3 pt-2">
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handlePay}>Confirmar pago</Button>
+          <Button onClick={handlePay} disabled={!montoValido}>Confirmar pago</Button>
         </div>
         <p className="text-xs text-gray-400 text-center">Este pago se registrará automáticamente como gasto en Tesorería</p>
       </div>

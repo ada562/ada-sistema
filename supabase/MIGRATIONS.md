@@ -22,6 +22,7 @@
 | 012 | `012_calendario_tributario.sql` | 2026-07-18 | Tabla `calendario_tributario`, seed real (5 registros fijos de `dbCalendario.js`) — reemplaza `localStorage` clave `ada_calendario_tributario`, consumida hoy solo desde `ResumenGerencia.jsx` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 013 | `013_empleado_portal_bitacora.sql` | 2026-07-21 | Portal de empleado: `perfiles.rol` gana `'empleado'`, `empleados.user_id` (login individual), `fn_empleado_id()`/`fn_semana_actual_inicio()`, RLS propia en `registro_horas`/`visitas`/`visita_asistentes` con bloqueo blando por semana, `visitas.tema` estructurado (+`tema_otro`), vistas `vw_proyectos_directorio`/`vw_empleados_directorio`, permisos `mi-bitacora` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 014 | `014_bitacora_otros_reposicion.sql` | 2026-07-21 | Correctiva + feature: `registro_horas.dias` CHECK relajado a `>= 0` (bug real, "Festivo" con `dias=0` habria fallado 23514), `proyecto_id` nullable + CHECK exige `nota` no vacia cuando no hay proyecto (fila "Otros") — "Reposición" reutiliza la convencion de `nota` sin cambio de esquema | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
+| 015 | `015_arqueo_caja.sql` | 2026-07-21 | Feature: tabla `arqueo_caja` — compara el saldo del sistema (`vw_saldos_cuentas`, migracion 004) contra el conteo fisico real de una cuenta y guarda historial con la diferencia (sobrante/faltante). Pedido por el usuario para cuadrar caja al final del dia | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 
 ---
 
@@ -269,3 +270,16 @@
 - **Notas:**
   - El bloque `DO $$` que dropea el CHECK de `dias` localiza el nombre real del constraint via `pg_constraint`/`pg_class`/`pg_attribute` (mismo patron defensivo de la migracion 013) en vez de asumir el nombre por defecto de Postgres.
   - Cascada pendiente en frontend: `BitacoraSemanaGrid.jsx` (fila fija "Otros" con descripcion obligatoria, checkbox "Reposición" en columnas Sábado/Domingo, redondeo de totales), `Bitacoras.jsx` (`FormBitacoraGlobal` debe soportar `proyecto_id = NULL`).
+
+### 015 — `arqueo_caja` (cuadre de caja)
+- **Archivo:** `migrations/015_arqueo_caja.sql`
+- **Fecha:** 2026-07-21
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21
+- **Proposito:** el usuario pidio, mientras cargaba pagos de nomina atrasados, una herramienta tipo "arqueo de caja" para comparar el saldo que calcula el sistema (`vw_saldos_cuentas`, migracion 004) contra el conteo fisico real de una cuenta (normalmente `efectivo`) y dejar registro historico de cada conteo con la diferencia (sobrante/faltante). No mueve dinero (no toca `transacciones`) — es un snapshot de reconciliacion, por eso no requiere RPC con `FOR UPDATE NOWAIT` como las operaciones de dinero.
+- **Tablas afectadas:** `arqueo_caja` (CREATE) — `fecha`, `cuenta`, `saldo_sistema`, `saldo_contado`, `diferencia` (`GENERATED ALWAYS AS` columna calculada), `notas`.
+- **Funciones/triggers:** `trg_audit_arqueo_caja` — reutiliza `fn_audit_trigger()` (migracion 004).
+- **RLS:** `SELECT` para `admin`/`contabilidad`/`gerencia`; `INSERT` solo `admin`/`contabilidad` — historial inmutable (sin `UPDATE`/`DELETE` para `authenticated`), igual criterio que `pagos_nomina`/`pagos_contratistas`: si un arqueo se hizo mal, se corrige con un arqueo nuevo. `claude_readonly` con `SELECT` explicito.
+- **Dependencias:** `auth_rol()` (migracion 002); `cuentas` (migracion 003); `fn_audit_trigger()` (migracion 004).
+- **Notas:**
+  - **2026-07-21 — bug encontrado en el primer intento de ejecucion (Postgres `42830`):** la version original definia `cuenta text NOT NULL REFERENCES public.cuentas(codigo)` (FK de una sola columna). Falla porque `cuentas.codigo` no tiene una constraint unica propia — solo existe `UNIQUE (tenant_id, codigo)` (compuesta, migracion 003), y Postgres exige que el conjunto de columnas referenciado por una FK coincida exactamente con una unique/PK existente. Corregido siguiendo el mismo precedente ya usado en `transacciones.cuenta` (migracion 004): FK compuesta `CONSTRAINT fk_arqueo_caja_cuenta FOREIGN KEY (tenant_id, cuenta) REFERENCES public.cuentas (tenant_id, codigo)`.
+  - Cascada de frontend ya completada en el mismo corte: `dbArqueoCaja.js` (nuevo, `getArqueos`/`registrarArqueo`), `ArqueoCaja.jsx` (nuevo, modal con selector de cuenta, saldo del sistema vs. contado, diferencia con estilo sobrante/faltante, historial), botón "Arqueo de caja" en `Tesoreria.jsx`.

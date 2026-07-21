@@ -15,7 +15,6 @@ import { useTimelogsStore } from '../store/useTimelogsStore'
 import { useVisitasStore } from '../store/useVisitasStore'
 import { useEmpleadosStore } from '../store/useEmpleadosStore'
 import { getTransactions } from '../lib/dbTesoreria'
-import { getDailyRate } from '../lib/dbEmpleados'
 import { getSettings } from '../lib/dbSettings'
 import { fmtMoney, fmtDate } from '../lib/formatters'
 import { getTemaLabel } from '../lib/visitaTemas'
@@ -127,12 +126,13 @@ export default function ProyectoDetalle() {
     async function loadManoObra() {
       setManoObra((prev) => ({ ...prev, loading: true }))
       const logs = getTimelogsByProject(proyecto.id)
+      const { workDaysPerMonth } = await getSettings()
       const byEmployee = {}
       let total = 0
       for (const log of logs) {
         const emp = getEmpleadoById(log.employeeId)
         if (emp) {
-          const rate = await getDailyRate(emp)
+          const rate = (emp.monthlyRate + (emp.nonConstitutiveSalary || 0)) / workDaysPerMonth
           const costo = log.days * rate
           total += costo
           if (!byEmployee[emp.id]) byEmployee[emp.id] = { emp, days: 0, costo: 0, rate }
