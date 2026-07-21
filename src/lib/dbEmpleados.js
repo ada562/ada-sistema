@@ -6,6 +6,7 @@ const COLUMNS = 'id,nombre,cedula,fecha_nacimiento,genero,estado_civil,foto_url,
   'contacto_emergencia_nombre,contacto_emergencia_relacion,contacto_emergencia_telefono,contacto_emergencia_direccion,' +
   'cargo,departamento,supervisor_id,fecha_ingreso,tipo_contrato,contrato_hasta,' +
   'tarifa_mensual,salario_no_constitutivo,carga_pct,estado,user_id,' +
+  'horario_entrada,horario_salida,dias_laborales,' +
   'eps,pension,arl,caja_compensacion,' +
   'doc_cedula,doc_hoja_vida,doc_contrato,doc_certificados,created_at'
 
@@ -40,6 +41,10 @@ function empleadoFromRow(r) {
     cargaPct: Number(r.carga_pct) || 0,
     status: r.estado,
     userId: r.user_id || null,
+
+    horarioEntrada: r.horario_entrada ? r.horario_entrada.slice(0, 5) : '',
+    horarioSalida: r.horario_salida ? r.horario_salida.slice(0, 5) : '',
+    diasLaborales: r.dias_laborales || [],
 
     eps: r.eps || '',
     pension: r.pension || '',
@@ -81,6 +86,9 @@ function empleadoToRow(data) {
     salario_no_constitutivo: Number(data.nonConstitutiveSalary) || 0,
     carga_pct: Number(data.cargaPct) || 0,
     estado: data.status || 'Activo',
+    horario_entrada: data.horarioEntrada || null,
+    horario_salida: data.horarioSalida || null,
+    dias_laborales: data.diasLaborales?.length ? data.diasLaborales : ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'],
     eps: data.eps || '',
     pension: data.pension || '',
     arl: data.arl || '',

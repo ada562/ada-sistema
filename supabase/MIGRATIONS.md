@@ -26,6 +26,7 @@
 | 016 | `016_contratos_historial.sql` | 2026-07-21 | Feature: tabla `contratos` (historial completo por empleado, hoy `empleados.tipo_contrato`/`.contrato_hasta` solo guardaban el vigente), RPC `fn_registrar_contrato` (marca el anterior `Renovado`, inserta el nuevo `Vigente`, sincroniza `empleados`) — reemplaza el placeholder de `src/pages/rrhh/Contratos.jsx` | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 017 | `017_empleados_horario.sql` | 2026-07-21 | Feature: `ALTER TABLE empleados` agrega `horario_entrada`/`horario_salida`/`dias_laborales` (jornada laboral fija de referencia, distinta del registro de horas trabajadas de Bitácora/`registro_horas`) — reemplaza el placeholder de `src/pages/rrhh/Horarios.jsx` | ⏳ Pendiente de ejecutar en Supabase |
 
+
 ---
 
 ## Detalle de Migraciones
@@ -290,7 +291,7 @@
 ### 016 — `contratos` (historial de contratos, modulo Contratos)
 - **Archivo:** `migrations/016_contratos_historial.sql`
 - **Fecha:** 2026-07-21
-- **Estado:** ⏳ Pendiente de ejecutar en Supabase
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21
 - **Proposito:** `src/pages/rrhh/Contratos.jsx` era un placeholder puro. `empleados.tipo_contrato`/`.contrato_hasta` (migracion 007) ya existian pero solo guardan el contrato VIGENTE — cada renovacion pisaba el dato anterior sin dejar rastro. Se agrega una tabla de historial (una fila por contrato/renovacion) mas una RPC que registra una renovacion de forma atomica.
 - **Tablas afectadas:** `contratos` (CREATE) — `empleado_id`, `tipo_contrato` (mismas 5 categorias ya usadas en `FormEmpleado.jsx`), `fecha_inicio`, `fecha_fin` (nullable = termino indefinido, no vence), `salario_mensual`, `salario_no_constitutivo`, `estado` (`Vigente`/`Renovado`/`Vencido`/`Terminado`), `notas`.
 - **Funciones/triggers:**
@@ -300,4 +301,16 @@
 - **Dependencias:** `auth_rol()` (002), `fn_audit_trigger()` (004), `empleados` (007).
 - **Notas:**
   - Los permisos de rol para el módulo `contratos` ya estaban sembrados desde la migración 002 (`gerencia`→leer, `rrhh`→leer/escribir) — no requiere migración de permisos nueva.
+
+### 017 — `empleados` gana jornada laboral (modulo Horarios)
+- **Archivo:** `migrations/017_empleados_horario.sql`
+- **Fecha:** 2026-07-21
+- **Estado:** ⏳ Pendiente de ejecutar en Supabase
+- **Proposito:** `src/pages/rrhh/Horarios.jsx` era un placeholder puro. Confirmado con el usuario (AskUserQuestion) que el alcance es la jornada laboral FIJA de referencia por empleado (hora de entrada/salida, días laborales) — no un control de asistencia ni una solicitud de permisos, y explícitamente distinto del registro de horas trabajadas que ya existe (`registro_horas`, migración 011, consumido por Bitácora/Mi Bitácora).
+- **Tablas afectadas:** `ALTER TABLE empleados` — agrega `horario_entrada` (time), `horario_salida` (time), `dias_laborales` (text[], default lunes-viernes, CHECK contra los 7 días válidos).
+- **RLS/auditoría:** ninguna nueva — es una columna más de `empleados`, cubierta por las políticas `empleados_select`/`empleados_write` y el trigger `trg_audit_empleados` ya existentes (migración 007).
+- **Dependencias:** `empleados` (007).
+- **Notas:**
+  - Los permisos de rol para el módulo `horarios` ya estaban sembrados desde la migración 002 — no requiere migración de permisos nueva.
+  - Cascada de frontend en el mismo corte: `dbEmpleados.js` (mapeo de los 3 campos nuevos), `Horarios.jsx` (reescrito — tabla de empleados activos con entrada/salida/días, modal de edición).
   - Cascada de frontend en el mismo corte: `dbContratos.js` (nuevo), `useContratosStore.js` (nuevo, con realtime), `Contratos.jsx` reescrito (historial por empleado + alerta de vencimientos + modal "Registrar contrato").
