@@ -33,6 +33,7 @@
 | 023 | `023_arqueo_caja_supabase.sql` | 2026-07-22 | Correctiva urgente: Arqueo de Caja pasa de `localStorage` a Supabase (`ADD COLUMN denominaciones` + Realtime) — fix del bug reportado (el jefe no veía el arqueo desde otro dispositivo), sigue desacoplado de Tesorería a propósito | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
 | 024 | `024_tareas_calendario.sql` | 2026-07-22 | Feature: tablas `tareas` (calendario mensual estilo Asana) + `acceso_diario` (hora de llegada automática), RPC `fn_registrar_acceso_diario` — nuevo módulo "Tareas" (Proyectos) + página "Reportes" (Gerencia, horas + puntualidad admin/rrhh) | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
 | 025 | `025_permisos_ausencia.sql` | 2026-07-22 | Feature: tabla `permisos_ausencia` + RPC `fn_resolver_permiso_ausencia` (aprobar/rechazar, autocompleta `registro_horas` al aprobar) — nuevo módulo "Permisos" bajo Gestión Humana, solicitud con 15 días de anticipación | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
+| 026 | `026_tarea_reportes.sql` | 2026-07-22 | Feature: tabla `tarea_reportes` + bucket privado `tarea-reportes` — reportes de avance por tarea con adjunto opcional (imagen/audio/video), visibles para el empleado dueño y admin/rrhh | ⏳ Pendiente de ejecutar en Supabase |
 
 ---
 
@@ -419,3 +420,15 @@
   - `dias = 8` al autocompletar `registro_horas` es un supuesto de jornada completa por día de permiso — ajustable a futuro sin romper nada más si se prefiere calcular contra `tipo_horario` del empleado.
   - El `INSERT` dentro del RPC usa `NOT EXISTS` (no `ON CONFLICT`) porque `registro_horas` no tiene un constraint único sobre `(empleado_id, fecha, proyecto_id)` — evita duplicar si el empleado ya había cargado ese día manualmente.
   - Frontend: `dbPermisosAusencia.js`, `usePermisosAusenciaStore.js`, `src/pages/rrhh/Permisos.jsx` (formulario+historial para empleado, panel aprobar/rechazar para admin).
+
+### 026 — Reportes de avance por tarea (imagen/audio/video)
+- **Archivo:** `migrations/026_tarea_reportes.sql`
+- **Fecha:** 2026-07-22
+- **Estado:** ⏳ Pendiente de ejecutar en Supabase
+- **Propósito:** pedido explícito del usuario ("Tareas que sea como item nuevo y de ahí van reportes que se pueda enviar un audio o video o imágenes") — cada tarea del calendario (módulo Tareas, migración 024) abre un detalle con un feed de reportes de avance (texto + adjunto opcional), visible para el empleado dueño y para admin/rrhh (mismo criterio de supervisión ya usado en `tareas`/`acceso_diario`).
+- **Tablas afectadas:** `tarea_reportes` (nueva, FK a `tareas`/`empleados`, RLS empleado propio select/insert/delete + select admin/rrhh, sin UPDATE), trigger de auditoría (`fn_audit_trigger`), tabla agregada a `supabase_realtime`, bucket privado de Storage `tarea-reportes` + políticas sobre `storage.objects` (insert/delete solo el empleado dueño, select empleado/admin/rrhh).
+- **Dependencias:** `auth_rol()` (002), `fn_empleado_id()` (013), `fn_audit_trigger()` (004), `tareas`/`empleados` (024/007).
+- **Notas:**
+  - No se sembraron filas nuevas en `permisos` — el módulo `tareas` ya tiene `leer`/`escribir` para empleado/admin/rrhh desde la migración 024, y cubren también el acceso a los reportes (mismo módulo en el sidebar).
+  - El calendario mensual de `Tareas.jsx` también se rediseñó visualmente (colores por tarea vía hash determinístico del id, sin columna nueva en la base de datos — pedido del usuario de un estilo "más vistoso, que llame la atención, como Asana").
+  - Frontend: `dbTareaReportes.js`, `useTareaReportesStore.js`, `Tareas.jsx` (modal de detalle de tarea con feed de reportes + subida de adjunto), `fmtDateTime` agregado a `formatters.js`.
