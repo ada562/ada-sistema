@@ -88,6 +88,16 @@ sesion. Ver detalle en seccion 1d.
 - **Calendario de Tareas rediseñado** — colores por tarea (paleta estilo
   Asana asignada por hash determinístico del id, sin columna nueva en la
   base de datos), dia de hoy resaltado, encabezados de dia mas vistosos.
+- **Extracto de Tesoreria (Excel/PDF)** — boton "Extracto" nuevo en
+  `Tesoreria.jsx` abre `ExtractoTesoreria.jsx` (modal), usa
+  `getFilteredTransactions()` para respetar los filtros activos de la
+  pantalla. "Excel" = CSV con BOM y `;` como separador (sin agregar
+  dependencia nueva, no hay `xlsx`/`exceljs` en el proyecto) via
+  `src/lib/exportCsv.js` (`downloadCsv`, reutilizable). "PDF" = mismo patron
+  de `ReciboArqueoCaja.jsx` (`window.open` + `document.write` + `win.print()`
+  con CSS inline, sin libreria). Incluye periodo/cuenta filtrados, tabla de
+  movimientos y totales (ingresos/gastos/saldo neto). No es una migracion
+  SQL ni toca RLS — es puramente de exportacion sobre datos ya cargados.
 
 ## 1c. Sesion 6 — Permiso aparte + Resumen de bitacoras + Bitacora CEO
 - **"Permiso" separado de "Otros"** en `BitacoraSemanaGrid.jsx` (componente
@@ -236,7 +246,9 @@ auditoria (`audit_log`) en las tablas de dinero/empleados.
    pestaña/dispositivo con el mismo rol), Tareas (calendario, agregar/
    completar/borrar tarea), Permisos (solicitar con empleado, aprobar/
    rechazar con admin, confirmar que aparecen filas en `registro_horas`
-   al aprobar), Reportes (hora de llegada + puntualidad de un empleado real)
+   al aprobar), Reportes (hora de llegada + puntualidad de un empleado real),
+   Extracto de Tesoreria (boton "Extracto", descargar CSV y abrir el dialogo
+   de impresion/PDF, confirmar que respeta los filtros activos)
 2. El historial viejo de Arqueo de Caja en `localStorage` del navegador del
    usuario quedo huerfano — no se migro automaticamente, avisarle si
    pregunta por registros antiguos
