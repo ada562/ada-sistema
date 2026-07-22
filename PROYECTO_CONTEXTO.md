@@ -1,6 +1,6 @@
 # ADA Gestion — Contexto del Proyecto
-**Actualizado:** 2026-07-22 (sesion 6)
-**Version app:** v0.3.2
+**Actualizado:** 2026-07-22 (sesion 7)
+**Version app:** v0.3.3
 
 ## 1. Estado general
 Migracion completa de localStorage a Supabase (Postgres + Auth + RLS + Realtime)
@@ -20,10 +20,65 @@ proyecto. Ver detalle en seccion 1b.
 **Sesion 6 (2026-07-22):** Bloque "Permiso" (salud/personal) separado de
 "Otros" en la bitacora semanal, tab "Resumen" dentro de Bitacoras (quien
 registro + tarifa mensual solo-admin), nueva pagina "Bitacora CEO" en
-Gerencia (sin cuenta de portal), migracion 022 (RBAC de `bitacora-ceo`,
-pendiente de ejecutar), y prueba de credenciales de portal para QA manual.
+Gerencia (sin cuenta de portal), migracion 022 (RBAC de `bitacora-ceo`).
 Ver detalle en seccion 1c.
+
+**Sesion 7 (2026-07-22):** Arqueo de Caja migra de `localStorage` a Supabase
+(fix del bug reportado: el jefe no veia el arqueo desde otro dispositivo),
+se elimina por completo la fila/opcion "Otros" de la bitacora (solo queda
+"Permiso"), y se agregan dos modulos nuevos: "Tareas" (calendario mensual
+estilo Asana, departamento Proyectos) con captura automatica de hora de
+llegada, y "Permisos" (solicitud de ausencia con aprobacion admin,
+departamento Gestion Humana) que autocompleta la bitacora al aprobarse. La
+pagina "Reportes" (antes placeholder dentro de Gestion Humana) pasa a ser un
+modulo propio en Gerencia con el reporte semanal de horas + puntualidad.
+Migraciones 022-025 escritas y **ejecutadas en Supabase** durante esta
+sesion. Ver detalle en seccion 1d.
 `npm run build` verificado sin errores al cierre de esta sesion.
+
+## 1d. Sesion 7 — Arqueo de Caja a Supabase + quitar "Otros" + Tareas + Permisos
+- **Arqueo de Caja → Supabase** (`src/lib/dbArqueoCaja.js` reescrito,
+  `useArqueoCajaStore.js` nuevo, `ArqueoCaja.jsx` actualizado): causa raiz
+  del bug reportado por el usuario (su jefe no veia el arqueo desde otro
+  computador) era doble — el modulo guardaba en `localStorage` (aislado por
+  navegador) y ademas `arqueo_caja` habia quedado fuera de la migracion 021
+  (Realtime) por omision. Migracion 023 agrega `denominaciones jsonb`
+  (detalle de conteo por billete, usado por `ReciboArqueoCaja.jsx`) y
+  habilita Realtime. Sigue desacoplado de Tesoreria a proposito (mismo
+  criterio que GBA): no compara contra `vw_saldos_cuentas`, no usa RPC con
+  `FOR UPDATE NOWAIT`.
+- **Fila "Otros" eliminada por completo** de `BitacoraSemanaGrid.jsx`
+  (constante `OTROS_ID`, `findEntry`, helpers de commit, fila de tabla) y de
+  `Bitacoras.jsx` (filtro, dropdown, modal `FormBitacoraGlobal` ya no permite
+  crear filas "Otros" nuevas). Filas historicas con `proyecto_id NULL` sin
+  el prefijo `[Permiso:...]` se siguen mostrando en el historial como "Otros
+  (historico)" para no perder contexto de datos ya guardados. La constraint
+  `registro_horas_otros_requiere_nota` (migracion 014) no se toco — sigue
+  vigente, ahora solo la ejercita "Permiso".
+- **Modulo "Tareas"** (`src/pages/proyectos/Tareas.jsx`, departamento
+  Proyectos): calendario mensual estilo Asana — tareas cortas por dia,
+  marcables como completadas, independiente de la bitacora de horas.
+  Migracion 024 crea `tareas` (RLS empleado propio + admin/rrhh todo) y
+  `acceso_diario` (hora de llegada capturada automaticamente al iniciar
+  sesion, `UNIQUE(tenant_id, empleado_id, fecha)` + RPC
+  `fn_registrar_acceso_diario()` para atomicidad e id server-side).
+- **Pagina "Reportes"** (`src/pages/Reportes.jsx`, ahora en departamento
+  Gerencia, ya no "Reportes y Permisos"): reporte semanal de horas +
+  hora de llegada/puntualidad (contra `empleados.tipo_horario`) por
+  empleado, visible solo admin/rrhh. Se movio aqui desde adentro de
+  `Tareas.jsx` (donde vivia como tab) tras pedido explicito del usuario de
+  reorganizar el sidebar.
+- **Modulo "Permisos"** (`src/pages/rrhh/Permisos.jsx`, departamento
+  Gestion Humana): el empleado solicita una ausencia con minimo 15 dias de
+  anticipacion (validado en cliente y en RLS); solo admin aprueba/rechaza
+  via RPC `fn_resolver_permiso_ausencia()` (migracion 025), que al aprobar
+  autocompleta `registro_horas` con el bloque `[Permiso:Salud|Personal]`
+  para cada dia del rango (mismo mecanismo que ya usa
+  `BitacoraSemanaGrid.jsx`), sin que el empleado tenga que cargarlo de
+  nuevo. Se agrego lectura para rol `rrhh` (ademas de empleado propio y
+  admin) por estar bajo Gestion Humana en el sidebar.
+- **Migraciones 022-025 ejecutadas en Supabase** (SQL Editor, manual) esta
+  misma sesion — ver `MIGRATIONS.md` para el detalle completo de cada una.
 
 ## 1c. Sesion 6 — Permiso aparte + Resumen de bitacoras + Bitacora CEO
 - **"Permiso" separado de "Otros"** en `BitacoraSemanaGrid.jsx` (componente
@@ -100,9 +155,12 @@ Ver detalle en seccion 1c.
 | 9 | Nomina | rrhh/Nomina | Supabase (`pagos_nomina` + RPC) | ✅ funcional (primas + aportes) |
 | 10 | Contratos | rrhh/Contratos | — | ⬜ placeholder |
 | 11 | Horarios | rrhh/Horarios | — | ⬜ placeholder |
-| 12 | Reportes y Permisos | Reportes | — | 🟡 basico |
-| 13 | Publicidad | marketing/Publicidad | — | ⬜ placeholder |
-| 14 | Redes | marketing/Redes | — | ⬜ placeholder |
+| 12 | Reportes | Reportes | Supabase (`registro_horas`, `acceso_diario`) | ✅ funcional (admin/rrhh) |
+| 13 | Arqueo de Caja | contabilidad/ArqueoCaja | Supabase (`arqueo_caja`, desacoplado de Tesoreria) | ✅ funcional |
+| 14 | Tareas | proyectos/Tareas | Supabase (`tareas`, `acceso_diario`) | ✅ funcional |
+| 15 | Permisos | rrhh/Permisos | Supabase (`permisos_ausencia` + RPC) | ✅ funcional |
+| 16 | Publicidad | marketing/Publicidad | — | ⬜ placeholder |
+| 17 | Redes | marketing/Redes | — | ⬜ placeholder |
 
 Categorias, cuentas y configuracion (`dbCategorias.js`, `dbSettings.js`) tambien
 migrados a Supabase (`categorias`, `cuentas`, `configuracion`).
@@ -136,7 +194,7 @@ migrados a Supabase (`categorias`, `cuentas`, `configuracion`).
 **IMPORTANTE:** Los skills solo aparecen con `/` si VS Code esta abierto en `C:\dev\ada-gestion`
 
 ## 5. Migraciones SQL
-22 migraciones escritas, **21 ejecutadas** en produccion Supabase
+25 migraciones escritas, **25 ejecutadas** en produccion Supabase
 (`supabase/migrations/`, detalle en `MIGRATIONS.md`):
 001 claude_readonly_role · 002 perfiles_rbac (Auth + RBAC) · 003 categorias_configuracion_cuentas ·
 004 tesoreria_transacciones_rpc · 005 fn_registrar_transaccion_gba_facturado ·
@@ -144,7 +202,9 @@ migrados a Supabase (`categorias`, `cuentas`, `configuracion`).
 009 seed_datos_historicos · 010 proyectos_servicios · 011 visitas_registro_horas ·
 012 calendario_tributario · 013 empleado_portal_bitacora · 014 bitacora_otros_reposicion ·
 015-020 (permisos arqueo-caja y varios ajustes, ver `MIGRATIONS.md`) ·
-021 habilitar_realtime · **022 permiso_bitacora_ceo (⏳ pendiente de ejecutar)**.
+021 habilitar_realtime · 022 permiso_bitacora_ceo · 023 arqueo_caja_supabase ·
+024 tareas_calendario (`tareas` + `acceso_diario`) ·
+025 permisos_ausencia (`permisos_ausencia` + RPC de aprobacion).
 
 Todas las tablas tienen RLS activo + politica `claude_readonly_select` + trigger de
 auditoria (`audit_log`) en las tablas de dinero/empleados.
@@ -160,26 +220,33 @@ auditoria (`audit_log`) en las tablas de dinero/empleados.
 - **Plan:** Max (confirmado en facturacion)
 
 ## 9. Proxima Sesion — Continuar Aqui
-1. **Ejecutar la migracion 022** (`022_permiso_bitacora_ceo.sql`) manualmente
-   en el SQL Editor de Supabase — sin esto, roles no-admin de Gerencia no
-   ven la pestaña "Bitacora CEO"
-2. Definir alcance de "Chat empresarial" (pedido por el usuario, sin
+1. **Probar en vivo los modulos nuevos de esta sesion:** Arqueo de Caja
+   (registrar desde una pestaña, confirmar que aparece en vivo en otra
+   pestaña/dispositivo con el mismo rol), Tareas (calendario, agregar/
+   completar/borrar tarea), Permisos (solicitar con empleado, aprobar/
+   rechazar con admin, confirmar que aparecen filas en `registro_horas`
+   al aprobar), Reportes (hora de llegada + puntualidad de un empleado real)
+2. El historial viejo de Arqueo de Caja en `localStorage` del navegador del
+   usuario quedo huerfano — no se migro automaticamente, avisarle si
+   pregunta por registros antiguos
+3. Definir alcance de "Chat empresarial" (pedido por el usuario, sin
    diseño ni plan todavia — requiere su propia sesion de planeacion)
-3. Probar en vivo el portal de empleado ("Mi Bitacora") con un usuario
-   real: registro de horas, Festivo, Reposición, Otros, Permiso (salud/personal),
+4. Probar en vivo el portal de empleado ("Mi Bitacora") con un usuario
+   real: registro de horas, Festivo, Reposición, Permiso (salud/personal),
    semana bloqueada — credenciales de prueba: Pablo Novoa,
-   `arq4.diseno.ada@gmail.com` / `AdaTest7189!` (password regenerada esta
-   sesion, invalida la anterior)
-4. Crear las cuentas de Supabase Auth de los empleados restantes y vincular
+   `arq4.diseno.ada@gmail.com` / `AdaTest7189!` (password regenerada
+   sesion 6, invalida la anterior)
+5. Crear las cuentas de Supabase Auth de los empleados restantes y vincular
    `empleados.user_id` (migracion 013 ya ejecutada, pero no crea cuentas —
    eso queda pendiente, se hace via Admin API una vez confirmada la lista
    de correos)
-5. Probar en produccion (dos pestañas abiertas) que el fix de sincronizacion en vivo
+6. Probar en produccion (dos pestañas abiertas) que el fix de sincronizacion en vivo
    funciona igual que en local para Tesoreria/Contratistas/Nomina/Proyectos/Visitas/Bitacoras
-6. Configurar DNS en Hostinger (CNAME app → cname.vercel-dns.com)
-7. Retomar Fase 8-12 del plan de arquitectura (roadmap en el plan guardado): Contratos,
+7. Configurar DNS en Hostinger (CNAME app → cname.vercel-dns.com)
+8. Retomar Fase 8-12 del plan de arquitectura (roadmap en el plan guardado): Contratos,
    Horarios, Publicidad, Redes, y las integraciones de repos (PowerSync, model-viewer, pdf.js, Pannellum, Chatwoot)
-8. Ejecutar /ada-security para una auditoria de las politicas RLS ya en produccion (incluye
-   la nueva API route `api/admin/set-empleado-password.js`)
-9. Ejecutar /ada-qa sobre los flujos recien migrados (Visitas, Bitacoras, GBA, Resumen Gerencia,
-   portal de empleado, Bitacora CEO)
+9. Ejecutar /ada-security para una auditoria de las politicas RLS ya en produccion (incluye
+   la nueva API route `api/admin/set-empleado-password.js` y las tablas nuevas
+   `arqueo_caja`/`tareas`/`acceso_diario`/`permisos_ausencia`)
+10. Ejecutar /ada-qa sobre los flujos recien migrados/creados (Arqueo de Caja,
+    Tareas, Permisos, Reportes, portal de empleado, Bitacora CEO)

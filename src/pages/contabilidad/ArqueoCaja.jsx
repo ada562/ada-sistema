@@ -3,7 +3,8 @@ import { toast } from 'sonner'
 import { ClipboardCheck, Printer } from 'lucide-react'
 import Button from '../../components/UI/Button'
 import ReciboArqueoCaja from '../../components/tesoreria/ReciboArqueoCaja'
-import { getArqueos, registrarArqueo, DENOMINACIONES } from '../../lib/dbArqueoCaja'
+import { DENOMINACIONES } from '../../lib/dbArqueoCaja'
+import { useArqueoCajaStore } from '../../store/useArqueoCajaStore'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 
 function emptyCantidades() {
@@ -13,17 +14,23 @@ function emptyCantidades() {
 export default function ArqueoCaja() {
   const [cantidades, setCantidades] = useState(emptyCantidades)
   const [notas, setNotas] = useState('')
-  const [historial, setHistorial] = useState([])
-  const [loadingHistorial, setLoadingHistorial] = useState(true)
   const [saving, setSaving] = useState(false)
   const [reciboArqueo, setReciboArqueo] = useState(null)
 
+  const {
+    arqueos: historial,
+    loading: loadingHistorial,
+    fetchAll,
+    registrar,
+    initRealtime,
+    teardownRealtime,
+  } = useArqueoCajaStore()
+
   useEffect(() => {
-    getArqueos()
-      .then(setHistorial)
-      .catch(() => toast.error('No se pudo cargar el historial de arqueos'))
-      .finally(() => setLoadingHistorial(false))
-  }, [])
+    fetchAll()
+    initRealtime()
+    return () => teardownRealtime()
+  }, [fetchAll, initRealtime, teardownRealtime])
 
   const denominaciones = DENOMINACIONES.map((d) => {
     const cantidad = Number(cantidades[d]) || 0
@@ -42,13 +49,12 @@ export default function ArqueoCaja() {
     }
     setSaving(true)
     try {
-      const nuevo = await registrarArqueo({
+      const nuevo = await registrar({
         date: todayIso(),
         denominaciones: denominaciones.filter((d) => d.cantidad > 0),
         total,
         notas,
       })
-      setHistorial((prev) => [nuevo, ...prev])
       setCantidades(emptyCantidades())
       setNotas('')
       toast.success('Arqueo registrado')

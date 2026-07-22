@@ -1,5 +1,4 @@
 import {
-  FileBarChart,
   FolderKanban,
   Landmark,
   Wallet,
@@ -17,6 +16,8 @@ import {
   ShieldCheck,
   NotebookPen,
   ClipboardCheck,
+  CalendarDays,
+  ClipboardX,
 } from 'lucide-react'
 
 export const topLevelItems = []
@@ -29,6 +30,7 @@ export const departments = [
     modules: [
       { id: 'resumen-gerencia', label: 'Resumen General', icon: TrendingUp },
       { id: 'bitacora-ceo', label: 'Bitácora CEO', icon: NotebookPen },
+      { id: 'reportes', label: 'Reportes', icon: ShieldCheck },
     ],
   },
   {
@@ -40,6 +42,7 @@ export const departments = [
       { id: 'bitacoras', label: 'Bitácoras', icon: ClipboardList },
       { id: 'visitas', label: 'Visitas', icon: MapPin },
       { id: 'mi-bitacora', label: 'Mi Bitácora', icon: NotebookPen },
+      { id: 'tareas', label: 'Tareas', icon: CalendarDays },
     ],
   },
   {
@@ -62,7 +65,7 @@ export const departments = [
       { id: 'nomina', label: 'Nómina', icon: BadgeDollarSign },
       { id: 'contratos', label: 'Contratos', icon: FileText },
       { id: 'horarios', label: 'Horarios', icon: Clock },
-      { id: 'reportes', label: 'Reportes y Permisos', icon: ShieldCheck },
+      { id: 'permisos', label: 'Permisos', icon: ClipboardX },
     ],
   },
   {

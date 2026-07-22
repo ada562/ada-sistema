@@ -18,26 +18,20 @@ import { mondayOfLocal, addDaysLocal, toIsoLocal, DAY_LABELS } from '../../lib/d
 // -- evita una migracion nueva (no existe columna/tabla de festivos) y
 // respeta el modelo de datos actual (una fila = un dia+proyecto).
 //
-// "Otros" es una fila fija (no removible) para horas sin proyecto asociado
-// (trabajo interno/administrativo) -- se persiste con proyecto_id=NULL y
-// nota=<descripcion obligatoria> (migracion 014 agrega el CHECK que lo
-// exige). Se identifica en el frontend con el sentinel OTROS_ID, traducido
-// a projectId:null al leer/escribir -- nunca se guarda ese string.
-//
 // "Reposición" (sabado/domingo trabajado que se compensa despues) reutiliza
 // la misma convencion de "nota" que Festivo, pero con dias>0 -- es un tag
 // sobre una celda con horas reales, no una celda vacia.
 //
 // "Permiso" (salud/personal) -- horas de un dia que NO se trabajaron por un
 // permiso medico o una vuelta personal. Se pidio explicitamente como una
-// casilla APARTE del calendario (no una fila mas de la tabla), pero se
-// persiste igual que "Otros": proyecto_id=NULL + nota obligatoria (misma
-// migracion 014). Para poder coexistir con una fila "Otros" en la MISMA
-// fecha (dos filas con proyecto_id=NULL el mismo dia -- valido, no hay
-// constraint unico) se distinguen por convencion de texto en "nota":
-// "[Permiso:Salud] ..." / "[Permiso:Personal] ...". findEntry() filtra por
-// ese prefijo para no mezclar los dos conceptos.
-const OTROS_ID = '__otros__'
+// casilla APARTE del calendario (no una fila mas de la tabla), y se persiste
+// con proyecto_id=NULL + nota obligatoria (migracion 014 agrega el CHECK que
+// lo exige). Se identifica en el frontend con el sentinel PERMISO_ID,
+// traducido a projectId:null al leer/escribir -- nunca se guarda ese string.
+// La nota se distingue por convencion de texto: "[Permiso:Salud] ..." /
+// "[Permiso:Personal] ...". findEntry() filtra por ese prefijo (la fila fija
+// "Otros" que existia antes con la misma convencion projectId=NULL sin ese
+// prefijo fue eliminada del todo -- ver PROYECTO_CONTEXTO.md).
 const PERMISO_ID = '__permiso__'
 const PERMISO_NOTE_REGEX = /^\[Permiso:(Salud|Personal)\]\s?(.*)$/
 const isPermisoNote = (note) => typeof note === 'string' && PERMISO_NOTE_REGEX.test(note)
@@ -98,9 +92,6 @@ export default function BitacoraSemanaGrid({
   const findEntry = (proyectoId, date) => {
     if (proyectoId === PERMISO_ID) {
       return misTimelogs.find((t) => t.projectId === null && t.date === date && isPermisoNote(t.note)) || null
-    }
-    if (proyectoId === OTROS_ID) {
-      return misTimelogs.find((t) => t.projectId === null && t.date === date && !isPermisoNote(t.note)) || null
     }
     return misTimelogs.find((t) => t.projectId === proyectoId && t.date === date) || null
   }
@@ -196,65 +187,9 @@ export default function BitacoraSemanaGrid({
     }
   }
 
-  // Fila "Otros" -- misma idea de commitCell pero con dos campos por celda
-  // (dias + descripcion), guardados juntos porque el CHECK de la migracion
-  // 014 exige nota no vacia cuando proyecto_id es NULL.
-  const otrosNoteKey = (date) => `${OTROS_ID}::note::${date}`
-
-  const getOtrosDescValue = (date) => {
-    const key = otrosNoteKey(date)
-    if (drafts[key] !== undefined) return drafts[key]
-    return findEntry(OTROS_ID, date)?.note || ''
-  }
-
-  const commitOtrosCell = async (date) => {
-    const daysKey = cellKey(OTROS_ID, date)
-    const noteKey = otrosNoteKey(date)
-    const rawDays = drafts[daysKey]
-    const rawNote = drafts[noteKey]
-    if (rawDays === undefined && rawNote === undefined) return
-    setDrafts((d) => {
-      const next = { ...d }
-      delete next[daysKey]
-      delete next[noteKey]
-      return next
-    })
-
-    const entry = findEntry(OTROS_ID, date)
-    const daysValue = rawDays !== undefined
-      ? (rawDays.trim() === '' ? 0 : Number(rawDays.replace(',', '.')))
-      : (entry?.days || 0)
-    const noteValue = (rawNote !== undefined ? rawNote : entry?.note || '').trim()
-
-    if (rawDays !== undefined && rawDays.trim() !== '' && (Number.isNaN(daysValue) || daysValue < 0)) {
-      toast.error('Ingresa un número de días válido')
-      return
-    }
-
-    try {
-      if (daysValue <= 0) {
-        if (entry) await deleteTimelog(entry.id)
-        return
-      }
-      if (!noteValue) {
-        toast.error('Describe qué hiciste para guardar el registro de "Otros"')
-        return
-      }
-      if (entry) {
-        if (entry.days === daysValue && entry.note === noteValue) return
-        await updateTimelog(entry.id, { employeeId, projectId: null, date, days: daysValue, note: noteValue })
-      } else {
-        await addTimelog({ employeeId, projectId: null, date, days: daysValue, note: noteValue })
-      }
-      toast.success('Guardado')
-    } catch (err) {
-      toast.error('No se pudo guardar el registro: ' + err.message)
-    }
-  }
-
-  // Bloque "Permiso" -- misma mecanica de commitOtrosCell (dias + texto se
-  // guardan juntos), pero con un tercer campo (motivo Salud/Personal) que se
-  // codifica dentro de la nota (ver buildPermisoNote/parsePermisoNote).
+  // Bloque "Permiso" -- horas de dia (dias + texto se guardan juntos), con
+  // un tercer campo (motivo Salud/Personal) que se codifica dentro de la
+  // nota (ver buildPermisoNote/parsePermisoNote).
   const permisoMotivoKey = (date) => `${PERMISO_ID}::motivo::${date}`
   const permisoNoteKey = (date) => `${PERMISO_ID}::note::${date}`
 
@@ -336,7 +271,7 @@ export default function BitacoraSemanaGrid({
     }, 0))
 
   const totalPorDia = (date) =>
-    round2([...rowProjects, { id: OTROS_ID }, { id: PERMISO_ID }].reduce((sum, p) => {
+    round2([...rowProjects, { id: PERMISO_ID }].reduce((sum, p) => {
       const entry = findEntry(p.id, date)
       return sum + (entry && entry.note !== 'Festivo' ? entry.days : 0)
     }, 0))
@@ -396,7 +331,7 @@ export default function BitacoraSemanaGrid({
 
       {rowProjects.length === 0 && (
         <p className="text-xs text-gray-400 mb-3">
-          Sin proyectos esta semana — usa "Agregar proyecto", o registra horas en la fila "Otros".
+          Sin proyectos esta semana — usa "Agregar proyecto" para empezar a registrar horas.
         </p>
       )}
       <div className="overflow-x-auto">
@@ -490,58 +425,6 @@ export default function BitacoraSemanaGrid({
                   <td className="px-3 py-2 text-center font-semibold text-gray-900">{totalPorProyecto(p.id) || '—'}</td>
                 </tr>
               ))}
-
-              {/* Fila fija "Otros" -- horas sin proyecto, requiere descripcion (migracion 014) */}
-              <tr className="bg-indigo-50/40 hover:bg-indigo-50">
-                <td className="px-3 py-2 text-gray-900 font-medium sticky left-0 bg-indigo-50/40">
-                  Otros
-                  <span className="block text-[10px] font-normal text-gray-400">sin proyecto</span>
-                </td>
-                {days.map((date) => {
-                  const disabled = readOnly
-                  return (
-                    <td key={date} className="px-2 py-2 text-center">
-                      {/* onBlur vive en el contenedor, no en cada input: los
-                          dos campos de "Otros" se guardan juntos (ver
-                          commitOtrosCell) y si cada input confirmara por su
-                          cuenta, el blur del primero borraba el draft del
-                          segundo antes de que el usuario alcanzara a
-                          llenarlo -- perdida silenciosa de datos. Con
-                          relatedTarget solo se confirma cuando el foco sale
-                          de AMBOS campos de esta celda. */}
-                      <div
-                        className="flex flex-col items-center gap-1"
-                        onBlur={(e) => {
-                          if (!e.currentTarget.contains(e.relatedTarget)) commitOtrosCell(date)
-                        }}
-                      >
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          value={getCellValue(OTROS_ID, date)}
-                          disabled={disabled}
-                          onChange={(e) => handleDraftChange(OTROS_ID, date, e.target.value)}
-                          className={`w-14 text-center border rounded-lg px-1 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                            disabled ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
-                          }`}
-                        />
-                        <input
-                          type="text"
-                          placeholder="¿Qué hiciste?"
-                          value={getOtrosDescValue(date)}
-                          disabled={disabled}
-                          onChange={(e) => setDraftValue(otrosNoteKey(date), e.target.value)}
-                          className={`w-20 text-center border rounded-lg px-1 py-0.5 text-[10px] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                            disabled ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
-                          }`}
-                        />
-                      </div>
-                    </td>
-                  )
-                })}
-                <td className="px-3 py-2 text-center font-semibold text-gray-900">{totalPorProyecto(OTROS_ID) || '—'}</td>
-              </tr>
             </tbody>
             <tfoot>
               <tr className="bg-gray-50 border-t border-gray-200">

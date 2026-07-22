@@ -29,8 +29,10 @@
 | 019 | `019_fix_fn_registrar_transaccion_uuid.sql` | 2026-07-21 | Correctiva urgente: `fn_registrar_transaccion` recreada con `p_proyecto_id uuid`/`p_servicio_id uuid` (antes `text`, desde la migración 005) — desalineada desde la migración 010 que cambió esas columnas de `transacciones` a `uuid`, rompiendo TODA alta de transacción en Tesorería con error "column proyecto_id is of type uuid but expression is of type text" | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 020 | `020_permiso_arqueo_caja.sql` | 2026-07-21 | Feature: semilla de `permisos` para el nuevo id de vista `arqueo-caja` (`contabilidad`→leer/escribir, `gerencia`→leer) — Arqueo de Caja pasó de botón/modal dentro de Tesorería a página propia en el sidebar | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 021 | `021_habilitar_realtime.sql` | 2026-07-21 | Correctiva: agrega `transacciones` y otras 12 tablas a la publicación `supabase_realtime` — ningún `initRealtime()` del frontend recibía eventos porque ninguna migración anterior había activado la replicación, causando saldos/listas visualmente desactualizados hasta recargar la página | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
-| 022 | `022_permiso_bitacora_ceo.sql` | 2026-07-22 | Feature: semilla de `permisos` para el nuevo id de vista `bitacora-ceo` (`gerencia`→leer/escribir) — nueva pestaña en Gerencia para registrar las horas de la CEO sin necesitar cuenta de portal | ⏳ Pendiente de ejecutar en Supabase |
-
+| 022 | `022_permiso_bitacora_ceo.sql` | 2026-07-22 | Feature: semilla de `permisos` para el nuevo id de vista `bitacora-ceo` (`gerencia`→leer/escribir) — nueva pestaña en Gerencia para registrar las horas de la CEO sin necesitar cuenta de portal | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
+| 023 | `023_arqueo_caja_supabase.sql` | 2026-07-22 | Correctiva urgente: Arqueo de Caja pasa de `localStorage` a Supabase (`ADD COLUMN denominaciones` + Realtime) — fix del bug reportado (el jefe no veía el arqueo desde otro dispositivo), sigue desacoplado de Tesorería a propósito | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
+| 024 | `024_tareas_calendario.sql` | 2026-07-22 | Feature: tablas `tareas` (calendario mensual estilo Asana) + `acceso_diario` (hora de llegada automática), RPC `fn_registrar_acceso_diario` — nuevo módulo "Tareas" (Proyectos) + página "Reportes" (Gerencia, horas + puntualidad admin/rrhh) | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
+| 025 | `025_permisos_ausencia.sql` | 2026-07-22 | Feature: tabla `permisos_ausencia` + RPC `fn_resolver_permiso_ausencia` (aprobar/rechazar, autocompleta `registro_horas` al aprobar) — nuevo módulo "Permisos" bajo Gestión Humana, solicitud con 15 días de anticipación | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
 
 ---
 
@@ -373,7 +375,7 @@
 ### 022 — Permiso para `bitacora-ceo` (nueva pestaña en Gerencia)
 - **Archivo:** `migrations/022_permiso_bitacora_ceo.sql`
 - **Fecha:** 2026-07-22
-- **Estado:** ⏳ Pendiente de ejecutar en Supabase
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22
 - **Propósito:** nueva página `src/pages/gerencia/BitacoraCeo.jsx` bajo el departamento Gerencia, para registrar las horas de Alejandra Duran Agudelo (CEO, `empleados.id = cd1d2411-e5dc-43d7-bfd2-1fc9ca9c31dc`) reusando `BitacoraSemanaGrid`/tabla `registro_horas` — pedido explícito del usuario para no crearle una cuenta de portal de empleado ("ella no requiere portal"). La sidebar y el guard de `App.jsx` llaman `usePermission('bitacora-ceo')` — sin esta fila, ningún rol no-`admin` (incluido `gerencia`) ve el módulo nuevo.
 - **Tablas afectadas:** `permisos` (INSERT) — `('gerencia','bitacora-ceo','leer')`, `('gerencia','bitacora-ceo','escribir')`, mismo criterio ya sembrado para `resumen-gerencia` en la migración 002.
 - **Dependencias:** `002_perfiles_rbac.sql` (tabla `permisos`), `011_visitas_registro_horas.sql` (tabla `registro_horas`).
@@ -381,3 +383,39 @@
   - `admin` no necesita fila explícita — bypass total en `usePermission()` del cliente.
   - No crea tabla ni columna nueva — la tabla `registro_horas` ya soporta cualquier `empleado_id` válido, esto solo abre acceso de UI/permiso a un id fijo.
   - Junto con esta migración se agregó en `BitacoraSemanaGrid.jsx` una casilla aparte del calendario para "Permisos (salud/personal)" — horas no trabajadas por permiso médico o vuelta personal, que cuentan para el total semanal (mismo componente compartido, aplica también a `MiBitacora.jsx`/`Bitacoras.jsx`). Y en `Bitacoras.jsx` una pestaña "Resumen" (quién registró bitácora esta semana + tarifa mensual, esta última visible solo para rol `admin`).
+
+### 023 — Arqueo de Caja pasa a Supabase (fix bug multi-dispositivo)
+- **Archivo:** `migrations/023_arqueo_caja_supabase.sql`
+- **Fecha:** 2026-07-22
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22
+- **Propósito:** el jefe del usuario abrió el portal en otro computador y no vio un arqueo de caja ya registrado. Causa raíz: `src/lib/dbArqueoCaja.js` guardaba en `localStorage` (por pedido explícito del usuario en su momento: "no se sistematiza como el resto de la app"), aislado por navegador/dispositivo. La tabla `arqueo_caja` con RLS ya existía desde la migración 015 pero nunca se conectó al frontend, y además había quedado fuera de la migración 021 (habilitar Realtime) por omisión. Se mantiene desacoplado de Tesorería a propósito (mismo criterio que GBA): no compara contra `vw_saldos_cuentas`, no usa RPC con `FOR UPDATE NOWAIT` — solo gana sincronización entre dispositivos.
+- **Tablas afectadas:** `arqueo_caja` (`ALTER TABLE ADD COLUMN denominaciones jsonb` — el recibo impreso `ReciboArqueoCaja.jsx` muestra el detalle de conteo por billete, que la tabla original no contemplaba) + `ALTER PUBLICATION supabase_realtime ADD TABLE` (idempotente).
+- **Dependencias:** `015_arqueo_caja.sql` (tabla y RLS ya existentes), `021_habilitar_realtime.sql` (patrón idempotente de publicación).
+- **Notas:**
+  - `src/lib/dbArqueoCaja.js` se reescribió completo para usar Supabase en vez de `localStorage`; se creó `useArqueoCajaStore.js` (patrón estándar fetchAll/registrar/initRealtime/teardownRealtime); `ArqueoCaja.jsx` se actualizó para consumir el store.
+  - El historial viejo en `localStorage` del navegador del usuario queda huérfano — no se migra automáticamente.
+
+### 024 — Módulo "Tareas" (calendario mensual estilo Asana + hora de llegada)
+- **Archivo:** `migrations/024_tareas_calendario.sql`
+- **Fecha:** 2026-07-22
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22
+- **Propósito:** nuevo módulo "Tareas" en el portal (departamento Proyectos) — pedido explícito del usuario, calendario mensual estilo Asana (tareas cortas por día, marcables como completadas), independiente de `BitacoraSemanaGrid` (esa es horas por proyecto). Incluye captura automática de hora de llegada al iniciar sesión (primera vez del día), para comparar contra `empleados.tipo_horario` (`src/lib/horarios.js`) y mostrar puntual/tarde — visible solo para admin/rrhh en la página "Reportes" (departamento Gerencia), no en el portal del propio empleado.
+- **Tablas afectadas:** `tareas` (nueva, RLS empleado propio + admin/rrhh todo), `acceso_diario` (nueva, `UNIQUE(tenant_id, empleado_id, fecha)` para atomicidad de "primera vez del día", solo lectura vía RLS), función `fn_registrar_acceso_diario()` (SECURITY DEFINER, resuelve `empleado_id` server-side vía `fn_empleado_id()`), ambas tablas agregadas a `supabase_realtime`.
+- **Dependencias:** `auth_rol()` (002), `fn_empleado_id()` (013), `empleados` (007).
+- **Notas:**
+  - `useAuthStore._syncPerfil()` llama `supabase.rpc('fn_registrar_acceso_diario')` una vez por carga de sesión, solo si `perfil.rol === 'empleado'`.
+  - La página "Reportes" (antes placeholder "Reportes y Permisos", ahora solo "Reportes") se movió de estar anidada dentro de "Tareas" a ser su propio ítem bajo el departamento Gerencia (pedido explícito del usuario al ver la sidebar); `Tareas.jsx` quedó solo con el calendario.
+  - Frontend: `dbTareas.js`, `dbAccesoDiario.js`, `useTareasStore.js`, `useAccesoDiarioStore.js`, `Tareas.jsx`, `Reportes.jsx`.
+
+### 025 — Módulo "Permisos" (solicitud de ausencia + aprobación)
+- **Archivo:** `migrations/025_permisos_ausencia.sql`
+- **Fecha:** 2026-07-22
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22
+- **Propósito:** el empleado solicita una ausencia con mínimo 15 días de anticipación; solo admin aprueba/rechaza. Al aprobarse, se autocompleta el rango como bloque "Permiso" en `registro_horas` (mismo mecanismo de nota-prefix `[Permiso:Salud|Personal]` que ya usa `BitacoraSemanaGrid.jsx`), para que el empleado no tenga que cargarlo de nuevo a mano. Ubicado bajo el departamento "Gestión Humana" en el sidebar (pedido explícito del usuario).
+- **Tablas afectadas:** `permisos_ausencia` (nueva, RLS empleado propio + select admin/rrhh + insert propio con constraint de 15 días de anticipación; sin UPDATE directo — `REVOKE UPDATE`), trigger de auditoría (`fn_audit_trigger`), función `fn_resolver_permiso_ausencia()` (SECURITY DEFINER, solo admin, aprueba/rechaza atómicamente y en el mismo paso inserta las filas de `registro_horas` del rango si se aprueba), tabla agregada a `supabase_realtime`.
+- **Dependencias:** `auth_rol()` (002), `fn_empleado_id()` (013), `fn_audit_trigger()` (004), `registro_horas` con `proyecto_id` nullable (011, 014).
+- **Notas:**
+  - Se agregó lectura para rol `rrhh` (además de empleado propio y admin) por estar ubicado bajo Gestión Humana en el sidebar — no estaba en el plan original, decisión tomada sin pregunta adicional siguiendo el mismo criterio ya aplicado a `tareas`/`reportes`.
+  - `dias = 8` al autocompletar `registro_horas` es un supuesto de jornada completa por día de permiso — ajustable a futuro sin romper nada más si se prefiere calcular contra `tipo_horario` del empleado.
+  - El `INSERT` dentro del RPC usa `NOT EXISTS` (no `ON CONFLICT`) porque `registro_horas` no tiene un constraint único sobre `(empleado_id, fecha, proyecto_id)` — evita duplicar si el empleado ya había cargado ese día manualmente.
+  - Frontend: `dbPermisosAusencia.js`, `usePermisosAusenciaStore.js`, `src/pages/rrhh/Permisos.jsx` (formulario+historial para empleado, panel aprobar/rechazar para admin).

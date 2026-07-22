@@ -12,11 +12,20 @@ import { fmtDate, fmtMoney, todayIso } from '../../lib/formatters'
 import { mondayOfLocal, addDaysLocal, toIsoLocal } from '../../lib/dateWeek'
 import { useNavigationStore } from '../../store/useNavigationStore'
 
-// Sentinel para filas de bitacora sin proyecto (proyecto_id NULL, migracion
-// 014 -- fila "Otros" del calendario). Solo vive en el frontend, nunca se
-// guarda en la base de datos.
-const OTROS_VALUE = '__otros__'
+// Sentinel para filtrar filas de bitacora sin proyecto (proyecto_id NULL).
+// Ya no se puede crear una fila nueva "Otros" (se quito del calendario y del
+// modal manual), pero registros historicos con projectId=null que no son
+// "Permiso" (ver PERMISO_NOTE_REGEX) siguen existiendo en la base y deben
+// poder filtrarse/mostrarse igual. Solo vive en el frontend.
+const OTROS_VALUE = '__sin_proyecto__'
+const PERMISO_NOTE_REGEX = /^\[Permiso:(Salud|Personal)\]/
 const round2 = (n) => Math.round(n * 100) / 100
+
+function labelSinProyecto(note) {
+  const m = typeof note === 'string' ? note.match(PERMISO_NOTE_REGEX) : null
+  if (m) return `Permiso (${m[1]})`
+  return 'Otros (histórico)'
+}
 
 export default function Bitacoras() {
   const [viewMode, setViewMode] = useState('calendario') // 'calendario' | 'historial' | 'resumen'
@@ -102,7 +111,7 @@ export default function Bitacoras() {
     }
   }
 
-  const getProjectName = (id) => (id === null ? 'Otros' : proyectos.find((p) => p.id === id)?.name || '—')
+  const getProjectName = (id) => (id === null ? 'Sin proyecto' : proyectos.find((p) => p.id === id)?.name || '—')
   const getEmpName = (id) => getEmpleadoById(id)?.name || '—'
 
   // Resumen semanal -- quien registro bitacora esta semana + (solo admin)
@@ -275,7 +284,7 @@ export default function Bitacoras() {
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="">Todos los proyectos</option>
-              <option value={OTROS_VALUE}>Otros (sin proyecto)</option>
+              <option value={OTROS_VALUE}>Sin proyecto (Otros / Permiso)</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -325,7 +334,7 @@ export default function Bitacoras() {
                         <td className="px-4 py-3 text-gray-900">{fmtDate(t.date)}</td>
                         <td className="px-4 py-3">
                           {t.projectId === null ? (
-                            <span className="text-gray-500 font-medium">Otros</span>
+                            <span className="text-gray-500 font-medium">{labelSinProyecto(t.note)}</span>
                           ) : (
                             <button
                               onClick={() => setActiveView('proyecto-detalle', t.projectId)}
@@ -386,7 +395,7 @@ function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, addTime
 
   const resetForm = () => {
     setForm(data
-      ? { projectId: data.projectId === null ? OTROS_VALUE : data.projectId, employeeId: data.employeeId, date: data.date, days: data.days, note: data.note }
+      ? { projectId: data.projectId, employeeId: data.employeeId, date: data.date, days: data.days, note: data.note }
       : { projectId: '', employeeId: '', date: todayIso(), days: 1, note: '' }
     )
   }
@@ -398,14 +407,12 @@ function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, addTime
   }
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
-  const isOtros = form.projectId === OTROS_VALUE
 
   const handleSave = async () => {
     if (!form.projectId) return toast.error('Selecciona un proyecto')
-    if (isOtros && !form.note?.trim()) return toast.error('Describe qué hiciste — obligatorio para "Otros"')
     if (!form.employeeId) return toast.error('Selecciona un empleado')
 
-    const payload = { ...form, projectId: isOtros ? null : form.projectId }
+    const payload = { ...form }
 
     try {
       if (isEdit) {
@@ -430,7 +437,6 @@ function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, addTime
           <select value={form.projectId || ''} onChange={(e) => set('projectId', e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             <option value="">Seleccionar proyecto...</option>
-            <option value={OTROS_VALUE}>Otros (sin proyecto)</option>
             {proyectos.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
@@ -459,9 +465,7 @@ function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, addTime
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nota{isOtros && ' * — describe qué hiciste'}
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nota</label>
           <textarea value={form.note || ''} onChange={(e) => set('note', e.target.value)} rows={2}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
         </div>

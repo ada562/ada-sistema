@@ -7,6 +7,7 @@ export const useAuthStore = create((set, get) => ({
   perfil: null,
   loading: true,
   initialized: false,
+  _accesoRegistrado: false,
 
   init: () => {
     if (get().initialized) return
@@ -24,12 +25,21 @@ export const useAuthStore = create((set, get) => ({
 
   _syncPerfil: async (session) => {
     if (!session) {
-      set({ session: null, perfil: null })
+      set({ session: null, perfil: null, _accesoRegistrado: false })
       return
     }
     try {
       const perfil = await getPerfil(session.user.id)
       set({ session, perfil })
+      // Hora de llegada del dia -- solo empleados de portal, solo la primera
+      // vez por carga de app (el RPC ya es idempotente via ON CONFLICT DO
+      // NOTHING, esto solo evita llamadas repetidas en cada refresh de token).
+      if (perfil?.rol === 'empleado' && !get()._accesoRegistrado) {
+        set({ _accesoRegistrado: true })
+        supabase.rpc('fn_registrar_acceso_diario').then(({ error }) => {
+          if (error) console.error('No se pudo registrar la hora de llegada:', error.message)
+        })
+      }
     } catch {
       set({ session, perfil: null })
     }

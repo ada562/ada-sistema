@@ -21,9 +21,11 @@ const EmpleadoDetalle = lazy(() => import('./pages/rrhh/EmpleadoDetalle'))
 const Nomina = lazy(() => import('./pages/rrhh/Nomina'))
 const Contratos = lazy(() => import('./pages/rrhh/Contratos'))
 const Horarios = lazy(() => import('./pages/rrhh/Horarios'))
+const Permisos = lazy(() => import('./pages/rrhh/Permisos'))
 const Bitacoras = lazy(() => import('./pages/proyectos/Bitacoras'))
 const VisitasGlobal = lazy(() => import('./pages/proyectos/Visitas'))
 const MiBitacora = lazy(() => import('./pages/proyectos/MiBitacora'))
+const Tareas = lazy(() => import('./pages/proyectos/Tareas'))
 const ResumenGerencia = lazy(() => import('./pages/gerencia/ResumenGerencia'))
 const BitacoraCeo = lazy(() => import('./pages/gerencia/BitacoraCeo'))
 const Publicidad = lazy(() => import('./pages/marketing/Publicidad'))
@@ -46,8 +48,10 @@ const views = {
   bitacoras: Bitacoras,
   visitas: VisitasGlobal,
   'mi-bitacora': MiBitacora,
+  tareas: Tareas,
   contratos: Contratos,
   horarios: Horarios,
+  permisos: Permisos,
   publicidad: Publicidad,
   redes: Redes,
 }
