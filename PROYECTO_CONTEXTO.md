@@ -83,8 +83,8 @@ sesion. Ver detalle en seccion 1d.
   calendario abre un detalle (modal) con un feed de reportes de avance —
   texto opcional + adjunto opcional (foto, audio o video, 25MB max).
   Migracion 026 (`tarea_reportes` + bucket privado `tarea-reportes`,
-  **pendiente de ejecutar en Supabase**) — visible para el empleado dueño
-  y para admin/rrhh, sin edicion in-place (se borra y se sube de nuevo).
+  ejecutada en Supabase) — visible para el empleado dueño y para
+  admin/rrhh, sin edicion in-place (se borra y se sube de nuevo).
 - **Calendario de Tareas rediseñado** — colores por tarea (paleta estilo
   Asana asignada por hash determinístico del id, sin columna nueva en la
   base de datos), dia de hoy resaltado, encabezados de dia mas vistosos.
@@ -229,11 +229,9 @@ auditoria (`audit_log`) en las tablas de dinero/empleados.
 - **Plan:** Max (confirmado en facturacion)
 
 ## 9. Proxima Sesion — Continuar Aqui
-0. **Ejecutar migracion 026 en Supabase (SQL Editor)** —
-   `026_tarea_reportes.sql`, crea tabla `tarea_reportes` + bucket privado
-   `tarea-reportes`. Sin esto, el boton "Enviar" del detalle de tarea en
-   el portal de empleado va a fallar (tabla/bucket inexistentes)
-1. **Probar en vivo los modulos nuevos de esta sesion:** Arqueo de Caja
+1. **Probar en vivo los modulos nuevos de esta sesion:** Arqueo de Caja,
+   reportes de avance por tarea (subir foto/audio/video desde el detalle
+   de una tarea, confirmar que admin/rrhh los ve)
    (registrar desde una pestaña, confirmar que aparece en vivo en otra
    pestaña/dispositivo con el mismo rol), Tareas (calendario, agregar/
    completar/borrar tarea), Permisos (solicitar con empleado, aprobar/
