@@ -29,6 +29,7 @@
 | 019 | `019_fix_fn_registrar_transaccion_uuid.sql` | 2026-07-21 | Correctiva urgente: `fn_registrar_transaccion` recreada con `p_proyecto_id uuid`/`p_servicio_id uuid` (antes `text`, desde la migración 005) — desalineada desde la migración 010 que cambió esas columnas de `transacciones` a `uuid`, rompiendo TODA alta de transacción en Tesorería con error "column proyecto_id is of type uuid but expression is of type text" | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 020 | `020_permiso_arqueo_caja.sql` | 2026-07-21 | Feature: semilla de `permisos` para el nuevo id de vista `arqueo-caja` (`contabilidad`→leer/escribir, `gerencia`→leer) — Arqueo de Caja pasó de botón/modal dentro de Tesorería a página propia en el sidebar | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
 | 021 | `021_habilitar_realtime.sql` | 2026-07-21 | Correctiva: agrega `transacciones` y otras 12 tablas a la publicación `supabase_realtime` — ningún `initRealtime()` del frontend recibía eventos porque ninguna migración anterior había activado la replicación, causando saldos/listas visualmente desactualizados hasta recargar la página | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-21 |
+| 022 | `022_permiso_bitacora_ceo.sql` | 2026-07-22 | Feature: semilla de `permisos` para el nuevo id de vista `bitacora-ceo` (`gerencia`→leer/escribir) — nueva pestaña en Gerencia para registrar las horas de la CEO sin necesitar cuenta de portal | ⏳ Pendiente de ejecutar en Supabase |
 
 
 ---
@@ -368,3 +369,15 @@
   - No es un `ALTER TABLE`, no requiere lock largo ni afecta RLS/políticas existentes.
   - Después de ejecutarla, dos pestañas abiertas deben reflejar en vivo (~1-2s) cualquier alta/edición/borrado en estas tablas, sin necesidad de recargar — es el comportamiento que los stores ya esperaban desde que se escribieron.
   - No cubre `dashboard`/vistas derivadas (`vw_saldos_cuentas`, `vw_contratistas_resumen`) porque Realtime de Supabase no soporta vistas directamente — los stores igual las vuelven a consultar dentro de `fetchAll()` cuando el evento de la tabla base dispara.
+
+### 022 — Permiso para `bitacora-ceo` (nueva pestaña en Gerencia)
+- **Archivo:** `migrations/022_permiso_bitacora_ceo.sql`
+- **Fecha:** 2026-07-22
+- **Estado:** ⏳ Pendiente de ejecutar en Supabase
+- **Propósito:** nueva página `src/pages/gerencia/BitacoraCeo.jsx` bajo el departamento Gerencia, para registrar las horas de Alejandra Duran Agudelo (CEO, `empleados.id = cd1d2411-e5dc-43d7-bfd2-1fc9ca9c31dc`) reusando `BitacoraSemanaGrid`/tabla `registro_horas` — pedido explícito del usuario para no crearle una cuenta de portal de empleado ("ella no requiere portal"). La sidebar y el guard de `App.jsx` llaman `usePermission('bitacora-ceo')` — sin esta fila, ningún rol no-`admin` (incluido `gerencia`) ve el módulo nuevo.
+- **Tablas afectadas:** `permisos` (INSERT) — `('gerencia','bitacora-ceo','leer')`, `('gerencia','bitacora-ceo','escribir')`, mismo criterio ya sembrado para `resumen-gerencia` en la migración 002.
+- **Dependencias:** `002_perfiles_rbac.sql` (tabla `permisos`), `011_visitas_registro_horas.sql` (tabla `registro_horas`).
+- **Notas:**
+  - `admin` no necesita fila explícita — bypass total en `usePermission()` del cliente.
+  - No crea tabla ni columna nueva — la tabla `registro_horas` ya soporta cualquier `empleado_id` válido, esto solo abre acceso de UI/permiso a un id fijo.
+  - Junto con esta migración se agregó en `BitacoraSemanaGrid.jsx` una casilla aparte del calendario para "Permisos (salud/personal)" — horas no trabajadas por permiso médico o vuelta personal, que cuentan para el total semanal (mismo componente compartido, aplica también a `MiBitacora.jsx`/`Bitacoras.jsx`). Y en `Bitacoras.jsx` una pestaña "Resumen" (quién registró bitácora esta semana + tarifa mensual, esta última visible solo para rol `admin`).

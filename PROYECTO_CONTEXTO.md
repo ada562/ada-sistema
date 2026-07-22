@@ -1,6 +1,6 @@
 # ADA Gestion — Contexto del Proyecto
-**Actualizado:** 2026-07-21 (sesion 5)
-**Version app:** v0.3.1
+**Actualizado:** 2026-07-22 (sesion 6)
+**Version app:** v0.3.2
 
 ## 1. Estado general
 Migracion completa de localStorage a Supabase (Postgres + Auth + RLS + Realtime)
@@ -16,7 +16,44 @@ filtrado por `tenant_id=eq.ada`).
 **Sesion 5 (2026-07-21):** Portal de empleado ("Mi Bitacora") + calendario
 semanal de bitacora compartido entre admin y empleado + costeo AIU por
 proyecto. Ver detalle en seccion 1b.
+
+**Sesion 6 (2026-07-22):** Bloque "Permiso" (salud/personal) separado de
+"Otros" en la bitacora semanal, tab "Resumen" dentro de Bitacoras (quien
+registro + tarifa mensual solo-admin), nueva pagina "Bitacora CEO" en
+Gerencia (sin cuenta de portal), migracion 022 (RBAC de `bitacora-ceo`,
+pendiente de ejecutar), y prueba de credenciales de portal para QA manual.
+Ver detalle en seccion 1c.
 `npm run build` verificado sin errores al cierre de esta sesion.
+
+## 1c. Sesion 6 — Permiso aparte + Resumen de bitacoras + Bitacora CEO
+- **"Permiso" separado de "Otros"** en `BitacoraSemanaGrid.jsx` (componente
+  compartido por `MiBitacora.jsx` y `Bitacoras.jsx`, sin cambio de esquema):
+  nuevo bloque de tarjetas por dia (motivo Salud/Personal + descripcion +
+  horas), reutiliza la convencion de `nota` (`[Permiso:Salud|Personal] ...`,
+  `proyecto_id NULL`) igual que "Reposición"/"Festivo". Las horas de permiso
+  suman al total semanal junto con "Otros".
+- **Tab "Resumen" en `Bitacoras.jsx`:** por semana, muestra que empleados
+  registraron bitacora (check/x) y sus horas totales; la columna de tarifa
+  mensual (`empleado.monthlyRate`) solo se muestra si `perfil.rol === 'admin'`
+  (mismo patron que `EmpleadoDetalle.jsx`). Decision explicita del usuario:
+  los reportes de bitacora viven dentro de Bitacoras, no como tab aparte en
+  Gerencia; y el valor $ solo lo ve admin.
+- **Pagina nueva "Bitacora CEO"** (`src/pages/gerencia/BitacoraCeo.jsx`),
+  dentro del departamento Gerencia (`departments.js`, `App.jsx` `views`):
+  reusa `BitacoraSemanaGrid` con `employeeId` fijo (Alejandra Duran Agudelo,
+  CEO — id `cd1d2411-e5dc-43d7-bfd2-1fc9ca9c31dc`), sin selector de empleado
+  porque ella no tiene ni requiere cuenta de portal.
+- **Migracion 022** (`022_permiso_bitacora_ceo.sql`): semilla de `permisos`
+  para el modulo `bitacora-ceo` (rol `gerencia`, leer+escribir). **Pendiente
+  de ejecutar en Supabase** — sin ella, cualquier rol no-admin con acceso a
+  Gerencia no vera la pestaña.
+- **QA manual del portal de empleado:** password de prueba regenerada para
+  Pablo Novoa (Coordinador Carpinteria) via script puntual con
+  `SUPABASE_SERVICE_ROLE_KEY` (mismo mecanismo que
+  `api/admin/set-empleado-password.js`). Password anterior de Pablo queda
+  invalidada.
+- **Pendiente de definir:** "Chat empresarial" — mencionado por el usuario,
+  sin alcance ni diseño todavia, no se empezo a construir.
 
 ## 1b. Sesion 5 — Portal de empleado + Bitacora semanal + AIU
 - **Portal de empleado ("Mi Bitacora"):** login individual por empleado
@@ -99,13 +136,15 @@ migrados a Supabase (`categorias`, `cuentas`, `configuracion`).
 **IMPORTANTE:** Los skills solo aparecen con `/` si VS Code esta abierto en `C:\dev\ada-gestion`
 
 ## 5. Migraciones SQL
-14 migraciones escritas y **ejecutadas** en produccion Supabase (`supabase/migrations/`,
-detalle en `MIGRATIONS.md`):
+22 migraciones escritas, **21 ejecutadas** en produccion Supabase
+(`supabase/migrations/`, detalle en `MIGRATIONS.md`):
 001 claude_readonly_role · 002 perfiles_rbac (Auth + RBAC) · 003 categorias_configuracion_cuentas ·
 004 tesoreria_transacciones_rpc · 005 fn_registrar_transaccion_gba_facturado ·
 006 contratistas_pagos_rpc · 007 empleados_completo · 008 pagos_nomina_rpc ·
 009 seed_datos_historicos · 010 proyectos_servicios · 011 visitas_registro_horas ·
-012 calendario_tributario · 013 empleado_portal_bitacora · 014 bitacora_otros_reposicion.
+012 calendario_tributario · 013 empleado_portal_bitacora · 014 bitacora_otros_reposicion ·
+015-020 (permisos arqueo-caja y varios ajustes, ver `MIGRATIONS.md`) ·
+021 habilitar_realtime · **022 permiso_bitacora_ceo (⏳ pendiente de ejecutar)**.
 
 Todas las tablas tienen RLS activo + politica `claude_readonly_select` + trigger de
 auditoria (`audit_log`) en las tablas de dinero/empleados.
@@ -121,18 +160,26 @@ auditoria (`audit_log`) en las tablas de dinero/empleados.
 - **Plan:** Max (confirmado en facturacion)
 
 ## 9. Proxima Sesion — Continuar Aqui
-1. Crear las cuentas de Supabase Auth de los empleados y vincular
+1. **Ejecutar la migracion 022** (`022_permiso_bitacora_ceo.sql`) manualmente
+   en el SQL Editor de Supabase — sin esto, roles no-admin de Gerencia no
+   ven la pestaña "Bitacora CEO"
+2. Definir alcance de "Chat empresarial" (pedido por el usuario, sin
+   diseño ni plan todavia — requiere su propia sesion de planeacion)
+3. Probar en vivo el portal de empleado ("Mi Bitacora") con un usuario
+   real: registro de horas, Festivo, Reposición, Otros, Permiso (salud/personal),
+   semana bloqueada — credenciales de prueba: Pablo Novoa,
+   `arq4.diseno.ada@gmail.com` / `AdaTest7189!` (password regenerada esta
+   sesion, invalida la anterior)
+4. Crear las cuentas de Supabase Auth de los empleados restantes y vincular
    `empleados.user_id` (migracion 013 ya ejecutada, pero no crea cuentas —
    eso queda pendiente, se hace via Admin API una vez confirmada la lista
    de correos)
-2. Probar en vivo el portal de empleado ("Mi Bitacora") con un usuario
-   real: registro de horas, Festivo, Reposición, Otros, semana bloqueada
-3. Probar en produccion (dos pestañas abiertas) que el fix de sincronizacion en vivo
+5. Probar en produccion (dos pestañas abiertas) que el fix de sincronizacion en vivo
    funciona igual que en local para Tesoreria/Contratistas/Nomina/Proyectos/Visitas/Bitacoras
-4. Configurar DNS en Hostinger (CNAME app → cname.vercel-dns.com)
-5. Retomar Fase 8-12 del plan de arquitectura (roadmap en el plan guardado): Contratos,
+6. Configurar DNS en Hostinger (CNAME app → cname.vercel-dns.com)
+7. Retomar Fase 8-12 del plan de arquitectura (roadmap en el plan guardado): Contratos,
    Horarios, Publicidad, Redes, y las integraciones de repos (PowerSync, model-viewer, pdf.js, Pannellum, Chatwoot)
-6. Ejecutar /ada-security para una auditoria de las politicas RLS ya en produccion (incluye
+8. Ejecutar /ada-security para una auditoria de las politicas RLS ya en produccion (incluye
    la nueva API route `api/admin/set-empleado-password.js`)
-7. Ejecutar /ada-qa sobre los flujos recien migrados (Visitas, Bitacoras, GBA, Resumen Gerencia,
-   portal de empleado)
+9. Ejecutar /ada-qa sobre los flujos recien migrados (Visitas, Bitacoras, GBA, Resumen Gerencia,
+   portal de empleado, Bitacora CEO)

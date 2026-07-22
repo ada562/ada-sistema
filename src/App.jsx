@@ -25,6 +25,7 @@ const Bitacoras = lazy(() => import('./pages/proyectos/Bitacoras'))
 const VisitasGlobal = lazy(() => import('./pages/proyectos/Visitas'))
 const MiBitacora = lazy(() => import('./pages/proyectos/MiBitacora'))
 const ResumenGerencia = lazy(() => import('./pages/gerencia/ResumenGerencia'))
+const BitacoraCeo = lazy(() => import('./pages/gerencia/BitacoraCeo'))
 const Publicidad = lazy(() => import('./pages/marketing/Publicidad'))
 const Redes = lazy(() => import('./pages/marketing/Redes'))
 
@@ -37,6 +38,7 @@ const views = {
   'arqueo-caja': ArqueoCaja,
   gba: GBA,
   'resumen-gerencia': ResumenGerencia,
+  'bitacora-ceo': BitacoraCeo,
   contratistas: Contratistas,
   equipo: Equipo,
   'empleado-detalle': EmpleadoDetalle,

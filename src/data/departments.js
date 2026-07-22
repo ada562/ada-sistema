@@ -28,6 +28,7 @@ export const departments = [
     icon: BriefcaseBusiness,
     modules: [
       { id: 'resumen-gerencia', label: 'Resumen General', icon: TrendingUp },
+      { id: 'bitacora-ceo', label: 'Bitácora CEO', icon: NotebookPen },
     ],
   },
   {

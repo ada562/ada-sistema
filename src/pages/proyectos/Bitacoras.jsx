@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { ClipboardList, Plus, Pencil, Trash2, Calendar, List } from 'lucide-react'
+import { ClipboardList, Plus, Pencil, Trash2, Calendar, List, BarChart3, ChevronLeft, ChevronRight, Check, X as XIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../../components/UI/Button'
 import Modal from '../../components/UI/Modal'
@@ -7,21 +7,27 @@ import BitacoraSemanaGrid from '../../components/proyectos/BitacoraSemanaGrid'
 import { useTimelogsStore } from '../../store/useTimelogsStore'
 import { useProyectosStore } from '../../store/useProyectosStore'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
-import { fmtDate, todayIso } from '../../lib/formatters'
+import { useAuthStore } from '../../store/useAuthStore'
+import { fmtDate, fmtMoney, todayIso } from '../../lib/formatters'
+import { mondayOfLocal, addDaysLocal, toIsoLocal } from '../../lib/dateWeek'
 import { useNavigationStore } from '../../store/useNavigationStore'
 
 // Sentinel para filas de bitacora sin proyecto (proyecto_id NULL, migracion
 // 014 -- fila "Otros" del calendario). Solo vive en el frontend, nunca se
 // guarda en la base de datos.
 const OTROS_VALUE = '__otros__'
+const round2 = (n) => Math.round(n * 100) / 100
 
 export default function Bitacoras() {
-  const [viewMode, setViewMode] = useState('calendario') // 'calendario' | 'historial'
+  const [viewMode, setViewMode] = useState('calendario') // 'calendario' | 'historial' | 'resumen'
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
   const [filterProject, setFilterProject] = useState('')
   const [filterEmployee, setFilterEmployee] = useState('')
   const [formModal, setFormModal] = useState({ open: false, data: null })
+  const [resumenWeekCursor, setResumenWeekCursor] = useState(() => mondayOfLocal(new Date()))
   const { setActiveView } = useNavigationStore()
+  const perfil = useAuthStore((s) => s.perfil)
+  const isAdmin = perfil?.rol === 'admin'
 
   const {
     timelogs: rawTimelogs,
@@ -99,6 +105,24 @@ export default function Bitacoras() {
   const getProjectName = (id) => (id === null ? 'Otros' : proyectos.find((p) => p.id === id)?.name || '—')
   const getEmpName = (id) => getEmpleadoById(id)?.name || '—'
 
+  // Resumen semanal -- quien registro bitacora esta semana + (solo admin)
+  // cuanto gana cada uno. No usa BitacoraSemanaGrid (esa componente es por
+  // un solo empleado); aca se agrega sobre todos los empleados activos a la
+  // vez para la semana seleccionada con resumenWeekCursor.
+  const resumenWeekStartIso = toIsoLocal(resumenWeekCursor)
+  const resumenWeekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => toIsoLocal(addDaysLocal(resumenWeekCursor, i))),
+    [resumenWeekCursor]
+  )
+  const resumenPorEmpleado = useMemo(
+    () => empleados.map((e) => {
+      const delEmpleado = timelogs.filter((t) => t.employeeId === e.id && resumenWeekDays.includes(t.date))
+      const totalHoras = round2(delEmpleado.reduce((s, t) => s + (t.note === 'Festivo' ? 0 : t.days), 0))
+      return { empleado: e, registro: delEmpleado.length > 0, totalHoras }
+    }),
+    [empleados, timelogs, resumenWeekDays]
+  )
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -124,6 +148,14 @@ export default function Bitacoras() {
               }`}
             >
               <List size={14} /> Historial
+            </button>
+            <button
+              onClick={() => setViewMode('resumen')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'resumen' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <BarChart3 size={14} /> Resumen
             </button>
           </div>
           <Button onClick={() => setFormModal({ open: true, data: null })}>
@@ -161,6 +193,77 @@ export default function Bitacoras() {
           ) : (
             <div className="text-center text-gray-400 py-8 text-sm">Selecciona un empleado para ver su calendario</div>
           )}
+        </div>
+      ) : viewMode === 'resumen' ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <button
+              onClick={() => setResumenWeekCursor((c) => addDaysLocal(c, -7))}
+              className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50"
+              aria-label="Semana anterior"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span className="text-sm font-semibold text-gray-900">
+              Semana del {fmtDate(resumenWeekStartIso)} al {fmtDate(resumenWeekDays[6])}
+            </span>
+            <button
+              onClick={() => setResumenWeekCursor((c) => addDaysLocal(c, 7))}
+              className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50"
+              aria-label="Semana siguiente"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          {!isAdmin && (
+            <p className="text-xs text-gray-400 mb-3 text-center">
+              El valor/tarifa de cada empleado solo es visible para administradores.
+            </p>
+          )}
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-left">
+                  <th className="px-3 py-2 font-medium text-gray-600">Empleado</th>
+                  <th className="px-3 py-2 font-medium text-gray-600 text-center">¿Registró bitácora?</th>
+                  <th className="px-3 py-2 font-medium text-gray-600 text-center">Horas registradas</th>
+                  {isAdmin && <th className="px-3 py-2 font-medium text-gray-600 text-right">Tarifa mensual</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {resumenPorEmpleado.length === 0 ? (
+                  <tr>
+                    <td colSpan={isAdmin ? 4 : 3} className="px-3 py-8 text-center text-gray-400">Sin empleados activos</td>
+                  </tr>
+                ) : (
+                  resumenPorEmpleado.map(({ empleado, registro, totalHoras }) => (
+                    <tr key={empleado.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-gray-900 font-medium">{empleado.name}</td>
+                      <td className="px-3 py-2 text-center">
+                        {registro ? (
+                          <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2 py-0.5 rounded-full text-xs font-medium">
+                            <Check size={12} /> Sí
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-red-600 bg-red-50 px-2 py-0.5 rounded-full text-xs font-medium">
+                            <XIcon size={12} /> No
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-center font-medium text-gray-900">{totalHoras || '—'}</td>
+                      {isAdmin && (
+                        <td className="px-3 py-2 text-right text-gray-700">
+                          {empleado.monthlyRate ? fmtMoney(empleado.monthlyRate) : '—'}
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <>

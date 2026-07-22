@@ -27,7 +27,26 @@ import { mondayOfLocal, addDaysLocal, toIsoLocal, DAY_LABELS } from '../../lib/d
 // "Reposición" (sabado/domingo trabajado que se compensa despues) reutiliza
 // la misma convencion de "nota" que Festivo, pero con dias>0 -- es un tag
 // sobre una celda con horas reales, no una celda vacia.
+//
+// "Permiso" (salud/personal) -- horas de un dia que NO se trabajaron por un
+// permiso medico o una vuelta personal. Se pidio explicitamente como una
+// casilla APARTE del calendario (no una fila mas de la tabla), pero se
+// persiste igual que "Otros": proyecto_id=NULL + nota obligatoria (misma
+// migracion 014). Para poder coexistir con una fila "Otros" en la MISMA
+// fecha (dos filas con proyecto_id=NULL el mismo dia -- valido, no hay
+// constraint unico) se distinguen por convencion de texto en "nota":
+// "[Permiso:Salud] ..." / "[Permiso:Personal] ...". findEntry() filtra por
+// ese prefijo para no mezclar los dos conceptos.
 const OTROS_ID = '__otros__'
+const PERMISO_ID = '__permiso__'
+const PERMISO_NOTE_REGEX = /^\[Permiso:(Salud|Personal)\]\s?(.*)$/
+const isPermisoNote = (note) => typeof note === 'string' && PERMISO_NOTE_REGEX.test(note)
+const parsePermisoNote = (note) => {
+  const m = typeof note === 'string' ? note.match(PERMISO_NOTE_REGEX) : null
+  return m ? { motivo: m[1], descripcion: m[2] || '' } : { motivo: 'Salud', descripcion: '' }
+}
+const buildPermisoNote = (motivo, descripcion) =>
+  `[Permiso:${motivo}]${descripcion ? ' ' + descripcion : ''}`
 const round2 = (n) => Math.round(n * 100) / 100
 
 export default function BitacoraSemanaGrid({
@@ -76,8 +95,15 @@ export default function BitacoraSemanaGrid({
     (p) => !rowProjectIds.has(p.id) && (p.status === 'Activo' || p.status === undefined)
   )
 
-  const findEntry = (proyectoId, date) =>
-    misTimelogs.find((t) => t.projectId === (proyectoId === OTROS_ID ? null : proyectoId) && t.date === date) || null
+  const findEntry = (proyectoId, date) => {
+    if (proyectoId === PERMISO_ID) {
+      return misTimelogs.find((t) => t.projectId === null && t.date === date && isPermisoNote(t.note)) || null
+    }
+    if (proyectoId === OTROS_ID) {
+      return misTimelogs.find((t) => t.projectId === null && t.date === date && !isPermisoNote(t.note)) || null
+    }
+    return misTimelogs.find((t) => t.projectId === proyectoId && t.date === date) || null
+  }
 
   const cellKey = (proyectoId, date) => `${proyectoId}::${date}`
 
@@ -226,6 +252,71 @@ export default function BitacoraSemanaGrid({
     }
   }
 
+  // Bloque "Permiso" -- misma mecanica de commitOtrosCell (dias + texto se
+  // guardan juntos), pero con un tercer campo (motivo Salud/Personal) que se
+  // codifica dentro de la nota (ver buildPermisoNote/parsePermisoNote).
+  const permisoMotivoKey = (date) => `${PERMISO_ID}::motivo::${date}`
+  const permisoNoteKey = (date) => `${PERMISO_ID}::note::${date}`
+
+  const getPermisoMotivoValue = (date) => {
+    const key = permisoMotivoKey(date)
+    if (drafts[key] !== undefined) return drafts[key]
+    return parsePermisoNote(findEntry(PERMISO_ID, date)?.note).motivo
+  }
+
+  const getPermisoDescValue = (date) => {
+    const key = permisoNoteKey(date)
+    if (drafts[key] !== undefined) return drafts[key]
+    return parsePermisoNote(findEntry(PERMISO_ID, date)?.note).descripcion
+  }
+
+  const commitPermisoCell = async (date) => {
+    const daysKey = cellKey(PERMISO_ID, date)
+    const motivoKey = permisoMotivoKey(date)
+    const noteKey = permisoNoteKey(date)
+    const rawDays = drafts[daysKey]
+    const rawMotivo = drafts[motivoKey]
+    const rawNote = drafts[noteKey]
+    if (rawDays === undefined && rawMotivo === undefined && rawNote === undefined) return
+    setDrafts((d) => {
+      const next = { ...d }
+      delete next[daysKey]
+      delete next[motivoKey]
+      delete next[noteKey]
+      return next
+    })
+
+    const entry = findEntry(PERMISO_ID, date)
+    const parsedPrev = parsePermisoNote(entry?.note)
+    const daysValue = rawDays !== undefined
+      ? (rawDays.trim() === '' ? 0 : Number(rawDays.replace(',', '.')))
+      : (entry?.days || 0)
+    const motivoValue = rawMotivo !== undefined ? rawMotivo : parsedPrev.motivo
+    const descValue = (rawNote !== undefined ? rawNote : parsedPrev.descripcion).trim()
+
+    if (rawDays !== undefined && rawDays.trim() !== '' && (Number.isNaN(daysValue) || daysValue < 0)) {
+      toast.error('Ingresa un número de horas válido')
+      return
+    }
+
+    try {
+      if (daysValue <= 0) {
+        if (entry) await deleteTimelog(entry.id)
+        return
+      }
+      const noteValue = buildPermisoNote(motivoValue, descValue)
+      if (entry) {
+        if (entry.days === daysValue && entry.note === noteValue) return
+        await updateTimelog(entry.id, { employeeId, projectId: null, date, days: daysValue, note: noteValue })
+      } else {
+        await addTimelog({ employeeId, projectId: null, date, days: daysValue, note: noteValue })
+      }
+      toast.success('Guardado')
+    } catch (err) {
+      toast.error('No se pudo guardar el permiso: ' + err.message)
+    }
+  }
+
   const handleAddProject = () => {
     if (!addProjectSelect) return
     setAddedProjectIds((ids) => [...ids, addProjectSelect])
@@ -245,7 +336,7 @@ export default function BitacoraSemanaGrid({
     }, 0))
 
   const totalPorDia = (date) =>
-    round2([...rowProjects, { id: OTROS_ID }].reduce((sum, p) => {
+    round2([...rowProjects, { id: OTROS_ID }, { id: PERMISO_ID }].reduce((sum, p) => {
       const entry = findEntry(p.id, date)
       return sum + (entry && entry.note !== 'Festivo' ? entry.days : 0)
     }, 0))
@@ -464,6 +555,69 @@ export default function BitacoraSemanaGrid({
               </tr>
             </tfoot>
           </table>
+      </div>
+
+      {/* Casilla "Permiso" aparte del calendario -- horas de un dia que no se
+          trabajaron por permiso de salud o vuelta personal (ver comentario
+          de PERMISO_ID arriba). Cuentan para el total de la semana. */}
+      <div className="mt-4 border border-amber-200 rounded-xl bg-amber-50/40 p-3">
+        <div className="mb-3">
+          <h4 className="text-sm font-semibold text-gray-900">Permisos (salud / personal)</h4>
+          <p className="text-[11px] text-gray-500">
+            Registra aquí las horas que no trabajaste por un permiso de salud o una vuelta personal — cuentan para el total de la semana.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-2">
+          {days.map((date, i) => (
+            <div
+              key={date}
+              className="bg-white border border-amber-100 rounded-lg p-2 flex flex-col gap-1.5"
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) commitPermisoCell(date)
+              }}
+            >
+              <span className="text-[11px] font-medium text-gray-600">
+                {DAY_LABELS[i]} <span className="text-gray-400 font-normal">{fmtDate(date)}</span>
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                placeholder="Horas"
+                value={getCellValue(PERMISO_ID, date)}
+                disabled={readOnly}
+                onChange={(e) => handleDraftChange(PERMISO_ID, date, e.target.value)}
+                className={`w-full text-center border rounded-lg px-1 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                  readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
+                }`}
+              />
+              <select
+                value={getPermisoMotivoValue(date)}
+                disabled={readOnly}
+                onChange={(e) => setDraftValue(permisoMotivoKey(date), e.target.value)}
+                className={`w-full border rounded-lg px-1 py-1 text-[11px] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                  readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
+                }`}
+              >
+                <option value="Salud">Salud</option>
+                <option value="Personal">Personal</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Detalle (opcional)"
+                value={getPermisoDescValue(date)}
+                disabled={readOnly}
+                onChange={(e) => setDraftValue(permisoNoteKey(date), e.target.value)}
+                className={`w-full text-center border rounded-lg px-1 py-1 text-[10px] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                  readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
+                }`}
+              />
+            </div>
+          ))}
+        </div>
+        <p className="text-right text-xs font-semibold text-gray-700 mt-2">
+          Total permisos: {totalPorProyecto(PERMISO_ID) || 0} h
+        </p>
       </div>
     </div>
   )
