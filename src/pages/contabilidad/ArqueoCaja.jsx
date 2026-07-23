@@ -4,8 +4,8 @@ import { ClipboardCheck, Printer, Trash2 } from 'lucide-react'
 import Button from '../../components/UI/Button'
 import ReciboArqueoCaja from '../../components/tesoreria/ReciboArqueoCaja'
 import { DENOMINACIONES } from '../../lib/dbArqueoCaja'
-import { getAccountBalances } from '../../lib/dbTesoreria'
 import { useArqueoCajaStore } from '../../store/useArqueoCajaStore'
+import { useTesoreriaStore } from '../../store/useTesoreriaStore'
 import { useAuthStore } from '../../store/useAuthStore'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 
@@ -21,7 +21,6 @@ export default function ArqueoCaja() {
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
   const [reciboArqueo, setReciboArqueo] = useState(null)
-  const [saldoSistema, setSaldoSistema] = useState(null)
 
   const isAdmin = useAuthStore((s) => s.perfil?.rol === 'admin')
 
@@ -35,6 +34,18 @@ export default function ArqueoCaja() {
     teardownRealtime,
   } = useArqueoCajaStore()
 
+  // Saldo del sistema via useTesoreriaStore (no un fetch aparte) para que se
+  // actualice solo en tiempo real -- antes se pedia una sola vez al abrir la
+  // pagina y quedaba desactualizado si el saldo cambiaba (ej. corrigiendo un
+  // movimiento en Tesoreria) mientras el usuario seguia en Arqueo de Caja.
+  const {
+    balances,
+    fetchBalances,
+    initRealtime: initRealtimeTesoreria,
+    teardownRealtime: teardownRealtimeTesoreria,
+  } = useTesoreriaStore()
+  const saldoSistema = balances.efectivo
+
   useEffect(() => {
     fetchAll()
     initRealtime()
@@ -42,10 +53,10 @@ export default function ArqueoCaja() {
   }, [fetchAll, initRealtime, teardownRealtime])
 
   useEffect(() => {
-    getAccountBalances()
-      .then((b) => setSaldoSistema(b.efectivo))
-      .catch(() => setSaldoSistema(null))
-  }, [])
+    fetchBalances()
+    initRealtimeTesoreria()
+    return () => teardownRealtimeTesoreria()
+  }, [fetchBalances, initRealtimeTesoreria, teardownRealtimeTesoreria])
 
   const denominaciones = DENOMINACIONES.map((d) => {
     const cantidad = Number(cantidades[d]) || 0
