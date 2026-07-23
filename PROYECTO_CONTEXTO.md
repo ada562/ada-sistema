@@ -1,6 +1,6 @@
 # ADA Gestion — Contexto del Proyecto
-**Actualizado:** 2026-07-22 (sesion 7)
-**Version app:** v0.3.3
+**Actualizado:** 2026-07-23 (sesion 8)
+**Version app:** v0.3.4
 
 ## 1. Estado general
 Migracion completa de localStorage a Supabase (Postgres + Auth + RLS + Realtime)
@@ -35,6 +35,29 @@ modulo propio en Gerencia con el reporte semanal de horas + puntualidad.
 Migraciones 022-025 escritas y **ejecutadas en Supabase** durante esta
 sesion. Ver detalle en seccion 1d.
 `npm run build` verificado sin errores al cierre de esta sesion.
+
+**Sesion 8 (2026-07-23):** Nuevo boton "Extracto" en Tesoreria para
+exportar los movimientos filtrados a Excel (CSV) o PDF (ver bullet en
+seccion 1d). Resto de la sesion fue QA en vivo de lo entregado en sesion 7,
+con dos reportes del usuario **aun sin confirmar resueltos**:
+- Bitacora CEO mostrando "Otros" → diagnosticado como cache de navegador
+  (el codigo y el deploy ya no lo tienen), pendiente confirmacion del
+  usuario tras hacer `Ctrl+Shift+R`.
+- Calendario de Tareas: el boton "+" de un dia no abre el campo para
+  escribir el titulo de la tarea. Se reviso `Tareas.jsx` completo y el
+  codigo se ve correcto (sin gating de permisos que lo bloquee) → se le
+  pidio al usuario `Ctrl+Shift+R` como primer diagnostico (mismo patron
+  que el caso de "Otros"), **respuesta pendiente** — si el refresh no lo
+  resuelve, revisar consola del navegador (F12) en el proximo intento.
+- Arqueo de Caja con "Historial de conteos" vacio → explicado como
+  comportamiento esperado (los conteos viejos vivian solo en
+  `localStorage`, no se migran automaticamente a Supabase), se le pidio
+  al usuario registrar un arqueo nuevo de prueba, **respuesta pendiente**.
+- Pedido del usuario de reemplazar el logo de la app (`public/logo-ada.png`,
+  usado en Sidebar/Login/recibos) por una imagen de firma que intento
+  pegar en el chat — no llego como archivo (solo como preview inline), se
+  le explico que debe arrastrar el archivo real o guardarlo el mismo en
+  `public/logo-ada.png`. **Sigue pendiente, no se reemplazo nada todavia.**
 
 ## 1d. Sesion 7 — Arqueo de Caja a Supabase + quitar "Otros" + Tareas + Permisos
 - **Arqueo de Caja → Supabase** (`src/lib/dbArqueoCaja.js` reescrito,
@@ -239,16 +262,25 @@ auditoria (`audit_log`) en las tablas de dinero/empleados.
 - **Plan:** Max (confirmado en facturacion)
 
 ## 9. Proxima Sesion — Continuar Aqui
-1. **Probar en vivo los modulos nuevos de esta sesion:** Arqueo de Caja,
-   reportes de avance por tarea (subir foto/audio/video desde el detalle
-   de una tarea, confirmar que admin/rrhh los ve)
-   (registrar desde una pestaña, confirmar que aparece en vivo en otra
-   pestaña/dispositivo con el mismo rol), Tareas (calendario, agregar/
-   completar/borrar tarea), Permisos (solicitar con empleado, aprobar/
-   rechazar con admin, confirmar que aparecen filas en `registro_horas`
-   al aprobar), Reportes (hora de llegada + puntualidad de un empleado real),
-   Extracto de Tesoreria (boton "Extracto", descargar CSV y abrir el dialogo
-   de impresion/PDF, confirmar que respeta los filtros activos)
+0. **Retomar 3 reportes de QA abiertos de la sesion 8 (respuestas del
+   usuario quedaron pendientes al cierre de sesion):**
+   - Boton "+" del calendario de Tareas no abre el campo de texto — pedir
+     confirmacion de si `Ctrl+Shift+R` lo resolvio; si no, pedir captura
+     de la consola del navegador (F12) en el momento del clic.
+   - Arqueo de Caja con historial vacio — confirmar que registrar un
+     arqueo nuevo de prueba SI aparece en el historial (si no aparece o
+     tira error, es un bug real a investigar, no solo dato huerfano).
+   - Reemplazo del logo (`public/logo-ada.png`) — el usuario queria subir
+     una imagen de firma pero nunca llego como archivo; retomar cuando la
+     arrastre al chat o la guarde el mismo en `public/`.
+1. **Probar en vivo los modulos nuevos de sesion 7:** reportes de avance
+   por tarea (subir foto/audio/video desde el detalle de una tarea,
+   confirmar que admin/rrhh los ve), Permisos (solicitar con empleado,
+   aprobar/rechazar con admin, confirmar que aparecen filas en
+   `registro_horas` al aprobar), Reportes (hora de llegada + puntualidad
+   de un empleado real), Extracto de Tesoreria (boton "Extracto",
+   descargar CSV y abrir el dialogo de impresion/PDF, confirmar que
+   respeta los filtros activos)
 2. El historial viejo de Arqueo de Caja en `localStorage` del navegador del
    usuario quedo huerfano — no se migro automaticamente, avisarle si
    pregunta por registros antiguos
