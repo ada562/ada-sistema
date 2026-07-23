@@ -60,7 +60,7 @@ const round2 = (n) => Math.round(n * 100) / 100
 
 export default function BitacoraSemanaGrid({
   employeeId,
-  proyectosDisponibles, // [{id, name, status}] -- opciones para "Agregar proyecto"
+  proyectosDisponibles, // [{id, name, status}] -- Activo/undefined aparecen como fila automatica; el resto queda disponible en "Agregar proyecto"
   proyectosPorId,       // Map id -> {id, name} -- resuelve nombres de filas ya existentes
   timelogs,             // TODOS los timelogs ya cargados; se filtran por employeeId aqui
   addTimelog,
@@ -70,6 +70,7 @@ export default function BitacoraSemanaGrid({
 }) {
   const [weekCursor, setWeekCursor] = useState(() => mondayOfLocal(new Date()))
   const [addedProjectIds, setAddedProjectIds] = useState([])
+  const [hiddenProjectIds, setHiddenProjectIds] = useState([])
   const [addProjectSelect, setAddProjectSelect] = useState('')
   const [drafts, setDrafts] = useState({}) // `${proyectoId}::${dateIso}` -> string en edicion
   const [rowServicio, setRowServicio] = useState({}) // proyectoId -> servicioId elegido para esta semana
@@ -103,22 +104,35 @@ export default function BitacoraSemanaGrid({
     [timelogs, employeeId]
   )
 
+  // Todos los proyectos Activos aparecen siempre como fila, sin necesidad de
+  // "Agregar proyecto" -- se pidio explicitamente que la bitacora semanal no
+  // dependa de que ya exista un registro esa semana. Ademas se incluye
+  // cualquier proyecto con horas ya registradas esa semana (aunque haya
+  // cambiado de estado despues) y los agregados manualmente (ej. un proyecto
+  // Pausado/Finalizado donde se necesita loguear una hora suelta).
+  // hiddenProjectIds permite ocultar una fila Activa vacia que no aplica esa
+  // semana (el boton "Quitar fila vacia") sin afectar otras semanas ni el
+  // registro de otros empleados.
   const rowProjectIds = useMemo(() => {
     const ids = new Set(
-      misTimelogs.filter((t) => days.includes(t.date)).map((t) => t.projectId)
+      proyectosDisponibles
+        .filter((p) => p.status === 'Activo' || p.status === undefined)
+        .map((p) => p.id)
     )
+    misTimelogs
+      .filter((t) => days.includes(t.date) && t.projectId)
+      .forEach((t) => ids.add(t.projectId))
     addedProjectIds.forEach((id) => ids.add(id))
+    hiddenProjectIds.forEach((id) => ids.delete(id))
     return ids
-  }, [misTimelogs, days, addedProjectIds])
+  }, [proyectosDisponibles, misTimelogs, days, addedProjectIds, hiddenProjectIds])
 
   const rowProjects = [...rowProjectIds]
     .map((id) => proyectosPorId.get(id))
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const proyectosParaAgregar = proyectosDisponibles.filter(
-    (p) => !rowProjectIds.has(p.id) && (p.status === 'Activo' || p.status === undefined)
-  )
+  const proyectosParaAgregar = proyectosDisponibles.filter((p) => !rowProjectIds.has(p.id))
 
   const findEntry = (proyectoId, date) => {
     if (proyectoId === PERMISO_ID) {
@@ -294,6 +308,7 @@ export default function BitacoraSemanaGrid({
   const handleAddProject = () => {
     if (!addProjectSelect) return
     setAddedProjectIds((ids) => [...ids, addProjectSelect])
+    setHiddenProjectIds((ids) => ids.filter((id) => id !== addProjectSelect))
     setAddProjectSelect('')
   }
 
@@ -301,6 +316,7 @@ export default function BitacoraSemanaGrid({
     const hasData = misTimelogs.some((t) => t.projectId === proyectoId && days.includes(t.date))
     if (hasData) return
     setAddedProjectIds((ids) => ids.filter((id) => id !== proyectoId))
+    setHiddenProjectIds((ids) => [...ids, proyectoId])
   }
 
   const totalPorProyecto = (proyectoId) =>
