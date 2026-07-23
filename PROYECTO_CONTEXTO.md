@@ -349,6 +349,12 @@ auditoria (`audit_log`) en las tablas de dinero/empleados.
 - **P3:** logica de parseo de la nota `[Permiso:...]` duplicada entre
   `BitacoraSemanaGrid.jsx` (`parsePermisoNote`/`buildPermisoNote`) y `Bitacoras.jsx`
   (regex propia mas simple) — mover a un helper compartido (ej. `src/lib/bitacoraHelpers.js`).
+- **P1 (hallazgo critico #4 de `revision_2026-07-23.md`, aun NO cerrado del todo):**
+  `updateContractorPayment()` (`src/lib/dbContratistas.js:111-123`) sigue permitiendo un
+  `UPDATE` directo de `monto_pagado`/`monto` sin validar el limite a nivel de base de datos —
+  esta sesion solo se agrego el guard en el frontend (`FormCuenta` en `Contratistas.jsx`), que
+  se puede saltar si algo mas llama la funcion directo. Es el unico bypass real de la regla
+  "operaciones de dinero = RPC atomica" que sigue abierto.
 
 ## 7. Cuenta Claude
 - **Email:** coor.produccion.ada@gmail.com
@@ -361,6 +367,17 @@ auditoria (`audit_log`) en las tablas de dinero/empleados.
    Categorias-Cuentas-Config siguen 100% online (crear `useOnlineStatus` +
    guard en los 8 puntos de submit ya identificados). Sesion anterior se
    cerro en Plan Mode sin `ExitPlanMode` — no hay codigo escrito todavia.
+0.05 **Cerrar el hallazgo critico #4 pendiente de `revision_2026-07-23.md`:**
+   validar en `updateContractorPayment()` (`src/lib/dbContratistas.js:111-123`) que el
+   monto editado de una cuenta de contratista no quede por debajo de lo ya abonado —
+   hoy solo existe el guard equivalente en el frontend (`FormCuenta`), falta el respaldo
+   a nivel de base de datos.
+0.06 **Decidir y ejecutar el plan de mitigacion de la auditoria de arquitectura del
+   portal de empleado** (`docs/auditorias/arquitectura_2026-07-23.md`, propuesto en sesion 9,
+   el usuario lo dejo pendiente con "luego continuamos"): 1) extraer `PERMISO_NOTE_REGEX`/
+   `parsePermisoNote`/`buildPermisoNote` a `src/lib/bitacoraHelpers.js` (bajo riesgo, ~15 min);
+   2) `tarea_reportes` cargar bajo demanda por `tareaId` en vez de traer todo el historial;
+   3) `tareas` acotar el fetch a un rango de mes visible en vez de la tabla completa.
 0.1 **Retomar 3 reportes de QA abiertos de la sesion 8 (respuestas del
    usuario quedaron pendientes al cierre de sesion):**
    - Boton "+" del calendario de Tareas no abre el campo de texto — pedir

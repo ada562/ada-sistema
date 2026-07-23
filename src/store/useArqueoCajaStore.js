@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
-import { getArqueos, registrarArqueo } from '../lib/dbArqueoCaja'
+import { getArqueos, registrarArqueo, eliminarArqueo } from '../lib/dbArqueoCaja'
 
 export const useArqueoCajaStore = create((set, get) => ({
   arqueos: [],
@@ -21,6 +21,11 @@ export const useArqueoCajaStore = create((set, get) => ({
     const nuevo = await registrarArqueo(data)
     await get().fetchAll()
     return nuevo
+  },
+
+  eliminar: async (id) => {
+    await eliminarArqueo(id)
+    await get().fetchAll()
   },
 
   _channel: null,

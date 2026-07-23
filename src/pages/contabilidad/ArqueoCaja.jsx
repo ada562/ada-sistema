@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { ClipboardCheck, Printer } from 'lucide-react'
+import { ClipboardCheck, Printer, Trash2 } from 'lucide-react'
 import Button from '../../components/UI/Button'
 import ReciboArqueoCaja from '../../components/tesoreria/ReciboArqueoCaja'
 import { DENOMINACIONES } from '../../lib/dbArqueoCaja'
+import { getAccountBalances } from '../../lib/dbTesoreria'
 import { useArqueoCajaStore } from '../../store/useArqueoCajaStore'
+import { useAuthStore } from '../../store/useAuthStore'
 import { fmtMoney, fmtDate, todayIso } from '../../lib/formatters'
 
 function emptyCantidades() {
@@ -14,14 +16,21 @@ function emptyCantidades() {
 export default function ArqueoCaja() {
   const [cantidades, setCantidades] = useState(emptyCantidades)
   const [notas, setNotas] = useState('')
+  const [pendienteMonto, setPendienteMonto] = useState('')
+  const [pendienteConcepto, setPendienteConcepto] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
   const [reciboArqueo, setReciboArqueo] = useState(null)
+  const [saldoSistema, setSaldoSistema] = useState(null)
+
+  const isAdmin = useAuthStore((s) => s.perfil?.rol === 'admin')
 
   const {
     arqueos: historial,
     loading: loadingHistorial,
     fetchAll,
     registrar,
+    eliminar,
     initRealtime,
     teardownRealtime,
   } = useArqueoCajaStore()
@@ -32,11 +41,18 @@ export default function ArqueoCaja() {
     return () => teardownRealtime()
   }, [fetchAll, initRealtime, teardownRealtime])
 
+  useEffect(() => {
+    getAccountBalances()
+      .then((b) => setSaldoSistema(b.efectivo))
+      .catch(() => setSaldoSistema(null))
+  }, [])
+
   const denominaciones = DENOMINACIONES.map((d) => {
     const cantidad = Number(cantidades[d]) || 0
     return { denom: d, cantidad, subtotal: d * cantidad }
   })
   const total = denominaciones.reduce((sum, d) => sum + d.subtotal, 0)
+  const diferencia = saldoSistema != null ? total - saldoSistema : null
 
   const handleCantidad = (denom, value) => {
     setCantidades((prev) => ({ ...prev, [denom]: value }))
@@ -54,9 +70,14 @@ export default function ArqueoCaja() {
         denominaciones: denominaciones.filter((d) => d.cantidad > 0),
         total,
         notas,
+        saldoSistema,
+        pendienteMonto: Number(pendienteMonto) || null,
+        pendienteConcepto,
       })
       setCantidades(emptyCantidades())
       setNotas('')
+      setPendienteMonto('')
+      setPendienteConcepto('')
       toast.success('Arqueo registrado')
       setReciboArqueo(nuevo)
     } catch (err) {
@@ -66,13 +87,26 @@ export default function ArqueoCaja() {
     }
   }
 
+  const handleEliminar = async (arqueo) => {
+    if (!window.confirm(`¿Eliminar el arqueo del ${fmtDate(arqueo.date)}? Esta acción no se puede deshacer.`)) return
+    setDeletingId(arqueo.id)
+    try {
+      await eliminar(arqueo.id)
+      toast.success('Arqueo eliminado')
+    } catch (err) {
+      toast.error(err.message || 'No se pudo eliminar el arqueo')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
         <ClipboardCheck size={24} className="text-indigo-600" />
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Arqueo de Caja</h2>
-          <p className="text-sm text-gray-500">Contador de billetes y monedas — uso personal, no comparado contra el sistema</p>
+          <p className="text-sm text-gray-500">Contador de billetes y monedas — uso personal, la diferencia contra Tesorería es solo referencia</p>
         </div>
       </div>
 
@@ -103,6 +137,21 @@ export default function ArqueoCaja() {
             <span className="text-xl font-bold text-indigo-600">{fmtMoney(total)}</span>
           </div>
 
+          {saldoSistema != null && (
+            <div className="flex justify-between items-center mt-1 text-sm">
+              <span className="text-gray-500">Saldo según sistema (Tesorería)</span>
+              <span className="text-gray-700">{fmtMoney(saldoSistema)}</span>
+            </div>
+          )}
+          {diferencia != null && diferencia !== 0 && (
+            <div className="flex justify-between items-center mt-1 text-sm">
+              <span className="text-gray-500">Diferencia (solo referencia, no ajusta nada)</span>
+              <span className={diferencia > 0 ? 'text-amber-600 font-medium' : 'text-red-600 font-medium'}>
+                {diferencia > 0 ? '+' : ''}{fmtMoney(diferencia)}
+              </span>
+            </div>
+          )}
+
           <div className="mt-4">
             <label className="text-sm font-medium text-gray-700 block mb-1">Notas (opcional)</label>
             <input
@@ -112,6 +161,30 @@ export default function ArqueoCaja() {
               placeholder="Ej. conteo de cierre del día"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+          </div>
+
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              Efectivo pendiente (recibido pero no lo tengo físicamente)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="0"
+                value={pendienteMonto}
+                onChange={(e) => setPendienteMonto(e.target.value)}
+                placeholder="Monto"
+                className="w-32 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="text"
+                value={pendienteConcepto}
+                onChange={(e) => setPendienteConcepto(e.target.value)}
+                placeholder="Concepto (ej. lo maneja Juan David)"
+                className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Solo anotación personal, no crea movimientos en Tesorería.</p>
           </div>
 
           <div className="flex justify-end mt-4">
@@ -135,6 +208,11 @@ export default function ArqueoCaja() {
                   <div>
                     <p className="text-sm text-gray-900">{fmtDate(a.date)}</p>
                     {a.notas && <p className="text-xs text-gray-400 italic">{a.notas}</p>}
+                    {a.pendienteMonto > 0 && (
+                      <p className="text-xs text-amber-600">
+                        Pendiente: {fmtMoney(a.pendienteMonto)}{a.pendienteConcepto ? ` — ${a.pendienteConcepto}` : ''}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-900">{fmtMoney(a.total)}</span>
@@ -145,6 +223,16 @@ export default function ArqueoCaja() {
                     >
                       <Printer size={14} />
                     </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleEliminar(a)}
+                        disabled={deletingId === a.id}
+                        className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
+                        title="Eliminar arqueo"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

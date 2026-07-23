@@ -34,6 +34,7 @@
 | 024 | `024_tareas_calendario.sql` | 2026-07-22 | Feature: tablas `tareas` (calendario mensual estilo Asana) + `acceso_diario` (hora de llegada automática), RPC `fn_registrar_acceso_diario` — nuevo módulo "Tareas" (Proyectos) + página "Reportes" (Gerencia, horas + puntualidad admin/rrhh) | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
 | 025 | `025_permisos_ausencia.sql` | 2026-07-22 | Feature: tabla `permisos_ausencia` + RPC `fn_resolver_permiso_ausencia` (aprobar/rechazar, autocompleta `registro_horas` al aprobar) — nuevo módulo "Permisos" bajo Gestión Humana, solicitud con 15 días de anticipación | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
 | 026 | `026_tarea_reportes.sql` | 2026-07-22 | Feature: tabla `tarea_reportes` + bucket privado `tarea-reportes` — reportes de avance por tarea con adjunto opcional (imagen/audio/video), visibles para el empleado dueño y admin/rrhh | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
+| 027 | `027_arqueo_caja_pendiente_y_delete.sql` | 2026-07-23 | Feature: `arqueo_caja` gana `pendiente_monto`/`pendiente_concepto` (anotación de efectivo recibido pero no en caja física, no crea transacciones) + policy DELETE solo-admin (antes historial inmutable) — pedido tras revisión del descuadre de efectivo en Tesorería | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-23 |
 
 ---
 
