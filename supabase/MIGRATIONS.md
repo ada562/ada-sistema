@@ -448,7 +448,7 @@
 ### 028 — Bitácora: servicio por proyecto en registro de horas
 - **Archivo:** `migrations/028_registro_horas_servicio.sql`
 - **Fecha:** 2026-07-23
-- **Estado:** ⏳ Pendiente de ejecutar en Supabase (SQL Editor)
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-23
 - **Propósito:** pedido explícito del usuario — dentro de un proyecto, las horas no siempre pertenecen al proyecto "madre" sino a un servicio específico (`servicios_proyecto`, ej. FACHADAS, ACABADOS). Se agrega `servicio_id` opcional a `registro_horas` para poder atribuir horas a un servicio. Explícitamente NO se agrega descuento de presupuesto/matriz por servicio — eso queda para un módulo futuro de presupuesto ("no el presupuesto es algo asi ese todavia no lo toquemos").
 - **Tablas afectadas:** `registro_horas` (`ADD COLUMN servicio_id uuid REFERENCES servicios_proyecto(id)`, índice `idx_registro_horas_servicio_id`).
 - **Dependencias:** `registro_horas` (011/014), `servicios_proyecto`.
