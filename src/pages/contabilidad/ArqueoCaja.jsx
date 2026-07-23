@@ -58,6 +58,8 @@ export default function ArqueoCaja() {
     return () => teardownRealtimeTesoreria()
   }, [fetchBalances, initRealtimeTesoreria, teardownRealtimeTesoreria])
 
+  const arqueoHoy = historial.find((a) => a.date === todayIso())
+
   const denominaciones = DENOMINACIONES.map((d) => {
     const cantidad = Number(cantidades[d]) || 0
     return { denom: d, cantidad, subtotal: d * cantidad }
@@ -120,6 +122,28 @@ export default function ArqueoCaja() {
           <p className="text-sm text-gray-500">Cuenta tu efectivo y compara contra el saldo de Tesorería — visible también para Gerencia</p>
         </div>
       </div>
+
+      {!loadingHistorial && (
+        arqueoHoy ? (
+          arqueoHoy.diferencia === 0 ? (
+            <div className="mb-6 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-center">
+              <p className="text-sm font-semibold text-green-700">✓ Hoy estás cuadrada con el efectivo</p>
+            </div>
+          ) : (
+            <div className={`mb-6 rounded-lg border px-4 py-3 text-center ${arqueoHoy.diferencia > 0 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
+              <p className={`text-sm font-semibold ${arqueoHoy.diferencia > 0 ? 'text-amber-700' : 'text-red-700'}`}>
+                {arqueoHoy.diferencia > 0
+                  ? `Hoy te sobran ${fmtMoney(arqueoHoy.diferencia)} según tu último conteo`
+                  : `Hoy te faltan ${fmtMoney(Math.abs(arqueoHoy.diferencia))} según tu último conteo`}
+              </p>
+            </div>
+          )
+        ) : (
+          <div className="mb-6 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-center">
+            <p className="text-sm text-gray-500">Aún no registras un conteo de caja hoy</p>
+          </div>
+        )
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
