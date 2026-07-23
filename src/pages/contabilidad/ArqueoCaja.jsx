@@ -106,7 +106,7 @@ export default function ArqueoCaja() {
         <ClipboardCheck size={24} className="text-indigo-600" />
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Arqueo de Caja</h2>
-          <p className="text-sm text-gray-500">Contador de billetes y monedas — uso personal, la diferencia contra Tesorería es solo referencia</p>
+          <p className="text-sm text-gray-500">Cuenta tu efectivo y compara contra el saldo de Tesorería — visible también para Gerencia</p>
         </div>
       </div>
 
@@ -143,13 +143,20 @@ export default function ArqueoCaja() {
               <span className="text-gray-700">{fmtMoney(saldoSistema)}</span>
             </div>
           )}
-          {diferencia != null && diferencia !== 0 && (
-            <div className="flex justify-between items-center mt-1 text-sm">
-              <span className="text-gray-500">Diferencia (solo referencia, no ajusta nada)</span>
-              <span className={diferencia > 0 ? 'text-amber-600 font-medium' : 'text-red-600 font-medium'}>
-                {diferencia > 0 ? '+' : ''}{fmtMoney(diferencia)}
-              </span>
-            </div>
+          {total > 0 && diferencia != null && (
+            diferencia === 0 ? (
+              <div className="mt-3 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-center">
+                <p className="text-sm font-semibold text-green-700">✓ Estás cuadrada, no falta nada</p>
+              </div>
+            ) : (
+              <div className={`mt-3 rounded-lg border px-3 py-2 text-center ${diferencia > 0 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
+                <p className={`text-sm font-semibold ${diferencia > 0 ? 'text-amber-700' : 'text-red-700'}`}>
+                  {diferencia > 0
+                    ? `Te sobra ${fmtMoney(diferencia)} frente al sistema`
+                    : `Te falta ${fmtMoney(Math.abs(diferencia))} frente al sistema`}
+                </p>
+              </div>
+            )
           )}
 
           <div className="mt-4">
@@ -212,6 +219,15 @@ export default function ArqueoCaja() {
                       <p className="text-xs text-amber-600">
                         Pendiente: {fmtMoney(a.pendienteMonto)}{a.pendienteConcepto ? ` — ${a.pendienteConcepto}` : ''}
                       </p>
+                    )}
+                    {a.saldoSistema > 0 && (
+                      a.diferencia === 0 ? (
+                        <p className="text-xs text-green-600 font-medium">✓ Cuadrada</p>
+                      ) : (
+                        <p className={`text-xs font-medium ${a.diferencia > 0 ? 'text-amber-600' : 'text-red-600'}`}>
+                          {a.diferencia > 0 ? `Sobró ${fmtMoney(a.diferencia)}` : `Faltó ${fmtMoney(Math.abs(a.diferencia))}`}
+                        </p>
+                      )
                     )}
                   </div>
                   <div className="flex items-center gap-2">
