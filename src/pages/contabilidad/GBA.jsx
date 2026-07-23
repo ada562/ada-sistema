@@ -207,6 +207,7 @@ export default function GBA() {
 
 function FormGBAMovement({ open, data, onClose, onSaved }) {
   const [form, setForm] = useState({})
+  const [saving, setSaving] = useState(false)
   const isEdit = !!data
 
   const resetForm = () => {
@@ -228,6 +229,7 @@ function FormGBAMovement({ open, data, onClose, onSaved }) {
     const amount = Number(form.amount)
     if (!amount || amount <= 0) return toast.error('Monto inválido')
 
+    setSaving(true)
     try {
       if (isEdit) {
         await updateTransaction(data.id, {
@@ -257,6 +259,8 @@ function FormGBAMovement({ open, data, onClose, onSaved }) {
       setForm({})
     } catch (err) {
       toast.error(err.message || 'No se pudo guardar el movimiento')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -290,8 +294,8 @@ function FormGBAMovement({ open, data, onClose, onSaved }) {
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
         </div>
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="ghost" onClick={() => { onClose(); setForm({}) }}>Cancelar</Button>
-          <Button onClick={handleSave}>{isEdit ? 'Guardar' : 'Registrar'}</Button>
+          <Button variant="ghost" onClick={() => { onClose(); setForm({}) }} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Guardando...' : (isEdit ? 'Guardar' : 'Registrar')}</Button>
         </div>
       </div>
     </Modal>

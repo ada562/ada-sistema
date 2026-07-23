@@ -30,7 +30,7 @@ function getSemestres() {
   const y = new Date().getFullYear()
   return [
     { label: `1er Semestre ${y} (Ene–Jun)`, semestre: 1, periodStart: `${y}-01-01`, periodEnd: `${y}-06-30` },
-    { label: `2do Semestre ${y} (Jul–Dic)`, semestre: 2, periodStart: `${y}-07-01`, periodEnd: `${y}-12-20` },
+    { label: `2do Semestre ${y} (Jul–Dic)`, semestre: 2, periodStart: `${y}-07-01`, periodEnd: `${y}-12-31` },
   ]
 }
 

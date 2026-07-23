@@ -20,6 +20,20 @@ Al ejecutar `/ada-architect` o `/ada-architect <area especifica>`:
 
 ## Proceso de auditoria
 
+### Paso 0 — Buscar primero en el catalogo de repos (obligatorio)
+Antes de proponer construir algo custom o desde cero para el area evaluada:
+1. Leer `REPOSITORIOS_GITHUB.md` — verificar si ya hay un repo evaluado (✅/🔜/📖) que cubra
+   esa area (gestion de proyectos, chat, WhatsApp, diseno grafico, CAD/3D, offline-first, pegamento).
+2. Si el area **no** esta cubierta en el catalogo, buscar en GitHub web con los mismos criterios
+   de verificacion del documento (seccion "Como agregar un repo nuevo"): (1) archivo LICENSE real
+   del repo, no el marketing; (2) fecha del ultimo release y actividad de commits; (3) features
+   detras de un tier de pago (rug-pull); (4) costo de self-host (contenedores/RAM); (5) API/webhooks/
+   embeds para integrar a la app.
+3. Si se encuentra un repo nuevo relevante, agregarlo a `REPOSITORIOS_GITHUB.md` en la seccion
+   correspondiente (mismo formato de tabla) antes de recomendarlo en el reporte de auditoria.
+4. Si el area esta cubierta pero con veredicto ⚠️/❌, explicar por que no se adopta y si sigue
+   siendo la mejor opcion disponible o si toca reevaluar.
+
 ### Paso 1 — Escaneo estructural
 ```
 Leer y analizar:
@@ -74,6 +88,9 @@ Clasificar hallazgos por severidad:
 
 ## Diagrama de dependencias
 [Texto describiendo flujo de datos entre modulos]
+
+## Repos relevantes del catalogo (REPOSITORIOS_GITHUB.md)
+- [repo] — veredicto — por que aplica (o por que se descarta) para esta area
 
 ## Recomendaciones priorizadas
 1. ...

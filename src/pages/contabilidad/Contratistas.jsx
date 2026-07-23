@@ -284,6 +284,7 @@ export default function Contratistas() {
 
 function FormContratista({ open, data, onClose, addContratista, updateContratista }) {
   const [form, setForm] = useState({})
+  const [saving, setSaving] = useState(false)
   const isEdit = !!data
 
   const resetForm = () => {
@@ -297,6 +298,7 @@ function FormContratista({ open, data, onClose, addContratista, updateContratist
 
   const handleSave = async () => {
     if (!form.name?.trim()) return toast.error('Nombre requerido')
+    setSaving(true)
     try {
       if (isEdit) {
         await updateContratista(data.id, form)
@@ -309,6 +311,8 @@ function FormContratista({ open, data, onClose, addContratista, updateContratist
       setForm({})
     } catch (err) {
       toast.error(err.message || 'No se pudo guardar el contratista')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -338,8 +342,10 @@ function FormContratista({ open, data, onClose, addContratista, updateContratist
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
         </div>
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="ghost" onClick={() => { onClose(); setForm({}) }}>Cancelar</Button>
-          <Button onClick={handleSave}>{isEdit ? 'Guardar' : 'Crear'}</Button>
+          <Button variant="ghost" onClick={() => { onClose(); setForm({}) }} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? 'Guardando...' : (isEdit ? 'Guardar' : 'Crear')}
+          </Button>
         </div>
       </div>
     </Modal>
@@ -350,6 +356,7 @@ function FormContratista({ open, data, onClose, addContratista, updateContratist
 
 function FormCuenta({ open, contractorId, data, onClose, addPayment, updatePayment }) {
   const [form, setForm] = useState({})
+  const [saving, setSaving] = useState(false)
   const isEdit = !!data
 
   const resetForm = () => {
@@ -362,6 +369,14 @@ function FormCuenta({ open, contractorId, data, onClose, addPayment, updatePayme
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
   const handleSave = async () => {
+    if (isEdit) {
+      const paidAmount = Number(data.paidAmount) || 0
+      const newAmount = Number(form.amount) || 0
+      if (newAmount < paidAmount) {
+        return toast.error(`El valor total no puede ser menor a lo ya abonado (${fmtMoney(paidAmount)})`)
+      }
+    }
+    setSaving(true)
     try {
       if (isEdit) {
         await updatePayment(data.id, form)
@@ -374,6 +389,8 @@ function FormCuenta({ open, contractorId, data, onClose, addPayment, updatePayme
       setForm({})
     } catch (err) {
       toast.error(err.message || 'No se pudo guardar la cuenta')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -398,8 +415,10 @@ function FormCuenta({ open, contractorId, data, onClose, addPayment, updatePayme
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
         </div>
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="ghost" onClick={() => { onClose(); setForm({}) }}>Cancelar</Button>
-          <Button onClick={handleSave}>{isEdit ? 'Guardar' : 'Crear'}</Button>
+          <Button variant="ghost" onClick={() => { onClose(); setForm({}) }} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? 'Guardando...' : (isEdit ? 'Guardar' : 'Crear')}
+          </Button>
         </div>
       </div>
     </Modal>
@@ -411,6 +430,7 @@ function FormCuenta({ open, contractorId, data, onClose, addPayment, updatePayme
 function AbonoModal({ open, payment, contractor, onClose, registrarAbono }) {
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState('banco')
+  const [saving, setSaving] = useState(false)
 
   if (!open || !payment) return null
 
@@ -421,6 +441,7 @@ function AbonoModal({ open, payment, contractor, onClose, registrarAbono }) {
     if (!monto || monto <= 0) return toast.error('Monto inválido')
     if (monto > pendiente) return toast.error(`El abono excede el pendiente (${fmtMoney(pendiente)})`)
 
+    setSaving(true)
     try {
       await registrarAbono(payment.id, { amount: monto, method, date: todayIso() })
       toast.success(`Abono de ${fmtMoney(monto)} registrado`)
@@ -429,6 +450,8 @@ function AbonoModal({ open, payment, contractor, onClose, registrarAbono }) {
       setMethod('banco')
     } catch (err) {
       toast.error(err.message || 'No se pudo registrar el abono')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -479,8 +502,8 @@ function AbonoModal({ open, payment, contractor, onClose, registrarAbono }) {
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="ghost" onClick={() => { onClose(); setAmount(''); setMethod('banco') }}>Cancelar</Button>
-          <Button onClick={handleAbono}>Registrar abono</Button>
+          <Button variant="ghost" onClick={() => { onClose(); setAmount(''); setMethod('banco') }} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleAbono} disabled={saving}>{saving ? 'Registrando...' : 'Registrar abono'}</Button>
         </div>
         <p className="text-xs text-gray-400 text-center">El abono se registrará automáticamente como gasto en Tesorería</p>
       </div>

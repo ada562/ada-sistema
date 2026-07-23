@@ -1,6 +1,6 @@
 # ADA Gestion — Contexto del Proyecto
-**Actualizado:** 2026-07-23 (sesion 8)
-**Version app:** v0.3.4
+**Actualizado:** 2026-07-23 (sesion 9)
+**Version app:** v0.3.5
 
 ## 1. Estado general
 Migracion completa de localStorage a Supabase (Postgres + Auth + RLS + Realtime)
@@ -58,6 +58,71 @@ con dos reportes del usuario **aun sin confirmar resueltos**:
   pegar en el chat — no llego como archivo (solo como preview inline), se
   le explico que debe arrastrar el archivo real o guardarlo el mismo en
   `public/logo-ada.png`. **Sigue pendiente, no se reemplazo nada todavia.**
+
+**Sesion 9 (2026-07-23):** Revision de codigo integral (primera vez) de toda
+la app — capa de datos/auth, 26 migraciones SQL/RLS, Contabilidad, RRHH+Proyectos,
+Gerencia+UI/routing — pedida explicitamente por el usuario para validar
+seguridad/calidad/auditoria/mantenimiento de cara a un SaaS real de empresa.
+Reporte completo en `docs/auditorias/revision_2026-07-23.md` (calificacion
+global 7.2/10). El usuario decidio corregir solo los 4 hallazgos **criticos**
+en esta sesion y dejar los "altos"/"medios" como deuda tecnica (seccion 6):
+1. Fix bug de fecha en Nomina: el 2do semestre terminaba `-12-20` en vez de
+   `-12-31`, afectando el calculo de la prima de diciembre — corregido en
+   `src/pages/rrhh/Nomina.jsx`.
+2. Datos salariales (`monthlyRate`, `nonConstitutiveSalary`, tarifa dia) en
+   `EmpleadoDetalle.jsx` ahora solo se muestran si `isAdmin` (antes se
+   renderizaban sin chequeo de rol en el frontend, dependian solo de RLS).
+3. Proteccion anti doble-submit (patron `saving`/`disabled` ya usado en
+   `ArqueoCaja.jsx`) agregada a los 5 formularios que mueven dinero real:
+   `FormContratista`, `FormCuenta`, `AbonoModal` (Contratistas.jsx),
+   `FormGBAMovement` (GBA.jsx) y `FormMovimiento` (Tesoreria) — antes un
+   doble-click podia duplicar un pago/movimiento.
+4. `FormCuenta` (Contratistas.jsx) ahora valida que el valor total de una
+   cuenta de contratista no se edite por debajo de lo ya abonado (evita
+   dejar el "pendiente" en negativo).
+`npm run build` verificado sin errores al cierre de esta sesion.
+
+Ademas, en paralelo (fuera de esta conversacion, ya presente al iniciar
+sesion 9) quedo una **auditoria de arquitectura del portal de empleado**
+(`docs/auditorias/arquitectura_2026-07-23.md`, puntaje 8/10, sin criticos)
+y actualizaciones a los skills `ada-architect`/`ada-optimizer`/`ada-reviewer`
+que agregan un "Paso 0" obligatorio: consultar `REPOSITORIOS_GITHUB.md`
+(catalogo de repos ya evaluados) antes de proponer construir algo custom
+desde cero. Ambos quedan sincronizados en este mismo commit de cierre.
+
+**Decision de arquitectura (misma sesion 9): PowerSync de alcance mixto.**
+El usuario confirmo que PowerSync (offline-first) debe cubrir SOLO los
+modulos operativos/de campo (Visitas, Tareas, Bitacoras/`registro_horas`,
+reportes de avance por tarea, Permisos), mientras que los modulos de
+dinero e inventario/configuracion (Tesoreria, Contratistas, Nomina, GBA,
+Arqueo de Caja, Categorias/Cuentas/Configuracion) deben seguir
+**exigiendo conexion a internet real** para poder guardar — sin cache
+local ni cola de escritura offline, para no arriesgar integridad
+financiera (conflictos de "ultima escritura gana" en operaciones que hoy
+usan `FOR UPDATE NOWAIT`). Se investigo el terreno (sin escribir codigo
+todavia, sesion cerrada en **Plan Mode**, `ExitPlanMode` no se ejecuto):
+- No existe ningun hook/util de conectividad en el proyecto — `useOnlineStatus`
+  hay que crearlo desde cero en `src/hooks/`.
+- Se identificaron los 8 puntos exactos de submit de los modulos de
+  dinero donde habria que insertar el guard "debes estar en linea para
+  guardar" (via toast Sonner, mismo patron ya usado en todos lados):
+  `FormMovimiento.jsx:61`, `FormPago.jsx:54` (proyectos), `Contratistas.jsx`
+  (`FormContratista:299`, `FormCuenta:371`, `AbonoModal:439`),
+  `Nomina.jsx` (`PagarModal:581`, `PagarPrimaModal:645`), `GBA.jsx:228`,
+  `ArqueoCaja.jsx:45`.
+- Categorias/Cuentas/Configuracion (`dbCategorias.js`, `dbSettings.js`)
+  hoy son **solo lectura** (no existe UI de escritura todavia) — el guard
+  de conectividad se puede disenar desde el inicio cuando se construya
+  esa UI, sin retrofit.
+- Falta disenar: Sync Rules de PowerSync (equivalente en YAML a las
+  politicas RLS ya existentes — riesgo real de que ambas fuentes de
+  permisos se desalineen con el tiempo), el connector de auth/upload, y
+  decidir PowerSync Cloud (free tier) vs self-host (Docker + logical
+  replication en el Postgres de Supabase).
+- **Pendiente para la proxima sesion:** el plan concreto no se aprobo
+  todavia — retomar la conversacion (`/ada-context-sync ... "luego
+  continuamos"` fue la instruccion de cierre) antes de escribir cualquier
+  codigo de PowerSync.
 
 ## 1d. Sesion 7 — Arqueo de Caja a Supabase + quitar "Otros" + Tareas + Permisos
 - **Arqueo de Caja → Supabase** (`src/lib/dbArqueoCaja.js` reescrito,
@@ -256,13 +321,47 @@ auditoria (`audit_log`) en las tablas de dinero/empleados.
 - **P2:** Configurar DNS app.adainteriors.co en Hostinger (CNAME → cname.vercel-dns.com)
 - **P3:** Integraciones diferidas: PowerSync (offline en Visitas de campo), model-viewer/pdf.js/Pannellum (portal cliente), Chatwoot
 - **P3:** Revisar y afinar la matriz de permisos provisional de `002_perfiles_rbac.sql` contra el uso real por rol
+- **P2 (de auditoria sesion 9, `docs/auditorias/revision_2026-07-23.md`):** `window.confirm()`
+  nativo en 13 sitios en vez del `Modal` propio (`Equipo.jsx`, `EmpleadoDetalle.jsx`,
+  `Contratistas.jsx`, `GBA.jsx`, `TablaMovimientos.jsx`, `Proyectos.jsx`, `ProyectoDetalle.jsx`,
+  `Bitacoras.jsx`, `Tareas.jsx`, `Visitas.jsx`, `DocumentosEmpleado.jsx`) — crear un
+  `ConfirmDialog` reutilizable y reemplazarlos.
+- **P2:** RBAC hardcodeado (`perfil?.rol === 'admin'`) en vez de `usePermission()` en
+  `Permisos.jsx`, `EmpleadoDetalle.jsx`, `Bitacoras.jsx`, `Tareas.jsx` — evaluar si conviene
+  seguir siendo un chequeo de admin puro (sin permiso de modulo especifico, como ya esta
+  documentado en `EmpleadoDetalle.jsx`) o si se debe sembrar una accion nueva en `permisos`.
+- **P3:** Subida de archivos (`dbDocumentos.js`, `dbTareaReportes.js`) sin whitelist de
+  extension permitida — agregar validacion + extraer `sanitizeFileName()` duplicada a un solo
+  helper compartido.
+- **P3:** Faltan componentes UI genericos reutilizables (`Input`, `Select`, `Skeleton`) —
+  cada pagina reimplementa sus propios estilos inline.
+- **P3:** `ResumenGerencia.jsx` es monolitico (547 lineas, 7 secciones independientes) —
+  candidato a dividirse en `src/components/gerencia/`.
+- **P3:** Plantilla HTML de impresion duplicada en `ReciboArqueoCaja.jsx`,
+  `ReciboContratista.jsx` y `ExtractoTesoreria.jsx` — unificar en un solo helper.
+- **P2 (de auditoria de arquitectura, `docs/auditorias/arquitectura_2026-07-23.md`):**
+  `getTareas()` y `getTareaReportes()` (`src/lib/dbTareas.js`, `dbTareaReportes.js`) traen
+  toda la tabla del tenant sin ventana temporal, y el Realtime de ambos stores retriggerea
+  `fetchAll()` completo por cualquier cambio de cualquier empleado — filtrar `tareas` por mes
+  visible y cargar `tarea_reportes` solo bajo demanda por `tarea_id` al abrir el detalle.
+- **P3:** mismo patron de fetch-all sin paginar en `registro_horas` para la vista admin
+  (`Bitacoras.jsx` via `useTimelogsStore`) — paginar por semana/mes cuando crezca el volumen.
+- **P3:** logica de parseo de la nota `[Permiso:...]` duplicada entre
+  `BitacoraSemanaGrid.jsx` (`parsePermisoNote`/`buildPermisoNote`) y `Bitacoras.jsx`
+  (regex propia mas simple) — mover a un helper compartido (ej. `src/lib/bitacoraHelpers.js`).
 
 ## 7. Cuenta Claude
 - **Email:** coor.produccion.ada@gmail.com
 - **Plan:** Max (confirmado en facturacion)
 
 ## 9. Proxima Sesion — Continuar Aqui
-0. **Retomar 3 reportes de QA abiertos de la sesion 8 (respuestas del
+0. **Retomar y aprobar el plan de PowerSync de alcance mixto** (ver detalle
+   en Sesion 9 arriba): offline-first solo en Visitas/Tareas/Bitacoras/
+   Permisos/reportes de avance; Tesoreria/Contratistas/Nomina/GBA/Arqueo/
+   Categorias-Cuentas-Config siguen 100% online (crear `useOnlineStatus` +
+   guard en los 8 puntos de submit ya identificados). Sesion anterior se
+   cerro en Plan Mode sin `ExitPlanMode` — no hay codigo escrito todavia.
+0.1 **Retomar 3 reportes de QA abiertos de la sesion 8 (respuestas del
    usuario quedaron pendientes al cierre de sesion):**
    - Boton "+" del calendario de Tareas no abre el campo de texto — pedir
      confirmacion de si `Ctrl+Shift+R` lo resolvio; si no, pedir captura

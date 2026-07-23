@@ -20,6 +20,17 @@ Al ejecutar `/ada-reviewer` o `/ada-reviewer <archivo o modulo>`:
 
 ## Proceso de revision
 
+### Paso 0 — Buscar primero en el catalogo de repos (obligatorio)
+Antes de sugerir escribir codigo custom para resolver algo generico (exportar Excel/PDF, editor
+de imagenes, sync offline, visor de archivos, etc.):
+1. Leer `REPOSITORIOS_GITHUB.md` — si ya hay un repo evaluado (✅/🔜/📖) que resuelva ese
+   problema, senalarlo como hallazgo tipo `REPO` en vez de (o ademas de) proponer una solucion a mano.
+2. Si no esta cubierto en el catalogo, buscar en GitHub web con los mismos criterios de
+   verificacion del documento (licencia real, ultimo release, rug-pull/paywall, costo self-host,
+   API/webhooks) antes de asumir que hay que construirlo desde cero.
+3. Si se encuentra un repo nuevo relevante, agregarlo a `REPOSITORIOS_GITHUB.md` siguiendo el
+   formato de tabla existente.
+
 ### Paso 1 — Determinar alcance
 - Si se especifica archivo/modulo: revisar solo ese
 - Si no: revisar archivos modificados desde el ultimo commit (`git diff --name-only HEAD~5`)
@@ -75,6 +86,7 @@ Para cada archivo revisar:
 | LOGIC | 🧠 | Logica mejorable o confusa |
 | DRY | ♻️ | Codigo duplicado que deberia extraerse |
 | SEC | 🔒 | Potencial problema de seguridad |
+| REPO | 📦 | Ya existe un repo evaluado en REPOSITORIOS_GITHUB.md que resuelve esto mejor que codigo a mano |
 
 ### Paso 4 — Generar reporte
 

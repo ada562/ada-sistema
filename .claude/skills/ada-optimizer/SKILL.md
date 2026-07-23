@@ -20,6 +20,17 @@ Al ejecutar `/ada-optimizer` o `/ada-optimizer <area>`:
 
 ## Proceso de optimizacion
 
+### Paso 0 — Buscar primero en el catalogo de repos (obligatorio)
+Antes de proponer una optimizacion custom para un problema que ya tiene solucion evaluada
+(ej: sync offline, cache de imagenes/assets, virtualizacion de listas):
+1. Leer `REPOSITORIOS_GITHUB.md` — revisar si el area (especialmente seccion 6, offline-first,
+   y seccion 7, pegamento/infraestructura) ya tiene un repo evaluado que resuelva el problema
+   de forma mas eficiente que una optimizacion manual.
+2. Si no esta cubierto, buscar en GitHub web con los mismos criterios de verificacion del
+   documento (licencia real, ultimo release, rug-pull/paywall, costo self-host, API/webhooks).
+3. Si se encuentra un repo nuevo relevante, agregarlo a `REPOSITORIOS_GITHUB.md` antes de
+   incluirlo en el reporte de optimizacion.
+
 ### Paso 1 — Analisis de bundle
 ```bash
 # Verificar tamano del build

@@ -20,6 +20,7 @@ const emptyForm = {
 export default function FormMovimiento() {
   const { modalOpen, editingTx, closeModal, addTx, updateTx } = useTesoreriaStore()
   const [form, setForm] = useState(emptyForm)
+  const [saving, setSaving] = useState(false)
   const proyectos = useProyectosStore((s) => s.projects)
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export default function FormMovimiento() {
       projectId: form.projectId || null,
     }
 
+    setSaving(true)
     try {
       if (editingTx) {
         await updateTx(editingTx.id, data)
@@ -85,6 +87,8 @@ export default function FormMovimiento() {
       closeModal()
     } catch (err) {
       toast.error(err.message || 'No se pudo guardar el movimiento')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -191,11 +195,11 @@ export default function FormMovimiento() {
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
-          <Button type="button" variant="ghost" onClick={closeModal}>
+          <Button type="button" variant="ghost" onClick={closeModal} disabled={saving}>
             Cancelar
           </Button>
-          <Button type="submit">
-            {editingTx ? 'Guardar cambios' : 'Registrar movimiento'}
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Guardando...' : (editingTx ? 'Guardar cambios' : 'Registrar movimiento')}
           </Button>
         </div>
       </form>

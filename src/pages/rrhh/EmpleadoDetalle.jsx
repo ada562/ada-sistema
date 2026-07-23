@@ -174,9 +174,13 @@ export default function EmpleadoDetalle() {
           <InfoRow label="Fecha de ingreso" value={emp.startDate ? fmtDate(emp.startDate) : null} />
           <InfoRow label="Tipo de contrato" value={emp.contractType} />
           <InfoRow label="Vencimiento contrato" value={emp.contractUntil ? fmtDate(emp.contractUntil) : null} />
-          <InfoRow label="Salario mensual" value={emp.monthlyRate ? fmtMoney(emp.monthlyRate) : null} />
-          <InfoRow label="Salario no constitutivo" value={emp.nonConstitutiveSalary ? fmtMoney(emp.nonConstitutiveSalary) : null} />
-          <InfoRow label="Tarifa día" value={dailyRate > 0 ? fmtMoney(dailyRate) : null} />
+          {isAdmin && (
+            <>
+              <InfoRow label="Salario mensual" value={emp.monthlyRate ? fmtMoney(emp.monthlyRate) : null} />
+              <InfoRow label="Salario no constitutivo" value={emp.nonConstitutiveSalary ? fmtMoney(emp.nonConstitutiveSalary) : null} />
+              <InfoRow label="Tarifa día" value={dailyRate > 0 ? fmtMoney(dailyRate) : null} />
+            </>
+          )}
         </SectionCard>
 
         {/* Seguridad social */}
