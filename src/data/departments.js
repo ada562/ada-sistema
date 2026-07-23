@@ -18,7 +18,6 @@ import {
   ClipboardCheck,
   CalendarDays,
   ClipboardX,
-  ListChecks,
 } from 'lucide-react'
 
 export const topLevelItems = []
@@ -53,7 +52,6 @@ export const departments = [
     modules: [
       { id: 'tesoreria', label: 'Tesorería', icon: Wallet },
       { id: 'arqueo-caja', label: 'Arqueo de Caja', icon: ClipboardCheck },
-      { id: 'conciliacion', label: 'Conciliación', icon: ListChecks },
       { id: 'gba', label: 'GBA', icon: Handshake },
       { id: 'contratistas', label: 'Contratistas', icon: Handshake },
     ],

@@ -6,7 +6,6 @@ import {
   updateTransaction,
   deleteTransaction,
   getAccountBalances,
-  setConciliado,
 } from '../lib/dbTesoreria'
 
 const emptyBalances = { banco: 0, efectivo: 0, nequi: 0 }
@@ -91,22 +90,6 @@ export const useTesoreriaStore = create((set, get) => ({
       await deleteTransaction(id)
       await get().fetchAll()
     } catch (e) {
-      throw friendlyError(e)
-    }
-  },
-
-  toggleConciliado: async (id, conciliado) => {
-    // Update optimista: la realtime de 'transacciones' igual llama fetchAll(),
-    // pero esto evita el parpadeo del checkbox mientras llega el evento.
-    set((state) => ({
-      transactions: state.transactions.map((tx) => (tx.id === id ? { ...tx, conciliado } : tx)),
-    }))
-    try {
-      await setConciliado(id, conciliado)
-    } catch (e) {
-      set((state) => ({
-        transactions: state.transactions.map((tx) => (tx.id === id ? { ...tx, conciliado: !conciliado } : tx)),
-      }))
       throw friendlyError(e)
     }
   },

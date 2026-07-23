@@ -14,7 +14,6 @@ const ProyectoDetalle = lazy(() => import('./pages/ProyectoDetalle'))
 const Reportes = lazy(() => import('./pages/Reportes'))
 const Tesoreria = lazy(() => import('./pages/contabilidad/Tesoreria'))
 const ArqueoCaja = lazy(() => import('./pages/contabilidad/ArqueoCaja'))
-const Conciliacion = lazy(() => import('./pages/contabilidad/Conciliacion'))
 const GBA = lazy(() => import('./pages/contabilidad/GBA'))
 const Contratistas = lazy(() => import('./pages/contabilidad/Contratistas'))
 const Equipo = lazy(() => import('./pages/rrhh/Equipo'))
@@ -39,7 +38,6 @@ const views = {
   reportes: Reportes,
   tesoreria: Tesoreria,
   'arqueo-caja': ArqueoCaja,
-  conciliacion: Conciliacion,
   gba: GBA,
   'resumen-gerencia': ResumenGerencia,
   'bitacora-ceo': BitacoraCeo,

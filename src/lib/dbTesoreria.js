@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
 const COLUMNS =
-  'id,fecha,tipo,cuenta,monto,categoria_id,categorias(nombre),descripcion,gba_movimiento,facturado,proyecto_id,servicio_id,conciliado,created_at'
+  'id,fecha,tipo,cuenta,monto,categoria_id,categorias(nombre),descripcion,gba_movimiento,facturado,proyecto_id,servicio_id,created_at'
 
 function fromRow(r, categoryNameOverride) {
   return {
@@ -17,7 +17,6 @@ function fromRow(r, categoryNameOverride) {
     facturado: r.facturado,
     projectId: r.proyecto_id,
     serviceId: r.servicio_id,
-    conciliado: r.conciliado,
     createdAt: r.created_at,
   }
 }
@@ -98,11 +97,6 @@ export async function updateTransaction(id, data) {
 
 export async function deleteTransaction(id) {
   const { error } = await supabase.from('transacciones').delete().eq('id', id)
-  if (error) throw error
-}
-
-export async function setConciliado(id, conciliado) {
-  const { error } = await supabase.from('transacciones').update({ conciliado }).eq('id', id)
   if (error) throw error
 }
 
