@@ -1,12 +1,13 @@
 import { supabase } from './supabase'
 
-const TIMELOG_COLUMNS = 'id,empleado_id,proyecto_id,fecha,dias,nota,created_at'
+const TIMELOG_COLUMNS = 'id,empleado_id,proyecto_id,servicio_id,fecha,dias,nota,created_at'
 
 function timelogFromRow(r) {
   return {
     id: r.id,
     employeeId: r.empleado_id,
     projectId: r.proyecto_id,
+    serviceId: r.servicio_id,
     date: r.fecha,
     days: Number(r.dias) || 0,
     note: r.nota,
@@ -53,6 +54,7 @@ export async function addTimelog(data) {
       tenant_id: 'ada',
       empleado_id: data.employeeId,
       proyecto_id: data.projectId,
+      servicio_id: data.serviceId || null,
       fecha: data.date || null,
       dias: Number(data.days) || 0,
       nota: data.note || '',
@@ -69,6 +71,7 @@ export async function updateTimelog(id, data) {
     .update({
       empleado_id: data.employeeId,
       proyecto_id: data.projectId,
+      servicio_id: data.serviceId || null,
       fecha: data.date || null,
       dias: Number(data.days) || 0,
       nota: data.note || '',

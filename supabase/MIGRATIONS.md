@@ -433,3 +433,27 @@
   - No se sembraron filas nuevas en `permisos` — el módulo `tareas` ya tiene `leer`/`escribir` para empleado/admin/rrhh desde la migración 024, y cubren también el acceso a los reportes (mismo módulo en el sidebar).
   - El calendario mensual de `Tareas.jsx` también se rediseñó visualmente (colores por tarea vía hash determinístico del id, sin columna nueva en la base de datos — pedido del usuario de un estilo "más vistoso, que llame la atención, como Asana").
   - Frontend: `dbTareaReportes.js`, `useTareaReportesStore.js`, `Tareas.jsx` (modal de detalle de tarea con feed de reportes + subida de adjunto), `fmtDateTime` agregado a `formatters.js`.
+
+### 027 — Arqueo de Caja: borrar arqueo mal registrado + efectivo pendiente
+- **Archivo:** `migrations/027_arqueo_caja_pendiente_y_delete.sql`
+- **Fecha:** 2026-07-23
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-23
+- **Propósito:** dos pedidos del usuario sobre Arqueo de Caja tras revisar un descuadre de $190.935 en el efectivo. 1) Permitir borrar un arqueo mal registrado (la tabla, migración 015, solo tenía SELECT/INSERT). 2) Registrar efectivo que el usuario recibe pero no tiene físicamente (lo maneja un tercero) — solo informativo, no crea transacciones ni afecta `vw_saldos_cuentas`.
+- **Tablas afectadas:** `arqueo_caja` (`ADD COLUMN pendiente_monto`, `pendiente_concepto`, `CHECK pendiente_monto >= 0`, `POLICY arqueo_caja_delete` solo `admin`).
+- **Dependencias:** `arqueo_caja` (015), `denominaciones` (023).
+- **Notas:**
+  - Borrar es más restrictivo que insertar (que también permite `contabilidad`) por ser más sensible.
+  - Junto con esta sesión se corrigió un bug real en `ArqueoCaja.jsx`: el saldo del sistema se leía una sola vez al montar en vez de suscribirse a `useTesoreriaStore` (realtime) — el "faltante" no se actualizaba solo al registrar movimientos en Tesorería. Se agregó también un banner de estado ("Hoy estás cuadrada" / cuánto sobra o falta según el último conteo del día) para que la usuaria y su jefe vean el cuadre de un vistazo.
+
+### 028 — Bitácora: servicio por proyecto en registro de horas
+- **Archivo:** `migrations/028_registro_horas_servicio.sql`
+- **Fecha:** 2026-07-23
+- **Estado:** ⏳ Pendiente de ejecutar en Supabase (SQL Editor)
+- **Propósito:** pedido explícito del usuario — dentro de un proyecto, las horas no siempre pertenecen al proyecto "madre" sino a un servicio específico (`servicios_proyecto`, ej. FACHADAS, ACABADOS). Se agrega `servicio_id` opcional a `registro_horas` para poder atribuir horas a un servicio. Explícitamente NO se agrega descuento de presupuesto/matriz por servicio — eso queda para un módulo futuro de presupuesto ("no el presupuesto es algo asi ese todavia no lo toquemos").
+- **Tablas afectadas:** `registro_horas` (`ADD COLUMN servicio_id uuid REFERENCES servicios_proyecto(id)`, índice `idx_registro_horas_servicio_id`).
+- **Dependencias:** `registro_horas` (011/014), `servicios_proyecto`.
+- **Notas:**
+  - Junto con esta migración se hicieron cambios solo-frontend en `BitacoraSemanaGrid.jsx` (componente compartido por `MiBitacora.jsx`/`Bitacoras.jsx`/`BitacoraCeo.jsx`): se quitó la columna Domingo del calendario semanal (6 días, Lunes–Sábado — pedido explícito, "quitemos el domingo no se requiere"; el `DAY_LABELS` de `dateWeek.js` NO se tocó porque también lo usan `Reportes.jsx`/`Tareas.jsx`, que sí necesitan los 7 días — se usa un array local recortado solo en este componente); se fusionó la caja aparte de "Permisos" dentro de la misma tabla de proyectos como un ítem/fila más (antes eran "dos cuadros" separados); se agregó un selector de servicio por fila de proyecto (solo visible si el proyecto tiene servicios definidos) que aplica a las horas que se registren esa semana.
+  - En `Bitacoras.jsx` (vista admin): columna "Servicio" en el historial, totales del header cambiados al formato pedido "X trabajadores y Y permisos" (conteo de empleados distintos vs. filas con nota `[Permiso:...]`), y selector de servicio agregado al modal de registro manual.
+  - En `FormBitacora.jsx` (modal usado desde `ProyectoDetalle.jsx`, con `projectId` fijo): mismo selector de servicio, poblado con `useServiciosStore.getByProject(projectId)`.
+  - Frontend: `dbTimelogs.js` (`servicio_id`/`serviceId` en columnas, `timelogFromRow`, `addTimelog`, `updateTimelog`).

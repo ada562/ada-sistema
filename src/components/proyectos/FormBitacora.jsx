@@ -4,6 +4,7 @@ import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 import { useTimelogsStore } from '../../store/useTimelogsStore'
+import { useServiciosStore } from '../../store/useServiciosStore'
 import { todayIso } from '../../lib/formatters'
 
 const emptyForm = {
@@ -11,6 +12,7 @@ const emptyForm = {
   date: todayIso(),
   days: '',
   note: '',
+  serviceId: '',
 }
 
 export default function FormBitacora({ projectId, open, onClose, editing = null }) {
@@ -19,6 +21,13 @@ export default function FormBitacora({ projectId, open, onClose, editing = null 
   const empleados = getEmpleadosActivos()
   const addTimelog = useTimelogsStore((s) => s.addTimelog)
   const updateTimelog = useTimelogsStore((s) => s.updateTimelog)
+  const getServiciosByProject = useServiciosStore((s) => s.getByProject)
+  const fetchServicios = useServiciosStore((s) => s.fetchAll)
+  const serviciosDisponibles = getServiciosByProject(projectId)
+
+  useEffect(() => {
+    fetchServicios()
+  }, [fetchServicios])
 
   useEffect(() => {
     if (editing) {
@@ -27,6 +36,7 @@ export default function FormBitacora({ projectId, open, onClose, editing = null 
         date: editing.date || todayIso(),
         days: editing.days || '',
         note: editing.note || '',
+        serviceId: editing.serviceId || '',
       })
     } else {
       setForm(emptyForm)
@@ -82,6 +92,23 @@ export default function FormBitacora({ projectId, open, onClose, editing = null 
             ))}
           </select>
         </div>
+
+        {serviciosDisponibles.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Servicio</label>
+            <select
+              name="serviceId"
+              value={form.serviceId}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">Servicio general</option>
+              {serviciosDisponibles.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>

@@ -1,9 +1,15 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import Button from '../UI/Button'
 import { fmtDate } from '../../lib/formatters'
-import { mondayOfLocal, addDaysLocal, toIsoLocal, DAY_LABELS } from '../../lib/dateWeek'
+import { mondayOfLocal, addDaysLocal, toIsoLocal, DAY_LABELS as ALL_DAY_LABELS } from '../../lib/dateWeek'
+import { useServiciosStore } from '../../store/useServiciosStore'
+
+// Bitacora no muestra Domingo (se pidio explicitamente quitarlo del
+// calendario semanal) -- a diferencia de Reportes.jsx y Tareas.jsx, que
+// siguen usando DAY_LABELS completo (7 dias) de dateWeek.js sin cambios.
+const DAY_LABELS = ALL_DAY_LABELS.slice(0, 6)
 
 // BitacoraSemanaGrid -- vista de calendario semanal (columnas = dias
 // Lunes..Domingo, filas = proyectos) para un empleado especifico. La misma
@@ -23,15 +29,24 @@ import { mondayOfLocal, addDaysLocal, toIsoLocal, DAY_LABELS } from '../../lib/d
 // sobre una celda con horas reales, no una celda vacia.
 //
 // "Permiso" (salud/personal) -- horas de un dia que NO se trabajaron por un
-// permiso medico o una vuelta personal. Se pidio explicitamente como una
-// casilla APARTE del calendario (no una fila mas de la tabla), y se persiste
-// con proyecto_id=NULL + nota obligatoria (migracion 014 agrega el CHECK que
-// lo exige). Se identifica en el frontend con el sentinel PERMISO_ID,
-// traducido a projectId:null al leer/escribir -- nunca se guarda ese string.
-// La nota se distingue por convencion de texto: "[Permiso:Salud] ..." /
+// permiso medico o una vuelta personal. Se persiste con proyecto_id=NULL +
+// nota obligatoria (migracion 014 agrega el CHECK que lo exige). Se
+// identifica en el frontend con el sentinel PERMISO_ID, traducido a
+// projectId:null al leer/escribir -- nunca se guarda ese string. La nota se
+// distingue por convencion de texto: "[Permiso:Salud] ..." /
 // "[Permiso:Personal] ...". findEntry() filtra por ese prefijo (la fila fija
 // "Otros" que existia antes con la misma convencion projectId=NULL sin ese
-// prefijo fue eliminada del todo -- ver PROYECTO_CONTEXTO.md).
+// prefijo fue eliminada del todo -- ver PROYECTO_CONTEXTO.md). Se muestra
+// como un item mas ("Permisos") dentro de la misma tabla de proyectos -- ya
+// no es una caja aparte -- para que el total de la semana quede unificado.
+//
+// "Servicio" (servicios_proyecto) -- dentro de un proyecto con servicios
+// definidos (ej. FACHADAS, ACABADOS), las horas se pueden atribuir a un
+// servicio especifico en vez de siempre al proyecto madre. La seleccion es
+// por fila/proyecto (no por celda): se elige una vez y aplica a las horas
+// que se registren esa semana para ese proyecto. Solo es informativo -- NO
+// descuenta presupuesto ni valida contra ningun limite (eso queda para un
+// modulo futuro de presupuesto).
 const PERMISO_ID = '__permiso__'
 const PERMISO_NOTE_REGEX = /^\[Permiso:(Salud|Personal)\]\s?(.*)$/
 const isPermisoNote = (note) => typeof note === 'string' && PERMISO_NOTE_REGEX.test(note)
@@ -57,10 +72,26 @@ export default function BitacoraSemanaGrid({
   const [addedProjectIds, setAddedProjectIds] = useState([])
   const [addProjectSelect, setAddProjectSelect] = useState('')
   const [drafts, setDrafts] = useState({}) // `${proyectoId}::${dateIso}` -> string en edicion
+  const [rowServicio, setRowServicio] = useState({}) // proyectoId -> servicioId elegido para esta semana
+
+  const servicios = useServiciosStore((s) => s.servicios)
+  const fetchServicios = useServiciosStore((s) => s.fetchAll)
+  useEffect(() => {
+    fetchServicios()
+  }, [fetchServicios])
+
+  const serviciosPorProyecto = useMemo(() => {
+    const map = new Map()
+    servicios.forEach((s) => {
+      if (!map.has(s.projectId)) map.set(s.projectId, [])
+      map.get(s.projectId).push(s)
+    })
+    return map
+  }, [servicios])
 
   const weekStartIso = toIsoLocal(weekCursor)
   const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => toIsoLocal(addDaysLocal(weekCursor, i))),
+    () => Array.from({ length: 6 }, (_, i) => toIsoLocal(addDaysLocal(weekCursor, i))),
     [weekCursor]
   )
   const currentWeekStartIso = useMemo(() => toIsoLocal(mondayOfLocal(new Date())), [])
@@ -108,6 +139,12 @@ export default function BitacoraSemanaGrid({
 
   const isFestivo = (proyectoId, date) => findEntry(proyectoId, date)?.note === 'Festivo'
 
+  const getRowServicioValue = (proyectoId) => {
+    if (rowServicio[proyectoId] !== undefined) return rowServicio[proyectoId]
+    const withServicio = days.map((date) => findEntry(proyectoId, date)).find((e) => e?.serviceId)
+    return withServicio?.serviceId || ''
+  }
+
   const setDraftValue = (key, value) => setDrafts((d) => ({ ...d, [key]: value }))
 
   const handleDraftChange = (proyectoId, date, value) => {
@@ -131,6 +168,7 @@ export default function BitacoraSemanaGrid({
     }
 
     const entry = findEntry(proyectoId, date)
+    const serviceId = getRowServicioValue(proyectoId) || null
     try {
       if (value <= 0) {
         if (entry) await deleteTimelog(entry.id)
@@ -140,10 +178,10 @@ export default function BitacoraSemanaGrid({
       // numero de dias, no debe perder la marca al editar horas.
       const preservedNote = entry?.note === 'Reposición' ? 'Reposición' : ''
       if (entry) {
-        if (entry.days === value && entry.note === preservedNote) return
-        await updateTimelog(entry.id, { employeeId, projectId: proyectoId, date, days: value, note: preservedNote })
+        if (entry.days === value && entry.note === preservedNote && (entry.serviceId || null) === serviceId) return
+        await updateTimelog(entry.id, { employeeId, projectId: proyectoId, date, days: value, note: preservedNote, serviceId })
       } else {
-        await addTimelog({ employeeId, projectId: proyectoId, date, days: value, note: '' })
+        await addTimelog({ employeeId, projectId: proyectoId, date, days: value, note: '', serviceId })
       }
       toast.success('Guardado')
     } catch (err) {
@@ -153,6 +191,7 @@ export default function BitacoraSemanaGrid({
 
   const toggleFestivo = async (proyectoId, date) => {
     const entry = findEntry(proyectoId, date)
+    const serviceId = getRowServicioValue(proyectoId) || null
     try {
       if (entry?.note === 'Festivo') {
         await deleteTimelog(entry.id)
@@ -160,9 +199,9 @@ export default function BitacoraSemanaGrid({
         return
       }
       if (entry) {
-        await updateTimelog(entry.id, { employeeId, projectId: proyectoId, date, days: 0, note: 'Festivo' })
+        await updateTimelog(entry.id, { employeeId, projectId: proyectoId, date, days: 0, note: 'Festivo', serviceId })
       } else {
-        await addTimelog({ employeeId, projectId: proyectoId, date, days: 0, note: 'Festivo' })
+        await addTimelog({ employeeId, projectId: proyectoId, date, days: 0, note: 'Festivo', serviceId })
       }
       toast.success('Guardado')
     } catch (err) {
@@ -180,7 +219,7 @@ export default function BitacoraSemanaGrid({
     }
     try {
       const nextNote = entry.note === 'Reposición' ? '' : 'Reposición'
-      await updateTimelog(entry.id, { employeeId, projectId: proyectoId, date, days: entry.days, note: nextNote })
+      await updateTimelog(entry.id, { employeeId, projectId: proyectoId, date, days: entry.days, note: nextNote, serviceId: entry.serviceId || null })
       toast.success('Guardado')
     } catch (err) {
       toast.error('No se pudo marcar la reposición: ' + err.message)
@@ -292,7 +331,7 @@ export default function BitacoraSemanaGrid({
             <ChevronLeft size={18} />
           </button>
           <span className="text-sm font-semibold text-gray-900 text-center">
-            Semana del {fmtDate(weekStartIso)} al {fmtDate(days[6])}
+            Semana del {fmtDate(weekStartIso)} al {fmtDate(days[5])}
             {weekStartIso === currentWeekStartIso && (
               <span className="block text-[10px] font-semibold text-indigo-500 text-center">Semana actual</span>
             )}
@@ -357,11 +396,29 @@ export default function BitacoraSemanaGrid({
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-3 py-2 text-gray-900 font-medium sticky left-0 bg-white">
                     <div className="flex items-center justify-between gap-2">
-                      <span>{p.name}</span>
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <span>{p.name}</span>
+                        {(serviciosPorProyecto.get(p.id) || []).length > 0 && (
+                          <select
+                            value={getRowServicioValue(p.id)}
+                            disabled={readOnly}
+                            onChange={(e) => setRowServicio((r) => ({ ...r, [p.id]: e.target.value }))}
+                            title="Servicio al que pertenecen estas horas"
+                            className={`text-[10px] border rounded px-1 py-0.5 focus:ring-1 focus:ring-indigo-400 ${
+                              readOnly ? 'bg-gray-100 border-gray-200 text-gray-400' : 'border-gray-200 text-gray-500'
+                            }`}
+                          >
+                            <option value="">Servicio general</option>
+                            {serviciosPorProyecto.get(p.id).map((s) => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
                       {!misTimelogs.some((t) => t.projectId === p.id && days.includes(t.date)) && (
                         <button
                           onClick={() => handleRemoveEmptyRow(p.id)}
-                          className="text-gray-300 hover:text-red-500"
+                          className="text-gray-300 hover:text-red-500 shrink-0"
                           title="Quitar fila vacía"
                         >
                           <X size={14} />
@@ -425,6 +482,59 @@ export default function BitacoraSemanaGrid({
                   <td className="px-3 py-2 text-center font-semibold text-gray-900">{totalPorProyecto(p.id) || '—'}</td>
                 </tr>
               ))}
+              <tr className="bg-amber-50/50 hover:bg-amber-50">
+                <td className="px-3 py-2 text-gray-900 font-medium sticky left-0 bg-amber-50/50">
+                  Permisos
+                  <div className="text-[10px] font-normal text-gray-400">salud / personal</div>
+                </td>
+                {days.map((date, i) => (
+                  <td
+                    key={date}
+                    className="px-2 py-2 text-center"
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) commitPermisoCell(date)
+                    }}
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        placeholder="Horas"
+                        value={getCellValue(PERMISO_ID, date)}
+                        disabled={readOnly}
+                        onChange={(e) => handleDraftChange(PERMISO_ID, date, e.target.value)}
+                        className={`w-14 text-center border rounded-lg px-1 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                          readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
+                        }`}
+                      />
+                      <select
+                        value={getPermisoMotivoValue(date)}
+                        disabled={readOnly}
+                        onChange={(e) => setDraftValue(permisoMotivoKey(date), e.target.value)}
+                        className={`w-14 border rounded px-0.5 py-0.5 text-[9px] focus:ring-1 focus:ring-indigo-500 ${
+                          readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
+                        }`}
+                      >
+                        <option value="Salud">Salud</option>
+                        <option value="Personal">Personal</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="Detalle"
+                        title="Detalle (opcional)"
+                        value={getPermisoDescValue(date)}
+                        disabled={readOnly}
+                        onChange={(e) => setDraftValue(permisoNoteKey(date), e.target.value)}
+                        className={`w-14 text-center border rounded px-0.5 py-0.5 text-[9px] focus:ring-1 focus:ring-indigo-500 ${
+                          readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
+                        }`}
+                      />
+                    </div>
+                  </td>
+                ))}
+                <td className="px-3 py-2 text-center font-semibold text-gray-900">{totalPorProyecto(PERMISO_ID) || '—'}</td>
+              </tr>
             </tbody>
             <tfoot>
               <tr className="bg-gray-50 border-t border-gray-200">
@@ -438,69 +548,6 @@ export default function BitacoraSemanaGrid({
               </tr>
             </tfoot>
           </table>
-      </div>
-
-      {/* Casilla "Permiso" aparte del calendario -- horas de un dia que no se
-          trabajaron por permiso de salud o vuelta personal (ver comentario
-          de PERMISO_ID arriba). Cuentan para el total de la semana. */}
-      <div className="mt-4 border border-amber-200 rounded-xl bg-amber-50/40 p-3">
-        <div className="mb-3">
-          <h4 className="text-sm font-semibold text-gray-900">Permisos (salud / personal)</h4>
-          <p className="text-[11px] text-gray-500">
-            Registra aquí las horas que no trabajaste por un permiso de salud o una vuelta personal — cuentan para el total de la semana.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-2">
-          {days.map((date, i) => (
-            <div
-              key={date}
-              className="bg-white border border-amber-100 rounded-lg p-2 flex flex-col gap-1.5"
-              onBlur={(e) => {
-                if (!e.currentTarget.contains(e.relatedTarget)) commitPermisoCell(date)
-              }}
-            >
-              <span className="text-[11px] font-medium text-gray-600">
-                {DAY_LABELS[i]} <span className="text-gray-400 font-normal">{fmtDate(date)}</span>
-              </span>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                placeholder="Horas"
-                value={getCellValue(PERMISO_ID, date)}
-                disabled={readOnly}
-                onChange={(e) => handleDraftChange(PERMISO_ID, date, e.target.value)}
-                className={`w-full text-center border rounded-lg px-1 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                  readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
-                }`}
-              />
-              <select
-                value={getPermisoMotivoValue(date)}
-                disabled={readOnly}
-                onChange={(e) => setDraftValue(permisoMotivoKey(date), e.target.value)}
-                className={`w-full border rounded-lg px-1 py-1 text-[11px] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                  readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
-                }`}
-              >
-                <option value="Salud">Salud</option>
-                <option value="Personal">Personal</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Detalle (opcional)"
-                value={getPermisoDescValue(date)}
-                disabled={readOnly}
-                onChange={(e) => setDraftValue(permisoNoteKey(date), e.target.value)}
-                className={`w-full text-center border rounded-lg px-1 py-1 text-[10px] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                  readOnly ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'
-                }`}
-              />
-            </div>
-          ))}
-        </div>
-        <p className="text-right text-xs font-semibold text-gray-700 mt-2">
-          Total permisos: {totalPorProyecto(PERMISO_ID) || 0} h
-        </p>
       </div>
     </div>
   )

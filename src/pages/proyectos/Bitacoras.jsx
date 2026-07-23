@@ -7,6 +7,7 @@ import BitacoraSemanaGrid from '../../components/proyectos/BitacoraSemanaGrid'
 import { useTimelogsStore } from '../../store/useTimelogsStore'
 import { useProyectosStore } from '../../store/useProyectosStore'
 import { useEmpleadosStore } from '../../store/useEmpleadosStore'
+import { useServiciosStore } from '../../store/useServiciosStore'
 import { useAuthStore } from '../../store/useAuthStore'
 import { fmtDate, fmtMoney, todayIso } from '../../lib/formatters'
 import { mondayOfLocal, addDaysLocal, toIsoLocal } from '../../lib/dateWeek'
@@ -20,6 +21,7 @@ import { useNavigationStore } from '../../store/useNavigationStore'
 const OTROS_VALUE = '__sin_proyecto__'
 const PERMISO_NOTE_REGEX = /^\[Permiso:(Salud|Personal)\]/
 const round2 = (n) => Math.round(n * 100) / 100
+const isPermisoNote = (note) => typeof note === 'string' && PERMISO_NOTE_REGEX.test(note)
 
 function labelSinProyecto(note) {
   const m = typeof note === 'string' ? note.match(PERMISO_NOTE_REGEX) : null
@@ -63,6 +65,13 @@ export default function Bitacoras() {
     teardownRealtime: teardownEmpleadosRealtime,
   } = useEmpleadosStore()
 
+  const {
+    servicios,
+    fetchAll: fetchServicios,
+    initRealtime: initServiciosRealtime,
+    teardownRealtime: teardownServiciosRealtime,
+  } = useServiciosStore()
+
   useEffect(() => {
     fetchTimelogs()
     initTimelogsRealtime()
@@ -70,20 +79,33 @@ export default function Bitacoras() {
     initProyectosRealtime()
     fetchEmpleados()
     initEmpleadosRealtime()
+    fetchServicios()
+    initServiciosRealtime()
     return () => {
       teardownTimelogsRealtime()
       teardownProyectosRealtime()
       teardownEmpleadosRealtime()
+      teardownServiciosRealtime()
     }
   }, [
     fetchTimelogs, initTimelogsRealtime, teardownTimelogsRealtime,
     fetchProyectos, initProyectosRealtime, teardownProyectosRealtime,
     fetchEmpleados, initEmpleadosRealtime, teardownEmpleadosRealtime,
+    fetchServicios, initServiciosRealtime, teardownServiciosRealtime,
   ])
 
   const timelogs = [...rawTimelogs].sort((a, b) => b.date.localeCompare(a.date))
   const empleados = getEmpleadosActivos()
   const proyectosPorId = useMemo(() => new Map(proyectos.map((p) => [p.id, p])), [proyectos])
+  const serviciosPorId = useMemo(() => new Map(servicios.map((s) => [s.id, s])), [servicios])
+  const serviciosPorProyecto = useMemo(() => {
+    const map = new Map()
+    servicios.forEach((s) => {
+      if (!map.has(s.projectId)) map.set(s.projectId, [])
+      map.get(s.projectId).push(s)
+    })
+    return map
+  }, [servicios])
 
   useEffect(() => {
     if (!selectedEmployeeId && empleados.length > 0) setSelectedEmployeeId(empleados[0].id)
@@ -100,6 +122,8 @@ export default function Bitacoras() {
   })
 
   const totalDays = filtered.reduce((s, t) => s + t.days, 0)
+  const trabajadoresCount = new Set(filtered.filter((t) => !isPermisoNote(t.note)).map((t) => t.employeeId)).size
+  const permisosCount = filtered.filter((t) => isPermisoNote(t.note)).length
 
   const handleDelete = async (t) => {
     if (!window.confirm('¿Eliminar este registro de bitácora?')) return
@@ -113,6 +137,7 @@ export default function Bitacoras() {
 
   const getProjectName = (id) => (id === null ? 'Sin proyecto' : proyectos.find((p) => p.id === id)?.name || '—')
   const getEmpName = (id) => getEmpleadoById(id)?.name || '—'
+  const getServicioName = (id) => (id ? serviciosPorId.get(id)?.name || '—' : '—')
 
   // Resumen semanal -- quien registro bitacora esta semana + (solo admin)
   // cuanto gana cada uno. No usa BitacoraSemanaGrid (esa componente es por
@@ -120,7 +145,7 @@ export default function Bitacoras() {
   // vez para la semana seleccionada con resumenWeekCursor.
   const resumenWeekStartIso = toIsoLocal(resumenWeekCursor)
   const resumenWeekDays = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => toIsoLocal(addDaysLocal(resumenWeekCursor, i))),
+    () => Array.from({ length: 6 }, (_, i) => toIsoLocal(addDaysLocal(resumenWeekCursor, i))),
     [resumenWeekCursor]
   )
   const resumenPorEmpleado = useMemo(
@@ -138,7 +163,9 @@ export default function Bitacoras() {
         <div className="flex items-center gap-3">
           <ClipboardList size={24} className="text-indigo-600" />
           <h2 className="text-xl font-semibold text-gray-900">Bitácoras</h2>
-          <span className="text-sm text-gray-400">({filtered.length} registros · {totalDays} días)</span>
+          <span className="text-sm text-gray-400">
+            ({trabajadoresCount} trabajadores y {permisosCount} permisos · {totalDays} días)
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-gray-100 rounded-lg p-1">
@@ -214,7 +241,7 @@ export default function Bitacoras() {
               <ChevronLeft size={18} />
             </button>
             <span className="text-sm font-semibold text-gray-900">
-              Semana del {fmtDate(resumenWeekStartIso)} al {fmtDate(resumenWeekDays[6])}
+              Semana del {fmtDate(resumenWeekStartIso)} al {fmtDate(resumenWeekDays[5])}
             </span>
             <button
               onClick={() => setResumenWeekCursor((c) => addDaysLocal(c, 7))}
@@ -317,6 +344,7 @@ export default function Bitacoras() {
                   <tr className="bg-gray-50 text-left">
                     <th className="px-4 py-3 font-medium text-gray-600">Fecha</th>
                     <th className="px-4 py-3 font-medium text-gray-600">Proyecto</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Servicio</th>
                     <th className="px-4 py-3 font-medium text-gray-600">Empleado</th>
                     <th className="px-4 py-3 font-medium text-gray-600 text-center">Días</th>
                     <th className="px-4 py-3 font-medium text-gray-600">Nota</th>
@@ -326,7 +354,7 @@ export default function Bitacoras() {
                 <tbody className="divide-y divide-gray-100">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-gray-400">Sin registros de bitácora</td>
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-400">Sin registros de bitácora</td>
                     </tr>
                   ) : (
                     filtered.map((t) => (
@@ -344,6 +372,7 @@ export default function Bitacoras() {
                             </button>
                           )}
                         </td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">{getServicioName(t.serviceId)}</td>
                         <td className="px-4 py-3 text-gray-700">{getEmpName(t.employeeId)}</td>
                         <td className="px-4 py-3 text-center font-medium text-gray-900">{t.days}</td>
                         <td className="px-4 py-3 text-gray-600 text-xs max-w-[250px] truncate">{t.note || '—'}</td>
@@ -379,6 +408,7 @@ export default function Bitacoras() {
         data={formModal.data}
         proyectos={proyectos}
         empleados={empleados}
+        serviciosPorProyecto={serviciosPorProyecto}
         onClose={() => setFormModal({ open: false, data: null })}
         addTimelog={addTimelog}
         updateTimelog={updateTimelog}
@@ -389,16 +419,18 @@ export default function Bitacoras() {
 
 /* ─── Modal: Crear/Editar Bitácora ─── */
 
-function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, addTimelog, updateTimelog }) {
+function FormBitacoraGlobal({ open, data, proyectos, empleados, serviciosPorProyecto, onClose, addTimelog, updateTimelog }) {
   const [form, setForm] = useState({})
   const isEdit = !!data
 
   const resetForm = () => {
     setForm(data
-      ? { projectId: data.projectId, employeeId: data.employeeId, date: data.date, days: data.days, note: data.note }
-      : { projectId: '', employeeId: '', date: todayIso(), days: 1, note: '' }
+      ? { projectId: data.projectId, employeeId: data.employeeId, date: data.date, days: data.days, note: data.note, serviceId: data.serviceId || '' }
+      : { projectId: '', employeeId: '', date: todayIso(), days: 1, note: '', serviceId: '' }
     )
   }
+
+  const serviciosDisponibles = serviciosPorProyecto.get(form.projectId) || []
 
   if (open && !form.date && !isEdit) resetForm()
   if (open && isEdit && form._editId !== data?.id) {
@@ -434,7 +466,7 @@ function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, addTime
       <div className="space-y-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Proyecto *</label>
-          <select value={form.projectId || ''} onChange={(e) => set('projectId', e.target.value)}
+          <select value={form.projectId || ''} onChange={(e) => setForm((f) => ({ ...f, projectId: e.target.value, serviceId: '' }))}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             <option value="">Seleccionar proyecto...</option>
             {proyectos.map((p) => (
@@ -442,6 +474,18 @@ function FormBitacoraGlobal({ open, data, proyectos, empleados, onClose, addTime
             ))}
           </select>
         </div>
+        {serviciosDisponibles.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Servicio</label>
+            <select value={form.serviceId || ''} onChange={(e) => set('serviceId', e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="">Servicio general</option>
+              {serviciosDisponibles.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Empleado *</label>
           <select value={form.employeeId || ''} onChange={(e) => set('employeeId', e.target.value)}
