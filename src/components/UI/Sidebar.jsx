@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { ChevronDown, ChevronRight, X, LogOut } from 'lucide-react'
 import { departments, topLevelItems } from '../../data/departments'
 import { useNavigationStore } from '../../store/useNavigationStore'
 import { usePermission, checkPermission } from '../../hooks/usePermission'
 import { useAuthStore } from '../../store/useAuthStore'
 import { usePermisosStore } from '../../store/usePermisosStore'
+import { useEmpleadosStore } from '../../store/useEmpleadosStore'
 
 function saludoHora() {
   const h = new Date().getHours()
@@ -102,6 +104,16 @@ function DepartmentSection({ dept }) {
 
 export default function Sidebar({ session, perfil, onLogout }) {
   const { sidebarOpen, closeSidebar } = useNavigationStore()
+  const { employees, fetchAll: fetchEmpleados } = useEmpleadosStore()
+  const esEmpleado = perfil?.rol === 'empleado'
+  // RLS ya restringe 'empleados' a la fila propia para rol 'empleado' (ver
+  // patron identico en MiBitacora.jsx) -- seguro traer aqui solo para el
+  // portal, no expone datos de otros.
+  useEffect(() => {
+    if (esEmpleado) fetchEmpleados()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [esEmpleado])
+  const miEmpleado = esEmpleado ? employees[0] : null
 
   return (
     <>
@@ -119,18 +131,26 @@ export default function Sidebar({ session, perfil, onLogout }) {
       >
         <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <img
-              src="/logo-ada.png"
-              alt="ADA"
-              className="h-10 w-auto"
-              onError={(e) => { e.target.onerror = null; e.target.src = '/logo-ada.svg' }}
-            />
+            {miEmpleado?.photo ? (
+              <img
+                src={miEmpleado.photo}
+                alt={miEmpleado.name}
+                className="h-10 w-10 rounded-full object-cover border border-gray-200"
+              />
+            ) : (
+              <img
+                src="/logo-ada.png"
+                alt="ADA"
+                className="h-10 w-auto"
+                onError={(e) => { e.target.onerror = null; e.target.src = '/logo-ada.svg' }}
+              />
+            )}
             <div>
               <h1 className="text-lg font-bold text-gray-900">
                 {saludoHora()}, {(perfil?.nombre || '').split(' ')[0] || 'bienvenido/a'}
               </h1>
               <p className="text-xs text-gray-500">
-                {perfil?.rol === 'empleado' ? 'Tu portal de trabajo' : 'Arquitectura y Diseño'}
+                {esEmpleado ? (miEmpleado?.role || 'Tu portal de trabajo') : 'Arquitectura y Diseño'}
               </p>
             </div>
           </div>
@@ -166,7 +186,7 @@ export default function Sidebar({ session, perfil, onLogout }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-900">{perfil?.nombre || session.user.email}</p>
-                <p className="text-xs text-gray-400">{session.user.email}</p>
+                <p className="text-xs text-gray-400">{miEmpleado?.role || session.user.email}</p>
               </div>
               <button
                 onClick={onLogout}
