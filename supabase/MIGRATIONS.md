@@ -35,6 +35,10 @@
 | 025 | `025_permisos_ausencia.sql` | 2026-07-22 | Feature: tabla `permisos_ausencia` + RPC `fn_resolver_permiso_ausencia` (aprobar/rechazar, autocompleta `registro_horas` al aprobar) — nuevo módulo "Permisos" bajo Gestión Humana, solicitud con 15 días de anticipación | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
 | 026 | `026_tarea_reportes.sql` | 2026-07-22 | Feature: tabla `tarea_reportes` + bucket privado `tarea-reportes` — reportes de avance por tarea con adjunto opcional (imagen/audio/video), visibles para el empleado dueño y admin/rrhh | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-22 |
 | 027 | `027_arqueo_caja_pendiente_y_delete.sql` | 2026-07-23 | Feature: `arqueo_caja` gana `pendiente_monto`/`pendiente_concepto` (anotación de efectivo recibido pero no en caja física, no crea transacciones) + policy DELETE solo-admin (antes historial inmutable) — pedido tras revisión del descuadre de efectivo en Tesorería | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-23 |
+| 028 | `028_registro_horas_servicio.sql` | 2026-07-23 | Feature: `registro_horas` gana `servicio_id` opcional (FK a `servicios_proyecto`) para atribuir horas a un servicio específico dentro de un proyecto | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-24 |
+| 029 | `029_presupuesto_cotizacion.sql` | 2026-07-24 | Feature: tablas `presupuesto_categorias`/`presupuesto_items` — módulo "Presupuesto", primera entrega solo vista Cotización (categorías de obra con ítems, subtotal + Acompañamiento de obra, total). Visible solo admin/gerencia | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-24 |
+| 030 | `030_dias_laborales_mes_25.sql` | 2026-07-24 | Correctiva de dato: `configuracion.dias_laborales_mes` cambia de 23 a 25 — base real que usa la usuaria para el valor/día de cada empleado (costeo de mano de obra por proyecto) | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-24 |
+| 031 | `031_carga_prestacional_empleados.sql` | 2026-07-24 | Correctiva de dato: `empleados.carga_pct` pasa de un valor plano (30% para todos) al % real por cargo, calculado de la tabla de nómina real de la usuaria (carga prestacional ÷ pago neto) | ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-24 |
 
 ---
 
@@ -457,3 +461,39 @@
   - En `Bitacoras.jsx` (vista admin): columna "Servicio" en el historial, totales del header cambiados al formato pedido "X trabajadores y Y permisos" (conteo de empleados distintos vs. filas con nota `[Permiso:...]`), y selector de servicio agregado al modal de registro manual.
   - En `FormBitacora.jsx` (modal usado desde `ProyectoDetalle.jsx`, con `projectId` fijo): mismo selector de servicio, poblado con `useServiciosStore.getByProject(projectId)`.
   - Frontend: `dbTimelogs.js` (`servicio_id`/`serviceId` en columnas, `timelogFromRow`, `addTimelog`, `updateTimelog`).
+
+### 029 — Módulo Presupuesto: Cotización
+- **Archivo:** `migrations/029_presupuesto_cotizacion.sql`
+- **Fecha:** 2026-07-24
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-24
+- **Propósito:** pedido explícito de la usuaria, mostrando ejemplos reales (cotización PINAMAR 1701) — módulo "Presupuesto" por proyecto. Primera entrega: solo la vista "Cotización" — categorías de obra con ítems (cantidad, costo, estado, anotaciones), subtotal + "Acompañamiento de obra" (%), total. La usuaria aclaró que "Cotización" y las hojas de margen (Compras y Proveedores, costo original vs costo ADA) van todas bajo un mismo módulo "Presupuesto" — se deja la estructura general (columna `modo`) pero solo se construye la UI de Cotización en este corte; `modo='compra'` queda listo para una siguiente entrega sin nueva migración.
+- **Tablas afectadas:** `presupuesto_categorias` (nueva: `proyecto_id`, `servicio_id` opcional, `grupo`, `nombre`, `modo` obra/compra, `acompanamiento_pct`, `orden`), `presupuesto_items` (nueva: `categoria_id`, `descripcion`, `cantidad`, `costo_unitario`, `costo_original`/`costo_ada` para modo compra, `proveedor`, `personal`, `estado`, `porcentaje_avance`, `fecha_probable_fin`, `anotaciones`, `orden`), triggers de auditoría (`fn_audit_trigger`), ambas tablas agregadas a `supabase_realtime`.
+- **Dependencias:** `auth_rol()` (002), `fn_audit_trigger()` (004), `proyectos`/`servicios_proyecto` (010).
+- **Notas:**
+  - Se crean 2 tablas nuevas en vez de extender `servicios_proyecto`: ese modelo es 1 fila = 1 contrato/servicio (usado también para clasificar horas en Bitácora, migración 028) y no tiene granularidad de ítems. Se deja un link opcional `servicio_id` por si una categoría de presupuesto coincide con un servicio ya existente.
+  - Visibilidad: todo el módulo (incluyendo el futuro modo `compra` con márgenes/ganancia ADA) restringido a **admin + gerencia** únicamente — mismo criterio que `servicios_proyecto`/`proyectos.valor_contrato`. Se sembró `permisos` (`gerencia`→leer/escribir; admin tiene bypass).
+  - Frontend: `dbPresupuesto.js`, `usePresupuestoStore.js`, `FormPresupuestoCategoria.jsx`, `FormPresupuestoItem.jsx`, `SeccionPresupuesto.jsx` (nueva Sección F en `ProyectoDetalle.jsx`, gateada por `usePermission('presupuesto','leer')`).
+  - No se tocó "Compras y Proveedores", la matriz resumen por grupo, ni el costeo por empleado en Bitácora madre — quedan explícitamente para una siguiente entrega, a pedido de la usuaria de arrancar con lo más chico primero.
+
+### 030 — Base de días laborales del mes: 23 → 25
+- **Archivo:** `migrations/030_dias_laborales_mes_25.sql`
+- **Fecha:** 2026-07-24
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-24
+- **Propósito:** corrección de dato (no de esquema) pedida por la usuaria — el valor/día de cada empleado (tarifa mensual / días laborales del mes) debe calcularse sobre una base de 25 días, no los 23 sembrados originalmente en la migración 003. Afecta directamente el costeo de mano de obra por proyecto.
+- **Tablas afectadas:** `configuracion` (`UPDATE dias_laborales_mes = 25` para `tenant_id='ada'`).
+- **Dependencias:** `configuracion` (003).
+- **Notas:**
+  - No requiere ningún cambio de código: `getSettings()` (`dbSettings.js`) ya lee `dias_laborales_mes` en tiempo real y todo el costeo (`ProyectoDetalle.jsx`, `dbProyectos.js`, `dbEmpleados.js.getDailyRate()`) recalcula con el valor vigente en la tabla.
+  - No hay UI de administración para este valor (no existe página de "Configuración" con este campo editable) — el cambio se hace directo por SQL.
+
+### 031 — Carga prestacional real por empleado
+- **Archivo:** `migrations/031_carga_prestacional_empleados.sql`
+- **Fecha:** 2026-07-24
+- **Estado:** ✅ Ejecutada en Supabase (SQL Editor), confirmada 2026-07-24
+- **Propósito:** la usuaria envió su tabla real de nómina por cargo (PAGO NETO / CARGA PRESTACIONAL / TOTAL, mensual y diario). El campo `empleados.carga_pct` — ya usado en el costeo de mano de obra desde la corrección de fórmula de esta misma sesión (ver nota de código en `dbEmpleados.js.getDailyRate()`, `ProyectoDetalle.jsx`, `dbProyectos.js`) — tenía el mismo valor plano (30%) en los 9 empleados activos, sin corresponder a ningún cargo real. Se calculó `carga_pct = carga_prestacional / pago_neto * 100` por cargo y se cruzó con el salario ya cargado (`tarifa_mensual + salario_no_constitutivo`) para identificar a cada persona.
+- **Tablas afectadas:** `empleados` (`UPDATE carga_pct` para los 9 empleados activos de `tenant_id='ada'`).
+- **Dependencias:** `empleados` (007).
+- **Notas:**
+  - Se agregó también el input "Carga prestacional (%)" al formulario de empleado (`FormEmpleado.jsx`), que no existía — el campo estaba en el modelo de datos y en la fórmula de costeo pero no era editable desde la UI.
+  - Dos discrepancias de salario detectadas y documentadas, no corregidas en esta migración: CEO (`tarifa_mensual = 0` en la app vs $6.000.000 en la tabla de la usuaria) y Alejandra Castillo ($1.860.000 en la app vs $2.000.000 en la tabla de la usuaria).
+  - Juan David Villegas y Pablo Novoa comparten cargo en la app ("Coordinador de Carpintería") pero la tabla de la usuaria trae dos "Analista de Carpintería" con el mismo sueldo y % distinto (38.03%/37.09%) — no había forma de distinguirlos por dato existente, se asignó Villegas=38.03%/Novoa=37.09% como mejor esfuerzo; editable después por persona en Equipo.

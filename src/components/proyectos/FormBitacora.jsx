@@ -67,7 +67,7 @@ export default function FormBitacora({ projectId, open, onClose, editing = null 
         toast.success('Registro actualizado')
       } else {
         await addTimelog(data)
-        toast.success('Horas registradas')
+        toast.success('Días registrados')
       }
       onClose()
     } catch (err) {
@@ -76,7 +76,7 @@ export default function FormBitacora({ projectId, open, onClose, editing = null 
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={editing ? 'Editar registro' : 'Registrar horas'}>
+    <Modal open={open} onClose={onClose} title={editing ? 'Editar registro' : 'Registrar días'}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Persona *</label>

@@ -227,7 +227,7 @@ export default function BitacoraSemanaGrid({
   const toggleReposicion = async (proyectoId, date) => {
     const entry = findEntry(proyectoId, date)
     if (!entry || entry.days <= 0) {
-      toast.error('Ingresa las horas trabajadas antes de marcar reposición')
+      toast.error('Ingresa los días trabajados antes de marcar reposición')
       return
     }
     try {
@@ -282,7 +282,7 @@ export default function BitacoraSemanaGrid({
     const descValue = (rawNote !== undefined ? rawNote : parsedPrev.descripcion).trim()
 
     if (rawDays !== undefined && rawDays.trim() !== '' && (Number.isNaN(daysValue) || daysValue < 0)) {
-      toast.error('Ingresa un número de horas válido')
+      toast.error('Ingresa un número de días válido')
       return
     }
 
@@ -385,7 +385,7 @@ export default function BitacoraSemanaGrid({
 
       {rowProjects.length === 0 && (
         <p className="text-xs text-gray-400 mb-3">
-          Sin proyectos esta semana — usa "Agregar proyecto" para empezar a registrar horas.
+          Sin proyectos esta semana — usa "Agregar proyecto" para empezar a registrar días.
         </p>
       )}
       <div className="overflow-x-auto">
@@ -418,7 +418,7 @@ export default function BitacoraSemanaGrid({
                             value={getRowServicioValue(p.id)}
                             disabled={readOnly}
                             onChange={(e) => setRowServicio((r) => ({ ...r, [p.id]: e.target.value }))}
-                            title="Servicio al que pertenecen estas horas"
+                            title="Servicio al que pertenecen estos días"
                             className={`text-[10px] border rounded px-1 py-0.5 focus:ring-1 focus:ring-indigo-400 ${
                               readOnly ? 'bg-gray-100 border-gray-200 text-gray-400' : 'border-gray-200 text-gray-500'
                             }`}
@@ -515,7 +515,7 @@ export default function BitacoraSemanaGrid({
                         type="number"
                         min="0"
                         step="0.1"
-                        placeholder="Horas"
+                        placeholder="Días"
                         value={getCellValue(PERMISO_ID, date)}
                         disabled={readOnly}
                         onChange={(e) => handleDraftChange(PERMISO_ID, date, e.target.value)}

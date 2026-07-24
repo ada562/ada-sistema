@@ -175,7 +175,7 @@ export async function createEmpleadoAccount(empleadoId, email, password, accessT
 
 export async function getDailyRate(empleado) {
   const { workDaysPerMonth } = await getSettings()
-  return (empleado.monthlyRate + (empleado.nonConstitutiveSalary || 0)) / workDaysPerMonth
+  return (empleado.monthlyRate + (empleado.nonConstitutiveSalary || 0)) * (1 + (empleado.cargaPct || 0) / 100) / workDaysPerMonth
 }
 
 export function getAge(birthDate) {

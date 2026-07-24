@@ -8,16 +8,21 @@ import FormBitacora from '../components/proyectos/FormBitacora'
 import FormVisita from '../components/proyectos/FormVisita'
 import FormPago from '../components/proyectos/FormPago'
 import CuentaCobro from '../components/proyectos/CuentaCobro'
+import SeccionPresupuesto from '../components/proyectos/SeccionPresupuesto'
+import FormPresupuestoCategoria from '../components/proyectos/FormPresupuestoCategoria'
+import FormPresupuestoItem from '../components/proyectos/FormPresupuestoItem'
 import { useNavigationStore } from '../store/useNavigationStore'
 import { useProyectosStore } from '../store/useProyectosStore'
 import { useServiciosStore } from '../store/useServiciosStore'
 import { useTimelogsStore } from '../store/useTimelogsStore'
 import { useVisitasStore } from '../store/useVisitasStore'
 import { useEmpleadosStore } from '../store/useEmpleadosStore'
+import { usePresupuestoStore } from '../store/usePresupuestoStore'
 import { getTransactions } from '../lib/dbTesoreria'
 import { getSettings } from '../lib/dbSettings'
 import { fmtMoney, fmtDate } from '../lib/formatters'
 import { getTemaLabel } from '../lib/visitaTemas'
+import { usePermission } from '../hooks/usePermission'
 
 const statusColors = {
   Activo: 'bg-green-100 text-green-700',
@@ -65,6 +70,19 @@ export default function ProyectoDetalle() {
     initRealtime: initEmpleadosRealtime,
     teardownRealtime: teardownEmpleadosRealtime,
   } = useEmpleadosStore()
+  const {
+    categorias: categoriasPresupuesto,
+    fetchByProject: fetchPresupuesto,
+    initRealtime: initPresupuestoRealtime,
+    teardownRealtime: teardownPresupuestoRealtime,
+    addCategoria: addCategoriaPresupuesto,
+    updateCategoria: updateCategoriaPresupuesto,
+    deleteCategoria: deleteCategoriaPresupuesto,
+    addItem: addItemPresupuesto,
+    updateItem: updateItemPresupuesto,
+    deleteItem: deleteItemPresupuesto,
+  } = usePresupuestoStore()
+  const puedeVerPresupuesto = usePermission('presupuesto', 'leer')
   const proyecto = getProyectoById(viewParam)
 
   // Modal states
@@ -73,6 +91,8 @@ export default function ProyectoDetalle() {
   const [gastoModal, setGastoModal] = useState({ open: false, editing: null })
   const [pagoModal, setPagoModal] = useState({ open: false, editing: null })
   const [cuentaCobroOpen, setCuentaCobroOpen] = useState(false)
+  const [categoriaModal, setCategoriaModal] = useState({ open: false, editing: null })
+  const [itemModal, setItemModal] = useState({ open: false, editing: null, categoriaId: null })
   // Force re-fetch de transacciones (Tesorería no tiene store propio inyectado aquí)
   const [tick, setTick] = useState(0)
   const refresh = () => setTick((t) => t + 1)
@@ -111,6 +131,15 @@ export default function ProyectoDetalle() {
   ])
 
   useEffect(() => {
+    if (!viewParam || !puedeVerPresupuesto) return
+    fetchPresupuesto(viewParam)
+    initPresupuestoRealtime(viewParam)
+    return () => {
+      teardownPresupuestoRealtime()
+    }
+  }, [viewParam, puedeVerPresupuesto, fetchPresupuesto, initPresupuestoRealtime, teardownPresupuestoRealtime])
+
+  useEffect(() => {
     if (!proyecto) return
     let cancelled = false
     getTransactions().then((txs) => {
@@ -132,7 +161,7 @@ export default function ProyectoDetalle() {
       for (const log of logs) {
         const emp = getEmpleadoById(log.employeeId)
         if (emp) {
-          const rate = (emp.monthlyRate + (emp.nonConstitutiveSalary || 0)) / workDaysPerMonth
+          const rate = (emp.monthlyRate + (emp.nonConstitutiveSalary || 0)) * (1 + (emp.cargaPct || 0) / 100) / workDaysPerMonth
           const costo = log.days * rate
           total += costo
           if (!byEmployee[emp.id]) byEmployee[emp.id] = { emp, days: 0, costo: 0, rate }
@@ -240,6 +269,34 @@ export default function ProyectoDetalle() {
     if (!window.confirm(`¿Eliminar el servicio "${s.name}"?`)) return
     await deleteServicio(s.id)
     toast.success('Servicio eliminado')
+  }
+
+  const handleDeleteCategoriaPresupuesto = async (cat) => {
+    if (!window.confirm(`¿Eliminar la categoría "${cat.name}" y todos sus ítems?`)) return
+    await deleteCategoriaPresupuesto(cat.id)
+    toast.success('Categoría eliminada')
+  }
+
+  const handleDeleteItemPresupuesto = async (item) => {
+    if (!window.confirm(`¿Eliminar el ítem "${item.description}"?`)) return
+    await deleteItemPresupuesto(item.id)
+    toast.success('Ítem eliminado')
+  }
+
+  const handleSaveCategoriaPresupuesto = async (form) => {
+    if (categoriaModal.editing) {
+      await updateCategoriaPresupuesto(categoriaModal.editing.id, form)
+    } else {
+      await addCategoriaPresupuesto({ ...form, projectId: proyecto.id })
+    }
+  }
+
+  const handleSaveItemPresupuesto = async (form) => {
+    if (itemModal.editing) {
+      await updateItemPresupuesto(itemModal.editing.id, form)
+    } else {
+      await addItemPresupuesto({ ...form, categoriaId: itemModal.categoriaId })
+    }
   }
 
   return (
@@ -706,6 +763,19 @@ export default function ProyectoDetalle() {
         )}
       </Section>
 
+      {/* ═══ F · PRESUPUESTO (COTIZACIÓN) ═══ */}
+      {puedeVerPresupuesto && (
+        <SeccionPresupuesto
+          categorias={categoriasPresupuesto}
+          onAddCategoria={() => setCategoriaModal({ open: true, editing: null })}
+          onEditCategoria={(cat) => setCategoriaModal({ open: true, editing: cat })}
+          onDeleteCategoria={handleDeleteCategoriaPresupuesto}
+          onAddItem={(cat) => setItemModal({ open: true, editing: null, categoriaId: cat.id })}
+          onEditItem={(cat, item) => setItemModal({ open: true, editing: item, categoriaId: cat.id })}
+          onDeleteItem={handleDeleteItemPresupuesto}
+        />
+      )}
+
       {/* Modals */}
       <FormProyecto />
       <FormServicio projectId={proyecto.id} />
@@ -740,6 +810,18 @@ export default function ProyectoDetalle() {
         onClose={() => setCuentaCobroOpen(false)}
         proyecto={proyecto}
         servicios={servicios}
+      />
+      <FormPresupuestoCategoria
+        open={categoriaModal.open}
+        editing={categoriaModal.editing}
+        onClose={() => setCategoriaModal({ open: false, editing: null })}
+        onSave={handleSaveCategoriaPresupuesto}
+      />
+      <FormPresupuestoItem
+        open={itemModal.open}
+        editing={itemModal.editing}
+        onClose={() => setItemModal({ open: false, editing: null, categoriaId: null })}
+        onSave={handleSaveItemPresupuesto}
       />
     </div>
   )

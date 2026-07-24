@@ -146,7 +146,7 @@ export default function MiBitacora() {
           lockPastWeeks
         />
         <p className="text-xs text-gray-400 mt-3">
-          Las semanas anteriores a la actual quedan cerradas (solo lectura). Puedes registrar horas de la semana en curso y de semanas futuras. Marca "Festivo" en un día sin necesidad de registrar horas.
+          Las semanas anteriores a la actual quedan cerradas (solo lectura). Puedes registrar días de la semana en curso y de semanas futuras. Marca "Festivo" en un día sin necesidad de registrar días.
         </p>
       </div>
 

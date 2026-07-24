@@ -30,6 +30,7 @@ export const departments = [
     modules: [
       { id: 'resumen-gerencia', label: 'Resumen General', icon: TrendingUp },
       { id: 'bitacora-ceo', label: 'Bitácora CEO', icon: NotebookPen },
+      { id: 'tareas', label: 'Tareas', icon: CalendarDays },
       { id: 'reportes', label: 'Reportes', icon: ShieldCheck },
     ],
   },
@@ -42,7 +43,6 @@ export const departments = [
       { id: 'bitacoras', label: 'Bitácoras', icon: ClipboardList },
       { id: 'visitas', label: 'Visitas', icon: MapPin },
       { id: 'mi-bitacora', label: 'Mi Bitácora', icon: NotebookPen },
-      { id: 'tareas', label: 'Tareas', icon: CalendarDays },
     ],
   },
   {
@@ -53,7 +53,6 @@ export const departments = [
       { id: 'tesoreria', label: 'Tesorería', icon: Wallet },
       { id: 'arqueo-caja', label: 'Arqueo de Caja', icon: ClipboardCheck },
       { id: 'gba', label: 'GBA', icon: Handshake },
-      { id: 'contratistas', label: 'Contratistas', icon: Handshake },
     ],
   },
   {
@@ -65,6 +64,7 @@ export const departments = [
       { id: 'nomina', label: 'Nómina', icon: BadgeDollarSign },
       { id: 'contratos', label: 'Contratos', icon: FileText },
       { id: 'horarios', label: 'Horarios', icon: Clock },
+      { id: 'contratistas', label: 'Contratistas', icon: Handshake },
       { id: 'permisos', label: 'Permisos', icon: ClipboardX },
     ],
   },

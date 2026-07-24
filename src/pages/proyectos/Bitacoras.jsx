@@ -151,8 +151,8 @@ export default function Bitacoras() {
   const resumenPorEmpleado = useMemo(
     () => empleados.map((e) => {
       const delEmpleado = timelogs.filter((t) => t.employeeId === e.id && resumenWeekDays.includes(t.date))
-      const totalHoras = round2(delEmpleado.reduce((s, t) => s + (t.note === 'Festivo' ? 0 : t.days), 0))
-      return { empleado: e, registro: delEmpleado.length > 0, totalHoras }
+      const totalDias = round2(delEmpleado.reduce((s, t) => s + (t.note === 'Festivo' ? 0 : t.days), 0))
+      return { empleado: e, registro: delEmpleado.length > 0, totalDias }
     }),
     [empleados, timelogs, resumenWeekDays]
   )
@@ -264,7 +264,7 @@ export default function Bitacoras() {
                 <tr className="bg-gray-50 text-left">
                   <th className="px-3 py-2 font-medium text-gray-600">Empleado</th>
                   <th className="px-3 py-2 font-medium text-gray-600 text-center">¿Registró bitácora?</th>
-                  <th className="px-3 py-2 font-medium text-gray-600 text-center">Horas registradas</th>
+                  <th className="px-3 py-2 font-medium text-gray-600 text-center">Días registrados</th>
                   {isAdmin && <th className="px-3 py-2 font-medium text-gray-600 text-right">Tarifa mensual</th>}
                 </tr>
               </thead>
@@ -274,7 +274,7 @@ export default function Bitacoras() {
                     <td colSpan={isAdmin ? 4 : 3} className="px-3 py-8 text-center text-gray-400">Sin empleados activos</td>
                   </tr>
                 ) : (
-                  resumenPorEmpleado.map(({ empleado, registro, totalHoras }) => (
+                  resumenPorEmpleado.map(({ empleado, registro, totalDias }) => (
                     <tr key={empleado.id} className="hover:bg-gray-50">
                       <td className="px-3 py-2 text-gray-900 font-medium">{empleado.name}</td>
                       <td className="px-3 py-2 text-center">
@@ -288,7 +288,7 @@ export default function Bitacoras() {
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-center font-medium text-gray-900">{totalHoras || '—'}</td>
+                      <td className="px-3 py-2 text-center font-medium text-gray-900">{totalDias || '—'}</td>
                       {isAdmin && (
                         <td className="px-3 py-2 text-right text-gray-700">
                           {empleado.monthlyRate ? fmtMoney(empleado.monthlyRate) : '—'}

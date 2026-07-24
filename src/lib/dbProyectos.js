@@ -149,7 +149,7 @@ function computeProjectMetrics(projectId, allTransactions, allTimelogs, empleado
   for (const log of timelogs) {
     const emp = empleadosPorId.get(log.employeeId)
     if (emp) {
-      const rate = (emp.monthlyRate + (emp.nonConstitutiveSalary || 0)) / workDaysPerMonth
+      const rate = (emp.monthlyRate + (emp.nonConstitutiveSalary || 0)) * (1 + (emp.cargaPct || 0) / 100) / workDaysPerMonth
       costoManoObra += log.days * rate
     }
   }

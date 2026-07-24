@@ -176,17 +176,25 @@ export default function FormEmpleado() {
             </select>
           </Field>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <Field label="Salario mensual">
             <input type="number" name="monthlyRate" value={form.monthlyRate} onChange={handleChange} min="0" className={inputCls} />
           </Field>
           <Field label="Salario no constitutivo">
             <input type="number" name="nonConstitutiveSalary" value={form.nonConstitutiveSalary} onChange={handleChange} min="0" className={inputCls} />
           </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Carga prestacional (%)">
+            <input type="number" name="cargaPct" value={form.cargaPct} onChange={handleChange} min="0" step="0.01" placeholder="Ej: 23.67" className={inputCls} />
+          </Field>
           <Field label="Vencimiento contrato">
             <input type="date" name="contractUntil" value={form.contractUntil} onChange={handleChange} className={inputCls} />
           </Field>
         </div>
+        <p className="text-xs text-gray-400 -mt-1">
+          % de carga prestacional individual (prestaciones, aportes) sobre el salario de este empleado. Se usa para calcular el valor real del día en costeo de proyectos.
+        </p>
 
         {/* ── Seguridad social ── */}
         <SectionTitle>Seguridad social</SectionTitle>
