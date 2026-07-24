@@ -5,6 +5,13 @@ import { usePermission, checkPermission } from '../../hooks/usePermission'
 import { useAuthStore } from '../../store/useAuthStore'
 import { usePermisosStore } from '../../store/usePermisosStore'
 
+function saludoHora() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Buenos días'
+  if (h < 19) return 'Buenas tardes'
+  return 'Buenas noches'
+}
+
 function TopLevelItem({ item }) {
   const { activeView, setActiveView } = useNavigationStore()
   const puedeVer = usePermission(item.id)
@@ -119,8 +126,12 @@ export default function Sidebar({ session, perfil, onLogout }) {
               onError={(e) => { e.target.onerror = null; e.target.src = '/logo-ada.svg' }}
             />
             <div>
-              <h1 className="text-lg font-bold text-gray-900">Gestión</h1>
-              <p className="text-xs text-gray-500">Arquitectura y Diseño</p>
+              <h1 className="text-lg font-bold text-gray-900">
+                {saludoHora()}, {(perfil?.nombre || '').split(' ')[0] || 'bienvenido/a'}
+              </h1>
+              <p className="text-xs text-gray-500">
+                {perfil?.rol === 'empleado' ? 'Tu portal de trabajo' : 'Arquitectura y Diseño'}
+              </p>
             </div>
           </div>
           <button
