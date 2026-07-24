@@ -104,21 +104,20 @@ export default function BitacoraSemanaGrid({
     [timelogs, employeeId]
   )
 
-  // Todos los proyectos Activos aparecen siempre como fila, sin necesidad de
-  // "Agregar proyecto" -- se pidio explicitamente que la bitacora semanal no
-  // dependa de que ya exista un registro esa semana. Ademas se incluye
-  // cualquier proyecto con horas ya registradas esa semana (aunque haya
-  // cambiado de estado despues) y los agregados manualmente (ej. un proyecto
-  // Pausado/Finalizado donde se necesita loguear una hora suelta).
-  // hiddenProjectIds permite ocultar una fila Activa vacia que no aplica esa
-  // semana (el boton "Quitar fila vacia") sin afectar otras semanas ni el
-  // registro de otros empleados.
+  // Todos los proyectos de 'proyectosDisponibles' aparecen siempre como fila,
+  // sin necesidad de "Agregar proyecto" -- se pidio explicitamente que la
+  // bitacora semanal no dependa de que ya exista un registro esa semana, y
+  // que se muestren TODOS los proyectos (no solo los Activos): cada pagina
+  // que usa este componente decide su propio alcance (MiBitacora.jsx sigue
+  // pre-filtrando a Activo antes de pasarlo, Bitacoras.jsx/BitacoraCeo.jsx
+  // pasan la lista completa sin filtrar). Ademas se incluye cualquier
+  // proyecto con horas ya registradas esa semana (por si no esta en
+  // 'proyectosDisponibles') y los agregados manualmente.
+  // hiddenProjectIds permite ocultar una fila vacia que no aplica esa semana
+  // (el boton "Quitar fila vacia") sin afectar otras semanas ni el registro
+  // de otros empleados.
   const rowProjectIds = useMemo(() => {
-    const ids = new Set(
-      proyectosDisponibles
-        .filter((p) => p.status === 'Activo' || p.status === undefined)
-        .map((p) => p.id)
-    )
+    const ids = new Set(proyectosDisponibles.map((p) => p.id))
     misTimelogs
       .filter((t) => days.includes(t.date) && t.projectId)
       .forEach((t) => ids.add(t.projectId))
